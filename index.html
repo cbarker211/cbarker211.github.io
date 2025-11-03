@@ -32,8 +32,7 @@
 			box-sizing: content-box !important;
 		}
 
-		#slider, 
-		#slider * {
+		#slider, #slider * {
 			box-sizing: border-box !important;
 		}
 
@@ -43,10 +42,8 @@
 		}
 
 		.filter-container {
-			gap: 20px; 
 			display: flex; 
 			flex-direction: column; 
-			margin-bottom: 10px;
 		}
 
 		.filter {
@@ -57,6 +54,7 @@
 			height: auto;
 			cursor: pointer; /* show pointer on hover */
 			text-align: left;
+			margin-top: 0.5rem;
 		}
 
 		.filter label {
@@ -65,7 +63,6 @@
 			display: inline-flex;
 			align-items: center;
 			gap: 6px;
-			position: relative;
 			padding: 2px;
 		}
 
@@ -92,6 +89,7 @@
 			display: none !important;
 			content: none !important;
 		}
+		
 		/* Hide dropdown initially */
 		.dropdown ul {
 			display: none;
@@ -170,13 +168,8 @@
 			height: 100%;
 			padding: 0;
 		}
-	
-		.chart {
-			height: 100%;
-			width: 100%;
-		}
 
-		.globe .map .chart {
+		.globe, .map, .chart {
 			height: 100%;
 			width: 100%;
 		}
@@ -207,7 +200,7 @@
 
 		.nav-tabs .nav-item {
 			padding: 0px 15px 0px 0px;
-			margin: 0 0 0 0;
+			margin: 0;
 		}
 
 		.nav-tabs .nav-link {
@@ -295,7 +288,7 @@
 		.item-answer {
 			display: none;
 			color: rgb(0, 0, 0);
-			padding: 2rem;
+			padding: 10px;
 		}
 		.close {
 			display: none;
@@ -312,7 +305,7 @@
 			display: none;
 		}
 
-		/* Style for the arrow button */
+		/* Style for the arrow button on the table*/
 		.arrow-button {
 			background: #143d59;
 			border: none;
@@ -331,6 +324,8 @@
 		.arrow-button:focus {
 			outline: none;
 		}
+
+		/* Styling for the date range slider */
 
 		.noUi-horizontal {
 			height: 5px;
@@ -373,11 +368,7 @@
 			color: #ffffff;
 		}
 
-		.noUi-marker-large {
-			background:  #ffffff;
-		}
-
-		.noUi-marker {
+		.noUi-marker, .noUi-marker-large {
 			background:  #ffffff;
 		}
 
@@ -404,7 +395,7 @@
 				<div id="slider" style="margin:25px 35px 35px 35px;"></div>
 			</div>
 
-			<button class="tab" type="submit" id="applyFilters" style="margin: 0 0 10px 0;">Apply Filters</button>
+			<button class="tab" type="submit" id="applyFilters" style="margin: 0 0 0 0;">Apply Filters</button>
 				
 			<div class="filter-container">
 
@@ -448,7 +439,7 @@
 						answer: "Our calculations are based on the current best scientific knowledge available for emissions from rocket launches. We include the effects of a changing chemical environment with altitude in our launch emissions, and calculate emissions globally up to a maximum altitude of 80 km. Paths shown in the Globe view are fixed at the launch site and do not represent real rocket trajectories."
 					},
 					{ question: "Where can I find the original methodology and data?",
-					answer: "You can find further details in our study published in Nature Scientific Data: Global 3D rocket launch and re-entry air pollutant and carbon dioxide emissions for 2020-2022</strong>. C. R. Barker, E. A. Marais (2024). doi:10.5522/04/26325382. [<a href='https://doi.org/10.5522/04/26325382' target='_blank' rel='noopener noreferrer'>Data</a>]. [<a href='https://www.nature.com/articles/s41597-024-03910-z' target='_blank' rel='noopener noreferrer'>Publication</a>]</p>"
+					answer: "You can find further details in our study published in Nature Scientific Data: Global 3D rocket launch and re-entry air pollutant and carbon dioxide emissions for 2020-2022</strong>. C. R. Barker, E. A. Marais (2024). doi:10.5522/04/26325382. [<a href='https://doi.org/10.5522/04/26325382' target='_blank' rel='noopener noreferrer'>Data</a>]. [<a href='https://www.nature.com/articles/s41597-024-03910-z' target='_blank' rel='noopener noreferrer'>Publication</a>].</p>"
 					}
 				];
 
@@ -460,12 +451,8 @@
 					article.classList.add('faq-item');
 
 					const markup = `
-							<div class="item-question">
-								<span class="question-text">${item.question}</span>
-								<span class="arrows-container">
-									<span class="expand">▼</span>
-									<span class="close">▲</span>
-								</span>
+							<div class="filter">
+								<label>${item.question}</label>
 							</div>
 							<div class="item-answer">
 								<span>${item.answer}</span>
@@ -476,11 +463,11 @@
 					faqsContainer.append(article);
 				});
 
-				const toggleButtons = document.querySelectorAll('.arrows-container');
+				const faqQuestions = document.querySelectorAll('.filter');
 					
-				toggleButtons.forEach(button => {
-					button.addEventListener('click', function(e) {
-						const faqItem = e.currentTarget.parentElement.parentElement;
+				faqQuestions.forEach(question => {
+					question.addEventListener('click', function(e) {
+						const faqItem = question.parentElement;
 						faqItem.classList.toggle("show-answer");
 					});
 				});

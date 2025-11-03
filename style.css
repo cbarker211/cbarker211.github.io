@@ -80,15 +80,6 @@ body {
 	border-bottom: 1px solid #ddd;
 	}
 
-#footer {
-	background: #eee url('themes/default/images_css/kubrickfooter.jpg') no-repeat top;
-	border: none;
-    width: 1095px;
-	margin: 0px 15px 0;
-	padding: 0;
-	text-align: center;
-	}
-
 small {
 	font-family: Arial, Helvetica, Sans-Serif;
 	font-size: 0.9em;
@@ -98,6 +89,7 @@ small {
 h1, h2, h3 {
 	font-weight: bold;
 	text-align: left;
+	color: white;
 	}
 
 h1 {
@@ -106,7 +98,7 @@ h1 {
 
 h2 {
 	font-size: 1.6em;
-	padding: 10px 0 10px 0;
+	padding: 10px 0 0 0;
 	margin: 0px;
 	}
 
@@ -116,12 +108,12 @@ h3 {
 	margin: 30px 0 0;
 	}
 
-h1, h1 a, h1 a:hover, h1 a:visited, #headerimg .description {
+h1 a, h1 a:hover, h1 a:visited, #headerimg .description {
 	text-decoration: none;
-	color: white;
+	color: rgb(255, 255, 255);
 	}
 
-h2, h2 a, h2 a:visited, h3, h3 a, h3 a:visited {
+h2 a, h2 a:visited, h3, h3 a, h3 a:visited {
 	color: #ffffff;
 	}
 
@@ -185,8 +177,6 @@ h3.comments {
 	font-weight: normal;
 	}
 
-
-
 code {
 	font: 1.1em 'Courier New', Courier, Fixed;
 	}
@@ -226,14 +216,6 @@ a:hover {
 	}
 /* End Typography & Colors */
 
-
-
-/* Begin Structure */
-body {
-	margin: 0 0 20px 0;
-	padding: 0;
-	}
-
 #featured {z-index: 10; padding: 60px 20px 0px 35px; float:left}
 
 #randomimg {padding: 5px 28px 10px 42px; float:left}
@@ -267,117 +249,9 @@ body {
 }
 #navmenu a:hover,a:active {z-index: 999;color: white; background-color:#69AEE7}
 
-#headerimg 	{
-	margin: 7px 9px 0;
-	height: 258px;
-	width: 1071px;
-	}
-
-#header {
-	background-color: #e7e7e7;
-	margin: 0 0 0 1px;
-	padding: 0;
-	height: 200px;
-	width: 1125px;
-	}
-
-#headerimg {
-	margin: 0;
-	height: 200px;
-	width: 100%;
-	}
-
-.narrowcolumn {
-	float: left;
-	padding: 0 0 20px 45px;
-	margin: 0px 0 0;
-	width: 660px;
-	}
-
-.widecolumn {
-	padding: 0px 0 10px 0;
-	margin: 80px 0 0 110px;
-	width: 875px;
-	}
-
-.widecolumnintro  {
-	padding: 13px 0 20px 10px;
-	margin: 25px 0 0 100px;
-	width: 800px;
-	}
-
-.post {
-	margin: 0 0 40px;
-	text-align: justify;
-	}
-
-.post hr {
-	display: block;
-	}
-
-.widecolumn .post {
-	margin: 0;
-	}
-
-.narrowcolumn .postmetadata {
-	padding-top: 5px;
-	}
-
-.widecolumn .postmetadata {
-	margin: 30px 0;
-	}
-
-.widecolumn .smallattachment {
-	text-align: center;
-	float: left;
-	width: 128px;
-	margin: 5px 5px 5px 0px;
-}
-
-.widecolumn .attachment {
-	text-align: center;
-	margin: 5px 0px;
-}
-
-.postmetadata {
-	clear: both;
-}
-
 .clear {
 	clear: both;
 }
-
-.color-box{
-	background-color: white; 
-	width: 917px; 
-	height: 42px; 
-	margin-left: 32px; 
-	margin-top: -52px; 
-	border-color: black; 
-	border-style: solid; 
-	border-width: 1px}
-
-.transparent-box{
-	background-color: transparent; 
-	width: 1090px; 
-	height: 162px; 
-	margin-left:13px; 
-	margin-top:-42px; 
-	border-color:transparent}
-
-/*#footer {
-	padding: 0;
-	margin: 0px 13px; auto;
-	width: 1097px;
-	clear: both;
-	}*/
-
-#footer p {
-	margin: 0px 13px;
-	padding: 20px 0;
-	text-align: center;
-	}
-/* End Structure */
 
 /* Begin Images */
 p img {
@@ -448,12 +322,6 @@ html>body .entry li {
 	padding: 0;
 	}
 
-.postmetadata ul, .postmetadata li {
-	display: inline;
-	list-style-type: none;
-	list-style-image: none;
-	}
-
 #sidebar ul, #sidebar ul ol {
 	margin: 0;
 	padding: 0;
@@ -486,8 +354,6 @@ ol li, #sidebar ul ol li {
 	padding: 0;
 	}
 /* End Entry Lists */
-
-
 
 /* Begin Form Elements */
 #searchform {
