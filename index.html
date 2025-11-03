@@ -38,8 +38,8 @@
 		}
 
 		p {
-			margin-top: 12.6px !important;
-			margin-bottom: 12.6px !important;
+			margin-top: 12px;
+			margin-bottom: 12px;
 		}
 
 		.filter-container {
@@ -54,8 +54,9 @@
 			background: #143d59;
 			color: whitesmoke;
 			padding: 0.25rem;
-			height: 15px;
+			height: auto;
 			cursor: pointer; /* show pointer on hover */
+			text-align: left;
 		}
 
 		.filter label {
@@ -65,6 +66,7 @@
 			align-items: center;
 			gap: 6px;
 			position: relative;
+			padding: 2px;
 		}
 
 		.filter label::after {
@@ -112,13 +114,14 @@
 			font-size: 1.2em;
 			display: flex;
 			align-items: center;
+			text-align: left;
 			gap: 15px;
 			padding: 0;
 		}
 
 		.filter.open .dropdown ul {
 			display: block;
-			padding: 0px;
+			padding: 5px;
 		}
 
 		.entry ul li:before {
@@ -135,13 +138,6 @@
 			max-width: 500px; /* Adjust the width as needed */
 		}
 
-		#map {
-			width: 100%;
-			height: 100%;  /* or 100%, or whatever fits your layout */
-			margin: 0;
-			padding: 0;
-		}
-
 		/* Style for the tabs */
 		.tabs {
 			display: flex;
@@ -149,8 +145,40 @@
 			margin-bottom: 10px;
 		}
 
+		#chart-tab-pane {
+			height: 68vh;  /* 68% of viewport height */
+		}
+
+		.tab-pane {
+			height: 100%;
+			display: flex; /* Ensure children align properly */
+    		flex-direction: column; /* Align children vertically */
+		}
+
+		.tab-pane .row {
+			flex-grow: 1;
+			height: 100%;
+		}
+
+		.row {
+			margin: 0;
+			padding: 0;
+			height: 100%;
+		}
+
+		.col-8, .col-4 {
+			height: 100%;
+			padding: 0;
+		}
+	
+		.chart {
+			height: 100%;
+			width: 100%;
+		}
+
 		.globe .map .chart {
 			height: 100%;
+			width: 100%;
 		}
 
 		.tab {
@@ -167,15 +195,18 @@
 
 		#myTabContent {
 			padding: 15px 0px 15px 0px;
+			height: 65vh;
+			display: flex; /* Optional: Ensures children align properly */
+			flex-direction: column; /* Optional: Aligns children vertically */
 		}
 
 		.nav-tabs{
 			border: 0px;
-			font-size: 1.5em;
+			font-size: 1.6em;
 		}
 
 		.nav-tabs .nav-item {
-			padding: 0px 30px 0px 0px;
+			padding: 0px 15px 0px 0px;
 			margin: 0 0 0 0;
 		}
 
@@ -185,7 +216,7 @@
 			margin-bottom: 0px;
 			border: 5px solid transparent;
 			border-bottom-left-radius: 0px;
-			padding: 5px;
+			padding: 4px;
 		}
 
 		.nav-tabs .nav-link:hover {
@@ -203,16 +234,14 @@
 
 		.nav-tabs-container {
 			border-bottom: 5px solid #e9e9e9; /* or your desired color */
-			margin-bottom: 10px; /* spacing below the line */
+			margin-bottom: 0px; /* spacing below the line */
 		}
 
 		/* Container to align the tables side by side */
 		.table-container {
-			display: flex;
-			justify-content: space-between;
 			gap: 20px;
 			position: relative;
-			padding: 15px 0px 15px 0px;
+			padding: 15px 15px 15px 0px;
 		}
 
 		/* Table styling */
@@ -250,11 +279,12 @@
 		.item-question {
 			background: #143d59;
 			color: whitesmoke;
-			font-size: 1rem;
+			font-size: 1.125em;
 			padding: 0.5rem;
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
+			text-align: left;
 		}
 		.question-text {
 			display: inline-block;
@@ -292,8 +322,8 @@
 			font-size: 1rem; /* Increase size for better visibility */
 			position: absolute; /* Position relative to the table container */
 			top: 86px; /* Align with the top of the table */
-			left: -39px; /* Place the button outside the table on the right */
-			width: 39px;
+			left: -20px; /* Place the button outside the table on the right */
+			width: 20px;
 			height: 39px;
 			z-index: 10; /* Ensure the button is above other elements */
 		}
@@ -333,8 +363,7 @@
 			border-radius: 50%; 
 		}
 
-		.noUi-handle:before,
-		.noUi-handle:after {
+		.noUi-handle:before, .noUi-handle:after {
 			display: none;
 		}
 
@@ -360,23 +389,25 @@
 			top: -7px;
 		}
 
-
 	</style>
 
 	<div class="main-row">
 
 		<div class="left-column">
 
-			<h1 style="text-align: center;">Rocket Launch Emissions</h1>
+			<h1 style="text-align: center; padding-top:10px;">Rocket Launch Emissions</h1>
+			<p style="text-align: left;">Welcome to our tracker of pollutant and greenhouse gas emissions from rocket launches! Select a time window of interest to visualise pollution on interactive plots, a 3D globe, or a 2D map. For more information, see the FAQs at the bottom of this section. </p>	
+	
+			<h2>Filters</h2>
+
 			<div class="filter-container">
-				
-				<p style="text-align: left;">Select a time range</p>	
-				<div id="slider" style="margin-left:35px; margin-right:35px;"></div>
+				<div id="slider" style="margin:25px 35px 35px 35px;"></div>
 			</div>
 
+			<button class="tab" type="submit" id="applyFilters" style="margin: 0 0 10px 0;">Apply Filters</button>
+				
 			<div class="filter-container">
 
-				<p style="text-align: left;">Filter launches</p>
 				<div class="filter">
 					<label>Launch Site</label>
 					<div class="dropdown" id="locationFilter">
@@ -471,7 +502,7 @@
 					<button class="nav-link"        id="map-tab"   data-bs-toggle="tab" data-bs-target="#map"   type="button" role="tab" aria-controls="map"   aria-selected="false">2D Map</button>
 					</li>
 				</ul>
-				<button class="tab" type="submit" id="applyFilters">Apply Filters</button>
+				
 			</div>
 
 			<div class="tab-content" id="myTabContent">
@@ -493,690 +524,11 @@
 				</div>
 			</div>
 
-			<script>
-
-				const startYear = 2020;
-				const endYear = 2024;
-				const totalMonths = (endYear - startYear + 1) * 12;
-				let globe;
-				var slider = document.getElementById('slider');
-
-				function indexToDate(index) {
-					const year = startYear + Math.floor(index / 12);
-					const intIndex = Math.floor(Number(index)); 
-					const month = intIndex % 12;
-					return `01/${String(month + 1).padStart(2, '0')}/${year}`;
-				}
-
-				function intToDateString(monthIndex) {
-
-					// Calculate year and month offset
-					const year = 2020 + Math.floor(monthIndex / 12);
-					const month = (monthIndex % 12);
-
-					// Build date object (day 1 of the month)
-					const date = new Date(year, month, 1);
-
-					// Format YYYY-MM-DD
-					const yyyy = date.getFullYear();
-					const mm = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based
-					const dd = String(date.getDate()).padStart(2, '0');
-
-					return `${yyyy}-${mm}-${dd}`;
-				}
-
-				noUiSlider.create(slider, {
-					start: [0, 60],
-					connect: true,
-					step: 1,
-					range: {
-						min: 0,
-						max: totalMonths,
-					},
-					tooltips: [        
-						{
-							to: value => indexToDate(value),
-							from: () => 0
-						},
-						{
-							to: value => indexToDate(value),
-							from: () => 0
-						}
-					],
-					format: {
-						to: value => Math.round(value),
-						from: value => Number(value)
-					},
-					pips: {
-						mode: 'steps',
-						density: 12,
-						filter: function(value) {
-							// Show label only every 12 months (1 year)
-							return (value % 12 === 0) ? 1 : 0;  // 1 = show label, 0 = hide
-						},
-						format: {
-							to: function(value) {
-								// label only for year start (Jan)
-								return value % 12 === 0 ? (startYear + value / 12) : '';
-							}
-						}
-					}
-				});	
-				
-				slider.noUiSlider.on('end', (values, handle) => {
-					// values is an array of current slider values as strings
-					// handle is 0 (left handle) or 1 (right handle)
-
-					startDate = intToDateString(Number(values[0]));
-					endDate = intToDateString(Number(values[1]));
-					console.log(startDate, endDate);
-					fetchEventsData(); // Fetch data 
-
-					// Now update your data or UI based on leftValue and rightValue
-					//updateMyData(leftValue, rightValue);
-				});
-
-				function populateFilters(launches) {
-					// Get unique values from filtered_launches for each filter
-					const locations = [...new Set(launches.text)];
-					const rockets = [...new Set(launches.rocket)];
-					const smcValues = [...new Set(launches.smc)];
-
-					// Function to populate checkboxes inside a given filter dropdown
-					function populateCheckboxes(filterId, values) {
-						const dropdown = document.getElementById(filterId);
-						const ul = dropdown.querySelector('ul');
-						ul.innerHTML = ''; // Clear any previous entries
-
-						values.forEach(value => {
-							const li = document.createElement('li');
-							li.innerHTML = `<label><input type="checkbox" value="${value}" /> ${value}</label>`;
-							ul.appendChild(li);
-						});
-					}
-
-					// Populate each filter
-					populateCheckboxes('locationFilter', locations.sort());
-					populateCheckboxes('rocketFilter', rockets.sort());
-					populateCheckboxes('smcFilter', smcValues);
-				}
-
-				function filterlaunches(all_launches) {
-
-					function getSelectedfilters(filter) {
-						const var_filter = document.getElementById(filter);
-						const checkboxes = var_filter.querySelectorAll('input[type="checkbox"]:checked');
-						return Array.from(checkboxes).map(checkbox => checkbox.value);
-					}
-
-					// Get selected values from each filter
-					const selectedLocations = getSelectedfilters('locationFilter');
-					const selectedRockets   = getSelectedfilters('rocketFilter');
-					const selectedSmc       = getSelectedfilters('smcFilter');
-
-					// Find indices to keep based on selected filters
-					let indicesToKeep = [...Array(all_launches.date.length).keys()];  // All indices initially
-
-					// Filter based on location
-					if (selectedLocations.length > 0) {
-						indicesToKeep = indicesToKeep.filter(i => selectedLocations.includes(all_launches.text[i]));
-					}
-
-					// Filter based on rocket
-					if (selectedRockets.length > 0) {
-						indicesToKeep = indicesToKeep.filter(i => selectedRockets.includes(all_launches.rocket[i]));
-					}
-
-					// Filter based on smc
-					if (selectedSmc.length > 0) {
-						indicesToKeep = indicesToKeep.filter(i => selectedSmc.includes(all_launches.smc[i]));	
-					}
-
-					// Filter the column arrays using the indicesToKeep
-					const filteredData = {
-						date: indicesToKeep.map(i => all_launches.date[i]),
-						time: indicesToKeep.map(i => all_launches.time[i]),
-						lat: indicesToKeep.map(i => all_launches.lat[i]),
-						lon: indicesToKeep.map(i => all_launches.lon[i]),
-						text: indicesToKeep.map(i => all_launches.text[i]),
-						id: indicesToKeep.map(i => all_launches.id[i]),
-						rocket: indicesToKeep.map(i => all_launches.rocket[i]),
-						smc: indicesToKeep.map(i => all_launches.smc[i] ? "Yes" : "No"),
-						BC: indicesToKeep.map(i => all_launches.BC[i]),
-						CO: indicesToKeep.map(i => all_launches.CO[i]),
-						CO2: indicesToKeep.map(i => all_launches.CO2[i]),
-						H2O: indicesToKeep.map(i => all_launches.H2O[i]),
-						Al2O3: indicesToKeep.map(i => all_launches.Al2O3[i]),
-						Cly: indicesToKeep.map(i => all_launches.Cly[i]),
-						NOx: indicesToKeep.map(i => all_launches.NOx[i]),
-					};
-
-					// Update the visualizations with the filtered data
-					updateVisualizations(filteredData);
-				}
-				
-				async function fetchEventsData() {
-					try {
-						// Fetch the data from the API (replace with your actual API URL)
-						// Data is in tonnes in json files.
-						const response1 = await fetch(`https://cbarker.pythonanywhere.com/api/launches?start_date=${startDate}&end_date=${endDate}`); // Replace with your actual API URL
-						const launchData = await response1.json();
-						
-						all_launches = {
-							date: [],
-							time: [],
-							lat: [],
-							lon: [],
-							text: [],
-							id: [],
-							rocket: [],
-							smc: [],
-							BC: [],
-							CO: [],
-							CO2: [],
-							H2O: [],
-							Al2O3: [],
-							Cly: [],
-							NOx: []
-						};
-
-						Object.keys(launchData).forEach(date => {
-							launchData[date].launches.forEach(launch => {
-								all_launches.date.push(launch.date);
-								all_launches.time.push(launch.time)
-								all_launches.lat.push(parseFloat(launch.lat));
-								all_launches.lon.push(parseFloat(launch.lon));
-								all_launches.text.push(launch.location);
-								all_launches.id.push(launch.id);
-								all_launches.rocket.push(launch.rocket);
-								all_launches.smc.push(launch.smc.toString());
-								all_launches.BC.push(launch.emissions.BC);
-								all_launches.CO.push(launch.emissions.CO);
-								all_launches.CO2.push(launch.emissions.CO2);
-								all_launches.H2O.push(launch.emissions.H2O);
-								all_launches.Al2O3.push(launch.emissions.Al2O3);
-								all_launches.Cly.push(launch.emissions.Cly);
-								all_launches.NOx.push(launch.emissions.NOx);
-							});
-						});
-						
-						populateFilters(all_launches);
-						updateVisualizations(all_launches);
-
-					} catch (error) {
-						console.error('Error fetching or processing the events data:', error);
-					}
-				}
-
-				function updateVisualizations(filtered_launches) {
-					updateTables(filtered_launches);
-					updateMaps(filtered_launches);
-					updateGraph(filtered_launches);
-					updateGlobe(filtered_launches);
-					updateStack(filtered_launches);
-				}
-
-				const prettyNames = {
-					BC: 'BC',
-					CO: 'CO',
-					CO2: 'CO<sub>2</sub>',
-					H2O: 'H<sub>2</sub>O',
-					Al2O3: 'Al<sub>2</sub>O<sub>3</sub>',
-					Cly: 'Cl<sub>y</sub>',
-					NOx: 'NO<sub>x</sub>'
-				};
-
-				const strongColors = {
-					BC: 'rgba(0,0,0,1)',
-					CO: '#575757',
-					CO2: '#969696',
-					H2O: '#2c20c9',
-					Al2O3: '#c40000',
-					Cly: '#1cba26',
-					NOx: '#c99b24'
-				};
-
-				function updateGlobe(filtered_launches) {
-
-					const gData = filtered_launches.lat.map((latitude, index) => {
-						const longitude = filtered_launches.lon[index];
-
-						return {
-							lat: latitude,
-							lon: longitude,
-							//name: `Launch ID ${filtered_launches.id[index]}`,
-						};
-					});
-
-					// Step 1: Group launches by site (lat/lng + site name as key)
-					const siteMap = {};
-					filtered_launches.lat.forEach((lat, i) => {
-						const lng = filtered_launches.lon[i];
-						const site = filtered_launches.text[i];  // launch site name
-						const id = filtered_launches.id[i];
-						const vehicle = filtered_launches.rocket[i];
-						const key = `${site}_${lat}_${lng}`;
-
-						if (!siteMap[key]) {
-							siteMap[key] = {
-							lat: lat - 1,
-							lng,
-							name: site,
-							labels: []
-							};
-						}
-
-						siteMap[key].labels.push(`Launch ${id} - ${vehicle}`);
-					});
-
-					// Step 2: Convert to array
-					const labelSites = Object.values(siteMap);
-
-					const OPACITYPATH  = 0.3;
-
-					if (!globe) {
-						globe = new Globe(document.getElementById('globe'))
-							.globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg')
-							.pointLat(d => d.lat)
-							.pointLng(d => d.lon)
-							.pointColor(() => `rgba(0, 255, 0, ${OPACITYPATH})`)
-							.pointRadius(0.5)
-							.pointAltitude(0.2)
-							.labelLat(d => d.lat)
-							.labelLng(d => d.lng)
-							.labelText(d => d.name)  // Label the location with the launch site.
-							.labelLabel(d => d.labels.join('<br>'))  // Hover over label gives launch IDs.
-							.labelResolution(2)
-							.labelSize(1.5)
-							.labelDotRadius(0);
-
-						globe.pointsData(gData);
-						globe.labelsData(labelSites);
-
-						setTimeout(() => {
-						globe
-							.pointOfView({ lat: 0, lng: 0, altitude: 1.9 }, 1000);
-						}, 0);
-				
-					} else {
-						globe.pointsData(gData);
-						globe.labelsData(labelSites);
-					}
-				}
-
-				function updateTables(filtered_launches) {
-					
-					const table1Body = document.getElementById('launchTableBody');
-					const table1Foot = document.getElementById('launchTableFoot');
-					table1Body.innerHTML = '';
-					table1Foot.innerHTML = '';
-					let totalBC = 0, totalCO = 0, totalCO2 = 0, totalH2O = 0;
-					let totalAl2O3 = 0, totalCly = 0, totalNOx = 0;
-					filtered_launches.id.forEach((location, index) => {
-						const row = document.createElement('tr');
-						const BC = filtered_launches.BC[index];
-						const CO = filtered_launches.CO[index];
-						const CO2 = filtered_launches.CO2[index];
-						const H2O = filtered_launches.H2O[index];
-						const Al2O3 = filtered_launches.Al2O3[index];
-						const Cly = filtered_launches.Cly[index];
-						const NOx = filtered_launches.NOx[index];
-						totalBC    += BC;
-						totalCO    += CO;
-						totalCO2   += CO2;
-						totalH2O   += H2O;
-						totalAl2O3 += Al2O3;
-						totalCly   += Cly;
-						totalNOx   += NOx;
-						row.innerHTML = `
-							<td>${filtered_launches.date[index]}</td> 
-							<td>${location}</td>  
-							<td>${filtered_launches.time[index].toFixed(2)}</td> 
-							<td class="wrap-text">${filtered_launches.text[index]}</td> 
-							<td class="wrap-text">${filtered_launches.rocket[index]}</td> 
-							<td>${filtered_launches.smc[index]}</td> 
-							<td>${filtered_launches.BC[index].toFixed(1)}</td> 
-							<td>${filtered_launches.CO[index].toFixed(1)}</td> 
-							<td>${filtered_launches.CO2[index].toFixed(1)}</td> 
-							<td>${filtered_launches.H2O[index].toFixed(1)}</td> 
-							<td>${filtered_launches.Al2O3[index].toFixed(1)}</td> 
-							<td>${filtered_launches.Cly[index].toFixed(1)}</td> 
-							<td>${filtered_launches.NOx[index].toFixed(1)}</td> 
-						`;
-						table1Body.appendChild(row);
-					});
-					// Add Totals to Launch Table
-					const totalRow1 = document.createElement('tr');
-					totalRow1.innerHTML = `
-						<td>Total</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>${totalBC.toFixed(1)}</td>
-						<td>${totalCO.toFixed(1)}</td>
-						<td>${totalCO2.toFixed(1)}</td>
-						<td>${totalH2O.toFixed(1)}</td>
-						<td>${totalAl2O3.toFixed(1)}</td>
-						<td>${totalCly.toFixed(1)}</td>
-						<td>${totalNOx.toFixed(1)}</td>
-					`;
-					table1Foot.appendChild(totalRow1);
-				}
-
-				function updateMaps(filtered_launches) {
-					const latitudes1 = filtered_launches.lat;
-					const longitudes1 = filtered_launches.lon;
-					const labels1 = filtered_launches.id;
-
-					const mapData1 = latitudes1.length > 0 && longitudes1.length > 0 ? [{
-						type: 'scattergeo',
-						lat: latitudes1,
-						lon: longitudes1,
-						text: labels1,
-						mode: 'markers+text',
-						marker: {
-						size: 12,
-						color: 'blue',
-						symbol: 'x',
-						},
-						textfont: {
-							size: 15,  // Font size for the labels
-							color: 'black',  // Color of the text
-							weight: 'bold',
-							family: 'Inter Tight, sans-serif',
-						},
-						textposition: 'right',
-					}] : [{
-						type: 'scattergeo',
-						mode: 'markers', // Keep the map but without data points
-						marker: { size: 0 }, // Invisible markers
-					}];
-
-					const layout = {
-						paper_bgcolor: 'rgba(0,0,0,0)',
-						plot_bgcolor: 'rgba(0,0,0,0)',
-						geo: {
-							resolution: 100, 
-							projection: { type: 'robinson' },
-							showland: true,
-							landcolor: 'rgb(217, 217, 217)',
-							showocean: true,
-							oceancolor: 'rgb(204, 233, 255)',
-							showcountries: true,
-							countrycolor: 'rgb(50, 50, 50)',
-							showsubunits: true,
-							subunitcolor: 'rgb(150, 150, 150)',
-							showgrid: true,
-							gridcolor: 'rgb(220, 220, 220)',
-							gridwidth: 2,
-							griddash: 'dash', // Dashed gridlines for both axes
-							lataxis: {
-								showgrid: true,  // Gridline for latitude axis
-								gridcolor: 'rgb(220, 220, 220)', // Optional: specify grid color
-								griddash: 'dash', // Dashed gridline style
-								tickmode: 'array',
-								ticks: '',
-								ticklen: 10,
-								tickcolor: 'rgb(220, 220, 220)',
-								showticklabels: false,
-								zeroline: false
-							},
-							lonaxis: {
-								showgrid: true,  // Gridline for longitude axis
-								gridcolor: 'rgb(220, 220, 220)', // Optional: specify grid color
-								griddash: 'dash', // Dashed gridline style
-								tickmode: 'array',
-								ticks: '',
-								ticklen: 10,
-								tickcolor: 'rgb(220, 220, 220)',
-								showticklabels: false,
-								zeroline: false
-							}
-						},
-						autosize: true,  // Automatically resize the chart
-						margin: {
-							l: 40,
-							r: 40,
-							t: 40,
-							b: 40  // <- reduce bottom margin here
-						}
-					};
-					Plotly.newPlot('map', mapData1, layout, {responsive: true});
-				}
-				
-				function updateGraph(filtered_launches) {
-
-					const totals = {
-						BC: 0,
-						CO: 0,
-						CO2: 0,
-						H2O: 0,
-						Al2O3: 0,
-						Cly: 0,
-						NOx: 0
-					};
-					filtered_launches.id.forEach((location, index) => {
-						totals.BC    += filtered_launches.BC[index];
-						totals.CO    += filtered_launches.CO[index];
-						totals.CO2   += filtered_launches.CO2[index];
-						totals.H2O   += filtered_launches.H2O[index];
-						totals.Al2O3 += filtered_launches.Al2O3[index];
-						totals.Cly   += filtered_launches.Cly[index];
-						totals.NOx   += filtered_launches.NOx[index];
-					});
-					
-					// Prepare the data for Plotly
-					const maxYValue = Object.values(totals).reduce((sum, val) => sum + val, 0);
-					
-					const trace = Object.keys(totals).map(key => ({
-						x: ['Total'],
-						y: [totals[key] / 1000]  ,
-						name: prettyNames[key],
-						type: 'bar',
-						marker: {color: strongColors[key]}
-					}));
-					
-					const layout = {
-						paper_bgcolor: 'rgba(0,0,0,0)',
-						plot_bgcolor: 'rgba(0,0,0,0)',
-						font: {
-							size: 15,  // Font size for the labels
-							family: 'Inter Tight, sans-serif',
-						},
-						title: {
-							text: 'Total Emissions',
-						},
-						barmode: 'stack',
-						yaxis: {
-							range: [0,maxYValue / 1000]
-						},
-						legend: {
-							orientation: 'v',
-							x: 1.05,
-							y: 1,
-							itemwidth: 3,
-							font: {
-								size: 13,  // Font size for the legend
-								family: 'Inter Tight, sans-serif',
-							}
-						},
-						autosize: true,  // Automatically resize the chart
-						margin: {
-							l: 40,
-							r: 40,
-							t: 40,
-							b: 20  // <- reduce bottom margin here
-						}
-					};
-
-					// Plot the chart inside the 'emissionsChart' div
-					Plotly.newPlot('bar', trace, layout, {responsive: true});
-
-				}
-
-				function updateStack(filtered_launches) {
-
-					const species = ['BC', 'CO', 'CO2', 'H2O', 'Al2O3', 'Cly', 'NOx'];
-					
-					const monthlySums = {};
-
-					// Step 1: Loop through each launch (index)
-					for (let i = 0; i < filtered_launches.date.length; i++) {
-						const month = filtered_launches.date[i].slice(0, 7);  // 'YYYY-MM'
-						if (!monthlySums[month]) {
-							monthlySums[month] = {};
-							species.forEach(sp => monthlySums[month][sp] = 0);
-						}
-						species.forEach(sp => {
-							monthlySums[month][sp] += Number(filtered_launches[sp][i]) || 0; // Ensure numeric
-						});
-						}
-
-					const months = Object.keys(monthlySums).sort();
-					const maxYValue = Math.max(...months);
-
-					const traces = species.map(sp => ({
-						x: months,
-						y: months.map(m => monthlySums[m][sp] / 1000),
-						stackgroup: 'one',
-						name: prettyNames[sp],
-						type: 'scatter',
-						mode: 'none',
-						fillcolor: strongColors[sp]
-					}));
-
-					const layout = {
-						paper_bgcolor: 'rgba(0,0,0,0)',
-						plot_bgcolor: 'rgba(0,0,0,0)',
-						autosize: true,
-						title: {
-							text: 'Monthly Emissions (click legend to show/hide species)',
-						},
-						font: {
-							size: 15,  // Font size for the labels
-							family: 'Inter Tight, sans-serif',
-						},
-						yaxis: {
-							title: {
-								text: 'Mass [kilotonnes]',
-							},
-							range: [0,maxYValue / 1000]
-						},
-						legend: {
-							orientation: 'v',
-							x: 1.05,
-							y: 1,
-							font: {
-								size: 13,  // Font size for the legend
-								family: 'Inter Tight, sans-serif',
-							}
-						},
-						autosize: true,  // Automatically resize the chart
-						margin: {
-							l: 40,
-							r: 40,
-							t: 40,
-							b: 20  // <- reduce bottom margin here
-						}
-					};
-
-					Plotly.newPlot('stack', traces , layout, {responsive: true});
-
-				}
-				
-				// Plot a default date when the page opens, then update when the date changes.
-				document.addEventListener('DOMContentLoaded', () => {
-
-					const daterange = slider.noUiSlider.get();
-					startDate = intToDateString(Number(daterange[0]));
-					endDate = intToDateString(Number(daterange[1]));
-					fetchEventsData(); // Fetch data for the default date
-
-					document.getElementById('applyFilters').addEventListener('click', () => {
-						filterlaunches(all_launches);
-					});
-
-					const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
-					tabEls.forEach(function (tab) {
-						tab.addEventListener('shown.bs.tab', function (event) {
-							const activatedTabId = event.target.id;
-							if (activatedTabId === 'chart-tab') {
-								// Resize your Plotly charts
-								Plotly.Plots.resize(document.getElementById('stack'));
-								Plotly.Plots.resize(document.getElementById('bar'));
-							}
-							if (activatedTabId === 'globe-tab') {
-								// Resize your Globe.gl renderer (assuming you have one)
-								if (window.globe) {
-									resizeGlobe();
-								}
-							}
-							if (activatedTabId === 'map-tab') {
-								// Resize Plotly map (if you're using Plotly for map)
-								Plotly.Plots.resize(document.getElementById('map'));
-							}
-						});
-					});
-				});
-
-				// JavaScript to toggle the table visibility and update the arrow
-				const toggleButton = document.getElementById('toggleTableButton');
-				const tableBody = document.getElementById('launchTableBody');
-
-				toggleButton.addEventListener('click', () => {
-					const isHidden = tableBody.style.display === 'none';
-					tableBody.style.display = isHidden ? 'table-row-group' : 'none';
-					toggleButton.innerHTML = isHidden ? '&#9660;' : '&#9650;'; // Down arrow when shown, up arrow when hidden
-				});
-
-				document.querySelectorAll('.filter').forEach(filter => {
-					filter.addEventListener('click', e => {
-						// Prevent toggling when clicking inside dropdown list itself
-						if (e.target.closest('.dropdown ul')) return;
-
-						// Close other open dropdowns first (optional)
-						document.querySelectorAll('.filter.open').forEach(openFilter => {
-						if (openFilter !== filter) openFilter.classList.remove('open');
-						});
-
-						// Toggle current filter open class
-						filter.classList.toggle('open');
-					});
-				});
-
-				// Optional: Close dropdowns if clicked outside
-				document.addEventListener('click', e => {
-					if (!e.target.closest('.filter')) {
-						document.querySelectorAll('.filter.open').forEach(openFilter => {
-						openFilter.classList.remove('open');
-						});
-					}
-				});
-
-				// Function to resize the globe based on its container size
-				const resizeGlobe = () => {
-					const container = document.getElementById('globe');
-					// Set the width and height of the globe based on the container's size
-					globe.width(container.offsetWidth).height(container.offsetHeight);
-					
-					// Manually reset the canvas element size to match the container size
-					const canvas = document.querySelector('canvas');
-					canvas.style.width = `${container.offsetWidth}px`;
-					canvas.style.height = `${container.offsetHeight}px`;
-					canvas.style.transform = 'none';
-				};
-
-			</script> 
-		</div>
-		
-		<div class="right-column">
 			<!-- Table for Launch Locations -->
 			<div class="table-container">
 				<div>
-					<h3 style="margin: 0px;">Launch Details (Click arrow to expand)</h3>
-					<p>[Emissions in tonnes, time in UTC. SMC=Satellite Megaconstellation]</p>
+					<h3 style="margin: 0px; color: rgb(51,51,51);">Launch Details (Click arrow to expand)</h3>
+					<p style="text-align: left;">[Emissions in tonnes, time in UTC. SMC=Satellite Megaconstellation]</p>
 					<table id="launchTable">
 						<thead>
 							<tr>
@@ -1205,14 +557,694 @@
 					</table>
 				</div>
 			</div>
-		</div>	
+		</div>
 	</div>
+
+	<script>
+
+		const startYear = 2020;
+		const endYear = 2024;
+		const totalMonths = (endYear - startYear + 1) * 12;
+		let globe;
+		var slider = document.getElementById('slider');
+
+		function indexToDate(index) {
+			const year = startYear + Math.floor(index / 12);
+			const intIndex = Math.floor(Number(index)); 
+			const month = intIndex % 12;
+			return `01/${String(month + 1).padStart(2, '0')}/${year}`;
+		}
+
+		function intToDateString(monthIndex) {
+
+			// Calculate year and month offset
+			const year = 2020 + Math.floor(monthIndex / 12);
+			const month = (monthIndex % 12);
+
+			// Build date object (day 1 of the month)
+			const date = new Date(year, month, 1);
+
+			// Format YYYY-MM-DD
+			const yyyy = date.getFullYear();
+			const mm = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based
+			const dd = String(date.getDate()).padStart(2, '0');
+
+			return `${yyyy}-${mm}-${dd}`;
+		}
+
+		noUiSlider.create(slider, {
+			start: [0, 60],
+			connect: true,
+			step: 1,
+			range: {
+				min: 0,
+				max: totalMonths,
+			},
+			tooltips: [        
+				{
+					to: value => indexToDate(value),
+					from: () => 0
+				},
+				{
+					to: value => indexToDate(value),
+					from: () => 0
+				}
+			],
+			format: {
+				to: value => Math.round(value),
+				from: value => Number(value)
+			},
+			pips: {
+				mode: 'steps',
+				density: 12,
+				filter: function(value) {
+					// Show label only every 12 months (1 year)
+					return (value % 12 === 0) ? 1 : 0;  // 1 = show label, 0 = hide
+				},
+				format: {
+					to: function(value) {
+						// label only for year start (Jan)
+						return value % 12 === 0 ? (startYear + value / 12) : '';
+					}
+				}
+			}
+		});	
+		
+		slider.noUiSlider.on('end', (values, handle) => {
+			// values is an array of current slider values as strings
+			// handle is 0 (left handle) or 1 (right handle)
+
+			startDate = intToDateString(Number(values[0]));
+			endDate = intToDateString(Number(values[1]));
+			console.log(startDate, endDate);
+			fetchEventsData(); // Fetch data 
+
+			// Now update your data or UI based on leftValue and rightValue
+			//updateMyData(leftValue, rightValue);
+		});
+
+		function populateFilters(launches) {
+			// Get unique values from filtered_launches for each filter
+			const locations = [...new Set(launches.text)];
+			const rockets = [...new Set(launches.rocket)];
+			const smcValues = [...new Set(launches.smc)];
+
+			// Function to populate checkboxes inside a given filter dropdown
+			function populateCheckboxes(filterId, values) {
+				const dropdown = document.getElementById(filterId);
+				const ul = dropdown.querySelector('ul');
+				ul.innerHTML = ''; // Clear any previous entries
+
+				values.forEach(value => {
+					const li = document.createElement('li');
+					li.innerHTML = `<label><input type="checkbox" value="${value}" /> ${value}</label>`;
+					ul.appendChild(li);
+				});
+			}
+
+			// Populate each filter
+			populateCheckboxes('locationFilter', locations.sort());
+			populateCheckboxes('rocketFilter', rockets.sort());
+			populateCheckboxes('smcFilter', smcValues);
+		}
+
+		function filterlaunches(all_launches) {
+
+			function getSelectedfilters(filter) {
+				const var_filter = document.getElementById(filter);
+				const checkboxes = var_filter.querySelectorAll('input[type="checkbox"]:checked');
+				return Array.from(checkboxes).map(checkbox => checkbox.value);
+			}
+
+			// Get selected values from each filter
+			const selectedLocations = getSelectedfilters('locationFilter');
+			const selectedRockets   = getSelectedfilters('rocketFilter');
+			const selectedSmc       = getSelectedfilters('smcFilter');
+
+			// Find indices to keep based on selected filters
+			let indicesToKeep = [...Array(all_launches.date.length).keys()];  // All indices initially
+
+			// Filter based on location
+			if (selectedLocations.length > 0) {
+				indicesToKeep = indicesToKeep.filter(i => selectedLocations.includes(all_launches.text[i]));
+			}
+
+			// Filter based on rocket
+			if (selectedRockets.length > 0) {
+				indicesToKeep = indicesToKeep.filter(i => selectedRockets.includes(all_launches.rocket[i]));
+			}
+
+			// Filter based on smc
+			if (selectedSmc.length > 0) {
+				indicesToKeep = indicesToKeep.filter(i => selectedSmc.includes(all_launches.smc[i]));	
+			}
+
+			// Filter the column arrays using the indicesToKeep
+			const filteredData = {
+				date: indicesToKeep.map(i => all_launches.date[i]),
+				time: indicesToKeep.map(i => all_launches.time[i]),
+				lat: indicesToKeep.map(i => all_launches.lat[i]),
+				lon: indicesToKeep.map(i => all_launches.lon[i]),
+				text: indicesToKeep.map(i => all_launches.text[i]),
+				id: indicesToKeep.map(i => all_launches.id[i]),
+				rocket: indicesToKeep.map(i => all_launches.rocket[i]),
+				smc: indicesToKeep.map(i => all_launches.smc[i] ? "Yes" : "No"),
+				BC: indicesToKeep.map(i => all_launches.BC[i]),
+				CO: indicesToKeep.map(i => all_launches.CO[i]),
+				CO2: indicesToKeep.map(i => all_launches.CO2[i]),
+				H2O: indicesToKeep.map(i => all_launches.H2O[i]),
+				Al2O3: indicesToKeep.map(i => all_launches.Al2O3[i]),
+				Cly: indicesToKeep.map(i => all_launches.Cly[i]),
+				NOx: indicesToKeep.map(i => all_launches.NOx[i]),
+			};
+
+			// Update the visualizations with the filtered data
+			updateVisualizations(filteredData);
+		}
+		
+		async function fetchEventsData() {
+			try {
+				// Fetch the data from the API (replace with your actual API URL)
+				// Data is in tonnes in json files.
+				const response1 = await fetch(`https://cbarker.pythonanywhere.com/api/launches?start_date=${startDate}&end_date=${endDate}`); // Replace with your actual API URL
+				const launchData = await response1.json();
+				
+				all_launches = {
+					date: [],
+					time: [],
+					lat: [],
+					lon: [],
+					text: [],
+					id: [],
+					rocket: [],
+					smc: [],
+					BC: [],
+					CO: [],
+					CO2: [],
+					H2O: [],
+					Al2O3: [],
+					Cly: [],
+					NOx: []
+				};
+
+				Object.keys(launchData).forEach(date => {
+					launchData[date].launches.forEach(launch => {
+						all_launches.date.push(launch.date);
+						all_launches.time.push(launch.time)
+						all_launches.lat.push(parseFloat(launch.lat));
+						all_launches.lon.push(parseFloat(launch.lon));
+						all_launches.text.push(launch.location);
+						all_launches.id.push(launch.id);
+						all_launches.rocket.push(launch.rocket);
+						all_launches.smc.push(launch.smc.toString());
+						all_launches.BC.push(launch.emissions.BC);
+						all_launches.CO.push(launch.emissions.CO);
+						all_launches.CO2.push(launch.emissions.CO2);
+						all_launches.H2O.push(launch.emissions.H2O);
+						all_launches.Al2O3.push(launch.emissions.Al2O3);
+						all_launches.Cly.push(launch.emissions.Cly);
+						all_launches.NOx.push(launch.emissions.NOx);
+					});
+				});
+				
+				populateFilters(all_launches);
+				updateVisualizations(all_launches);
+
+			} catch (error) {
+				console.error('Error fetching or processing the events data:', error);
+			}
+		}
+
+		function updateVisualizations(filtered_launches) {
+			updateTables(filtered_launches);
+			updateMaps(filtered_launches);
+			updateGraph(filtered_launches);
+			updateGlobe(filtered_launches);
+			updateStack(filtered_launches);
+		}
+
+		const prettyNames = {
+			BC: 'BC',
+			CO: 'CO',
+			CO2: 'CO<sub>2</sub>',
+			H2O: 'H<sub>2</sub>O',
+			Al2O3: 'Al<sub>2</sub>O<sub>3</sub>',
+			Cly: 'Cl<sub>y</sub>',
+			NOx: 'NO<sub>x</sub>'
+		};
+
+		const strongColors = {
+			BC: 'rgba(0,0,0,1)',
+			CO: '#575757',
+			CO2: '#969696',
+			H2O: '#2c20c9',
+			Al2O3: '#c40000',
+			Cly: '#1cba26',
+			NOx: '#c99b24'
+		};
+
+		function updateGlobe(filtered_launches) {
+
+			const gData = filtered_launches.lat.map((latitude, index) => {
+				const longitude = filtered_launches.lon[index];
+
+				return {
+					lat: latitude,
+					lon: longitude,
+					//name: `Launch ID ${filtered_launches.id[index]}`,
+				};
+			});
+
+			// Step 1: Group launches by site (lat/lng + site name as key)
+			const siteMap = {};
+			filtered_launches.lat.forEach((lat, i) => {
+				const lng = filtered_launches.lon[i];
+				const site = filtered_launches.text[i];  // launch site name
+				const id = filtered_launches.id[i];
+				const vehicle = filtered_launches.rocket[i];
+				const key = `${site}_${lat}_${lng}`;
+
+				if (!siteMap[key]) {
+					siteMap[key] = {
+					lat: lat - 1,
+					lng,
+					name: site,
+					labels: []
+					};
+				}
+
+				siteMap[key].labels.push(`Launch ${id} - ${vehicle}`);
+			});
+
+			// Step 2: Convert to array
+			const labelSites = Object.values(siteMap);
+
+			const OPACITYPATH  = 0.3;
+
+			if (!globe) {
+				globe = new Globe(document.getElementById('globe'))
+					.globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg')
+					.pointLat(d => d.lat)
+					.pointLng(d => d.lon)
+					.pointColor(() => `rgba(0, 255, 0, ${OPACITYPATH})`)
+					.pointRadius(0.5)
+					.pointAltitude(0.2)
+					.labelLat(d => d.lat)
+					.labelLng(d => d.lng)
+					.labelText(d => d.name)  // Label the location with the launch site.
+					.labelLabel(d => d.labels.join('<br>'))  // Hover over label gives launch IDs.
+					.labelResolution(2)
+					.labelSize(1.5)
+					.labelDotRadius(0);
+
+				globe.pointsData(gData);
+				globe.labelsData(labelSites);
+
+				setTimeout(() => {
+				globe
+					.pointOfView({ lat: 0, lng: 0, altitude: 1.9 }, 1000);
+				}, 0);
+		
+			} else {
+				globe.pointsData(gData);
+				globe.labelsData(labelSites);
+			}
+		}
+
+		function updateTables(filtered_launches) {
+			
+			const table1Body = document.getElementById('launchTableBody');
+			const table1Foot = document.getElementById('launchTableFoot');
+			table1Body.innerHTML = '';
+			table1Foot.innerHTML = '';
+			let totalBC = 0, totalCO = 0, totalCO2 = 0, totalH2O = 0;
+			let totalAl2O3 = 0, totalCly = 0, totalNOx = 0;
+			filtered_launches.id.forEach((location, index) => {
+				const row = document.createElement('tr');
+				const BC = filtered_launches.BC[index];
+				const CO = filtered_launches.CO[index];
+				const CO2 = filtered_launches.CO2[index];
+				const H2O = filtered_launches.H2O[index];
+				const Al2O3 = filtered_launches.Al2O3[index];
+				const Cly = filtered_launches.Cly[index];
+				const NOx = filtered_launches.NOx[index];
+				totalBC    += BC;
+				totalCO    += CO;
+				totalCO2   += CO2;
+				totalH2O   += H2O;
+				totalAl2O3 += Al2O3;
+				totalCly   += Cly;
+				totalNOx   += NOx;
+				row.innerHTML = `
+					<td>${filtered_launches.date[index]}</td> 
+					<td>${location}</td>  
+					<td>${filtered_launches.time[index].toFixed(2)}</td> 
+					<td class="wrap-text">${filtered_launches.text[index]}</td> 
+					<td class="wrap-text">${filtered_launches.rocket[index]}</td> 
+					<td>${filtered_launches.smc[index]}</td> 
+					<td>${filtered_launches.BC[index].toFixed(1)}</td> 
+					<td>${filtered_launches.CO[index].toFixed(1)}</td> 
+					<td>${filtered_launches.CO2[index].toFixed(1)}</td> 
+					<td>${filtered_launches.H2O[index].toFixed(1)}</td> 
+					<td>${filtered_launches.Al2O3[index].toFixed(1)}</td> 
+					<td>${filtered_launches.Cly[index].toFixed(1)}</td> 
+					<td>${filtered_launches.NOx[index].toFixed(1)}</td> 
+				`;
+				table1Body.appendChild(row);
+			});
+			// Add Totals to Launch Table
+			const totalRow1 = document.createElement('tr');
+			totalRow1.innerHTML = `
+				<td>Total</td>
+				<td>-</td>
+				<td>-</td>
+				<td>-</td>
+				<td>-</td>
+				<td>-</td>
+				<td>${totalBC.toFixed(1)}</td>
+				<td>${totalCO.toFixed(1)}</td>
+				<td>${totalCO2.toFixed(1)}</td>
+				<td>${totalH2O.toFixed(1)}</td>
+				<td>${totalAl2O3.toFixed(1)}</td>
+				<td>${totalCly.toFixed(1)}</td>
+				<td>${totalNOx.toFixed(1)}</td>
+			`;
+			table1Foot.appendChild(totalRow1);
+		}
+
+		function updateMaps(filtered_launches) {
+			const latitudes1 = filtered_launches.lat;
+			const longitudes1 = filtered_launches.lon;
+			const labels1 = filtered_launches.id;
+
+			const mapData1 = latitudes1.length > 0 && longitudes1.length > 0 ? [{
+				type: 'scattergeo',
+				lat: latitudes1,
+				lon: longitudes1,
+				text: labels1,
+				mode: 'markers+text',
+				marker: {
+				size: 12,
+				color: 'blue',
+				symbol: 'x',
+				},
+				textfont: {
+					size: 15,  // Font size for the labels
+					color: 'black',  // Color of the text
+					weight: 'bold',
+					family: 'Inter Tight, sans-serif',
+				},
+				textposition: 'right',
+			}] : [{
+				type: 'scattergeo',
+				mode: 'markers', // Keep the map but without data points
+				marker: { size: 0 }, // Invisible markers
+			}];
+
+			const layout = {
+				paper_bgcolor: 'rgba(0,0,0,0)',
+				plot_bgcolor: 'rgba(0,0,0,0)',
+				geo: {
+					resolution: 100, 
+					projection: { type: 'robinson' },
+					showland: true,
+					landcolor: 'rgb(217, 217, 217)',
+					showocean: true,
+					oceancolor: 'rgb(204, 233, 255)',
+					showcountries: true,
+					countrycolor: 'rgb(50, 50, 50)',
+					showsubunits: true,
+					subunitcolor: 'rgb(150, 150, 150)',
+					showgrid: true,
+					gridcolor: 'rgb(220, 220, 220)',
+					gridwidth: 2,
+					griddash: 'dash', // Dashed gridlines for both axes
+					lataxis: {
+						showgrid: true,  // Gridline for latitude axis
+						gridcolor: 'rgb(220, 220, 220)', // Optional: specify grid color
+						griddash: 'dash', // Dashed gridline style
+						tickmode: 'array',
+						ticks: '',
+						ticklen: 10,
+						tickcolor: 'rgb(220, 220, 220)',
+						showticklabels: false,
+						zeroline: false
+					},
+					lonaxis: {
+						showgrid: true,  // Gridline for longitude axis
+						gridcolor: 'rgb(220, 220, 220)', // Optional: specify grid color
+						griddash: 'dash', // Dashed gridline style
+						tickmode: 'array',
+						ticks: '',
+						ticklen: 10,
+						tickcolor: 'rgb(220, 220, 220)',
+						showticklabels: false,
+						zeroline: false
+					}
+				},
+				autosize: true,  // Automatically resize the chart
+				margin: {
+					l: 40,
+					r: 40,
+					t: 40,
+					b: 40  // <- reduce bottom margin here
+				}
+			};
+			Plotly.newPlot('map', mapData1, layout, {responsive: true});
+		}
+		
+		function updateGraph(filtered_launches) {
+
+			const totals = {
+				BC: 0,
+				CO: 0,
+				CO2: 0,
+				H2O: 0,
+				Al2O3: 0,
+				Cly: 0,
+				NOx: 0
+			};
+			filtered_launches.id.forEach((location, index) => {
+				totals.BC    += filtered_launches.BC[index];
+				totals.CO    += filtered_launches.CO[index];
+				totals.CO2   += filtered_launches.CO2[index];
+				totals.H2O   += filtered_launches.H2O[index];
+				totals.Al2O3 += filtered_launches.Al2O3[index];
+				totals.Cly   += filtered_launches.Cly[index];
+				totals.NOx   += filtered_launches.NOx[index];
+			});
+			
+			// Prepare the data for Plotly
+			const maxYValue = Object.values(totals).reduce((sum, val) => sum + val, 0);
+			
+			const trace = Object.keys(totals).map(key => ({
+				x: ['Total'],
+				y: [totals[key] / 1000]  ,
+				name: prettyNames[key],
+				type: 'bar',
+				marker: {color: strongColors[key]}
+			}));
+			
+			const layout = {
+				paper_bgcolor: 'rgba(0,0,0,0)',
+				plot_bgcolor: 'rgba(0,0,0,0)',
+				font: {
+					size: 15,  // Font size for the labels
+					family: 'Inter Tight, sans-serif',
+				},
+				title: {
+					text: 'Total Emissions',
+				},
+				barmode: 'stack',
+				yaxis: {
+					range: [0,maxYValue / 1000]
+				},
+				legend: {
+					orientation: 'v',
+					x: 1.05,
+					y: 1,
+					itemwidth: 3,
+					font: {
+						size: 13,  // Font size for the legend
+						family: 'Inter Tight, sans-serif',
+					}
+				},
+				autosize: true,  // Automatically resize the chart
+				margin: {
+					l: 40,
+					r: 40,
+					t: 40,
+					b: 20  // <- reduce bottom margin here
+				}
+			};
+
+			// Plot the chart inside the 'emissionsChart' div
+			Plotly.newPlot('bar', trace, layout, {responsive: true});
+
+		}
+
+		function updateStack(filtered_launches) {
+
+			const species = ['BC', 'CO', 'CO2', 'H2O', 'Al2O3', 'Cly', 'NOx'];
+			
+			const monthlySums = {};
+
+			// Step 1: Loop through each launch (index)
+			for (let i = 0; i < filtered_launches.date.length; i++) {
+				const month = filtered_launches.date[i].slice(0, 7);  // 'YYYY-MM'
+				if (!monthlySums[month]) {
+					monthlySums[month] = {};
+					species.forEach(sp => monthlySums[month][sp] = 0);
+				}
+				species.forEach(sp => {
+					monthlySums[month][sp] += Number(filtered_launches[sp][i]) || 0; // Ensure numeric
+				});
+				}
+
+			const months = Object.keys(monthlySums).sort();
+			const maxYValue = Math.max(...months);
+
+			const traces = species.map(sp => ({
+				x: months,
+				y: months.map(m => monthlySums[m][sp] / 1000),
+				stackgroup: 'one',
+				name: prettyNames[sp],
+				type: 'scatter',
+				mode: 'none',
+				fillcolor: strongColors[sp]
+			}));
+
+			const layout = {
+				paper_bgcolor: 'rgba(0,0,0,0)',
+				plot_bgcolor: 'rgba(0,0,0,0)',
+				autosize: true,
+				title: {
+					text: 'Monthly Emissions (click legend to show/hide species)',
+				},
+				font: {
+					size: 15,  // Font size for the labels
+					family: 'Inter Tight, sans-serif',
+				},
+				yaxis: {
+					title: {
+						text: 'Mass [kilotonnes]',
+					},
+					range: [0,maxYValue / 1000]
+				},
+				legend: {
+					orientation: 'v',
+					x: 1.05,
+					y: 1,
+					font: {
+						size: 13,  // Font size for the legend
+						family: 'Inter Tight, sans-serif',
+					}
+				},
+				autosize: true,  // Automatically resize the chart
+				margin: {
+					l: 40,
+					r: 40,
+					t: 40,
+					b: 20  // <- reduce bottom margin here
+				}
+			};
+
+			Plotly.newPlot('stack', traces , layout, {responsive: true});
+
+		}
+		
+		// Plot a default date when the page opens, then update when the date changes.
+		document.addEventListener('DOMContentLoaded', () => {
+
+			const daterange = slider.noUiSlider.get();
+			startDate = intToDateString(Number(daterange[0]));
+			endDate = intToDateString(Number(daterange[1]));
+			fetchEventsData(); // Fetch data for the default date
+
+			document.getElementById('applyFilters').addEventListener('click', () => {
+				filterlaunches(all_launches);
+			});
+
+			const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+			tabEls.forEach(function (tab) {
+				tab.addEventListener('shown.bs.tab', function (event) {
+					const activatedTabId = event.target.id;
+					if (activatedTabId === 'chart-tab') {
+						// Resize your Plotly charts
+						Plotly.Plots.resize(document.getElementById('stack'));
+						Plotly.Plots.resize(document.getElementById('bar'));
+					}
+					if (activatedTabId === 'globe-tab') {
+						// Resize your Globe.gl renderer (assuming you have one)
+						if (window.globe) {
+							resizeGlobe();
+						}
+					}
+					if (activatedTabId === 'map-tab') {
+						// Resize Plotly map (if you're using Plotly for map)
+						Plotly.Plots.resize(document.getElementById('map'));
+					}
+				});
+			});
+		});
+
+		// JavaScript to toggle the table visibility and update the arrow
+		const toggleButton = document.getElementById('toggleTableButton');
+		const tableBody = document.getElementById('launchTableBody');
+
+		toggleButton.addEventListener('click', () => {
+			const isHidden = tableBody.style.display === 'none';
+			tableBody.style.display = isHidden ? 'table-row-group' : 'none';
+			toggleButton.innerHTML = isHidden ? '&#9660;' : '&#9650;'; // Down arrow when shown, up arrow when hidden
+		});
+
+		document.querySelectorAll('.filter').forEach(filter => {
+			filter.addEventListener('click', e => {
+				// Prevent toggling when clicking inside dropdown list itself
+				if (e.target.closest('.dropdown ul')) return;
+
+				// Close other open dropdowns first (optional)
+				document.querySelectorAll('.filter.open').forEach(openFilter => {
+				if (openFilter !== filter) openFilter.classList.remove('open');
+				});
+
+				// Toggle current filter open class
+				filter.classList.toggle('open');
+			});
+		});
+
+		// Optional: Close dropdowns if clicked outside
+		document.addEventListener('click', e => {
+			if (!e.target.closest('.filter')) {
+				document.querySelectorAll('.filter.open').forEach(openFilter => {
+				openFilter.classList.remove('open');
+				});
+			}
+		});
+
+		// Function to resize the globe based on its container size
+		const resizeGlobe = () => {
+			const container = document.getElementById('globe');
+			const screenHeight = window.innerHeight;
+			const globeHeight = screenHeight * 0.65;
+			const globeWidth = container.offsetWidth;
+			globe.width(globeWidth).height(globeHeight);
+			
+			// Manually reset the canvas element size to match the container size
+			const canvas = document.querySelector('#globe canvas');
+			if (canvas) {
+				canvas.style.width = `${globeWidth}px`;
+				canvas.style.height = `${globeHeight}px`;
+				canvas.style.transform = 'none';
+			}	
+		};
+
+	</script> 
 	
 	<div class="bottom-row">
-		<p>
-			Developed by <a href="https://profiles.ucl.ac.uk/93616-connor-barker" target="_blank" rel="noopener noreferrer">Connor Barker</a> (UCL postdoc) and <a href="https://profiles.ucl.ac.uk/77783-eloise-marais" target="_blank" rel="noopener noreferrer">Eloise Marais</a> (UCL PI), in collaboration with <a href="https://www.cfa.harvard.edu/people/jonathan-mcdowell" target="_blank" rel="noopener noreferrer">Jonathan McDowell</a> (Harvard-Smithsonian Center for Astrophysics) and Eric Tan (UCL Department of Astrophysics). Interested in using the data or spot any room for improvements? Please reach out to Connor Barker at <a href= "mailto:name@email.com">connor.barker@ucl.ac.uk</a>.
-		</p>
-		<p>
+		<p style="text-align: left; margin: 0px;">
+			Developed by <a href="https://profiles.ucl.ac.uk/93616-connor-barker" target="_blank" rel="noopener noreferrer">Connor Barker</a> (UCL postdoc) and <a href="https://profiles.ucl.ac.uk/77783-eloise-marais" target="_blank" rel="noopener noreferrer">Eloise Marais</a> (UCL PI), in collaboration with <a href="https://www.cfa.harvard.edu/people/jonathan-mcdowell" target="_blank" rel="noopener noreferrer">Jonathan McDowell</a> (Harvard-Smithsonian Center for Astrophysics) and Eric Tan (UCL Department of Astrophysics). Interested in using the data or spot any room for improvements? Please reach out to Connor Barker at <a href= "mailto:connor.barker@ucl.ac.uk">connor.barker@ucl.ac.uk. </a>
+			<br>
 			<strong>Funding Disclaimer:</strong> This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No. 851854). <a href="https://cordis.europa.eu/project/id/851854" target="_blank" rel="noopener noreferrer">European Commission project page</a>.
 		</p>
   	</div>
