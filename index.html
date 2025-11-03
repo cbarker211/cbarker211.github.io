@@ -24,9 +24,20 @@
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,281;1,281&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
 
 	<style>
+
+		/* ✨ 3D Moving Starfield Background */
+		#starfield {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: -1; /* sits behind your content */
+			background: radial-gradient(circle at 50% 50%, #0a0f24, #05070f 80%);
+		}
 
 		*, ::after, ::before {
 			box-sizing: content-box !important;
@@ -151,6 +162,15 @@
 			height: 100%;
 			display: flex; /* Ensure children align properly */
     		flex-direction: column; /* Align children vertically */
+			background: rgba(255, 255, 255, 0.08);        /* semi-transparent glass */
+			backdrop-filter: blur(12px) brightness(1.05); /* blur background */
+			-webkit-backdrop-filter: blur(12px) brightness(1.05); /* Safari */
+			border-radius: 15px;                           /* rounded corners */
+			border: 1px solid rgba(255, 255, 255, 0.2);   /* subtle border */
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);    /* optional shadow */
+			box-sizing: border-box;
+			padding: 15px;
+			overflow: hidden;
 		}
 
 		.tab-pane .row {
@@ -188,7 +208,7 @@
 
 		#myTabContent {
 			padding: 15px 0px 15px 0px;
-			height: 65vh;
+			height: 62vh;
 			display: flex; /* Optional: Ensures children align properly */
 			flex-direction: column; /* Optional: Aligns children vertically */
 		}
@@ -244,6 +264,7 @@
 			border-collapse: collapse;
 			padding: 10px;
 			white-space: nowrap;
+			color: black;
 		}
 
 		th, td {
@@ -254,12 +275,16 @@
 		}
 
 		th {
-			background-color: #f4f4f4;
+			background-color: #dddddd;
+		}
+
+		tbody {
+			background-color: #ffffff;
 		}
 
 		tfoot {
 			font-weight: bold;
-			background-color: #f9f9f9;
+			background-color: #ffffff;
 		}
 
 		.faq-item {
@@ -382,6 +407,8 @@
 
 	</style>
 
+	<canvas id="starfield"></canvas>
+
 	<div class="main-row">
 
 		<div class="left-column">
@@ -395,7 +422,7 @@
 				<div id="slider" style="margin:25px 35px 35px 35px;"></div>
 			</div>
 
-			<button class="tab" type="submit" id="applyFilters" style="margin: 0 0 0 0;">Apply Filters</button>
+			<button class="tab" type="submit" id="applyFilters" style="margin: 10px 0 0 0;">Apply Filters</button>
 				
 			<div class="filter-container">
 
@@ -514,7 +541,7 @@
 			<!-- Table for Launch Locations -->
 			<div class="table-container">
 				<div>
-					<h3 style="margin: 0px; color: rgb(51,51,51);">Launch Details (Click arrow to expand)</h3>
+					<h3 style="margin: 0px;">Launch Details (Click arrow to expand)</h3>
 					<p style="text-align: left;">[Emissions in tonnes, time in UTC. SMC=Satellite Megaconstellation]</p>
 					<table id="launchTable">
 						<thead>
@@ -561,6 +588,25 @@
 			const month = intIndex % 12;
 			return `01/${String(month + 1).padStart(2, '0')}/${year}`;
 		}
+
+		const defaultlayout = {
+			paper_bgcolor: 'rgba(0,0,0,0)',
+			plot_bgcolor: 'rgba(0,0,0,0)',
+			autosize: true,
+			font: { color: 'white', family: 'Space Grotesk, sans-serif', size: 15}, // general font
+			title: { font: { color: 'white' }},
+			legend: { 
+				orientation: 'v',
+				x: 1.05, 
+				y: 1, 
+				itemwidth: 3, 
+				font: { 
+				color: 'white', 
+				size: 13, 
+				family: 'Space Grotesk, sans-serif'
+				}
+			}
+		};
 
 		function intToDateString(monthIndex) {
 
@@ -939,7 +985,7 @@
 					size: 15,  // Font size for the labels
 					color: 'black',  // Color of the text
 					weight: 'bold',
-					family: 'Inter Tight, sans-serif',
+					family: 'Space Grotesk, sans-serif',
 				},
 				textposition: 'right',
 			}] : [{
@@ -949,8 +995,6 @@
 			}];
 
 			const layout = {
-				paper_bgcolor: 'rgba(0,0,0,0)',
-				plot_bgcolor: 'rgba(0,0,0,0)',
 				geo: {
 					resolution: 100, 
 					projection: { type: 'robinson' },
@@ -989,7 +1033,6 @@
 						zeroline: false
 					}
 				},
-				autosize: true,  // Automatically resize the chart
 				margin: {
 					l: 40,
 					r: 40,
@@ -997,7 +1040,7 @@
 					b: 40  // <- reduce bottom margin here
 				}
 			};
-			Plotly.newPlot('map', mapData1, layout, {responsive: true});
+			Plotly.newPlot('map', mapData1, {...defaultlayout, ...layout}, {responsive: true});
 		}
 		
 		function updateGraph(filtered_launches) {
@@ -1033,12 +1076,6 @@
 			}));
 			
 			const layout = {
-				paper_bgcolor: 'rgba(0,0,0,0)',
-				plot_bgcolor: 'rgba(0,0,0,0)',
-				font: {
-					size: 15,  // Font size for the labels
-					family: 'Inter Tight, sans-serif',
-				},
 				title: {
 					text: 'Total Emissions',
 				},
@@ -1046,17 +1083,6 @@
 				yaxis: {
 					range: [0,maxYValue / 1000]
 				},
-				legend: {
-					orientation: 'v',
-					x: 1.05,
-					y: 1,
-					itemwidth: 3,
-					font: {
-						size: 13,  // Font size for the legend
-						family: 'Inter Tight, sans-serif',
-					}
-				},
-				autosize: true,  // Automatically resize the chart
 				margin: {
 					l: 40,
 					r: 40,
@@ -1066,7 +1092,7 @@
 			};
 
 			// Plot the chart inside the 'emissionsChart' div
-			Plotly.newPlot('bar', trace, layout, {responsive: true});
+			Plotly.newPlot('bar', trace, {...defaultlayout, ...layout}, {responsive: true});
 
 		}
 
@@ -1102,15 +1128,9 @@
 			}));
 
 			const layout = {
-				paper_bgcolor: 'rgba(0,0,0,0)',
-				plot_bgcolor: 'rgba(0,0,0,0)',
-				autosize: true,
+				
 				title: {
 					text: 'Monthly Emissions (click legend to show/hide species)',
-				},
-				font: {
-					size: 15,  // Font size for the labels
-					family: 'Inter Tight, sans-serif',
 				},
 				yaxis: {
 					title: {
@@ -1118,16 +1138,6 @@
 					},
 					range: [0,maxYValue / 1000]
 				},
-				legend: {
-					orientation: 'v',
-					x: 1.05,
-					y: 1,
-					font: {
-						size: 13,  // Font size for the legend
-						family: 'Inter Tight, sans-serif',
-					}
-				},
-				autosize: true,  // Automatically resize the chart
 				margin: {
 					l: 40,
 					r: 40,
@@ -1135,8 +1145,7 @@
 					b: 20  // <- reduce bottom margin here
 				}
 			};
-
-			Plotly.newPlot('stack', traces , layout, {responsive: true});
+			Plotly.newPlot('stack', traces , {...defaultlayout, ...layout}, {responsive: true});
 
 		}
 		
@@ -1213,8 +1222,8 @@
 		const resizeGlobe = () => {
 			const container = document.getElementById('globe');
 			const screenHeight = window.innerHeight;
-			const globeHeight = screenHeight * 0.65;
-			const globeWidth = container.offsetWidth;
+			const globeHeight = screenHeight * 0.62 - 30;
+			const globeWidth = container.offsetWidth - 30;
 			globe.width(globeWidth).height(globeHeight);
 			
 			// Manually reset the canvas element size to match the container size
@@ -1226,12 +1235,63 @@
 			}	
 		};
 
+		const canvas = document.getElementById("starfield");
+		const ctx = canvas.getContext("2d");
+
+		let stars = [];
+		const numStars = 200;
+
+		function resize() {
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+			stars = Array.from({ length: numStars }, () => ({
+				x: (Math.random() - 0.5) * canvas.width * 5,
+				y: (Math.random() - 0.5) * canvas.height* 5,
+				z: Math.random() * canvas.width
+			}));
+		}
+
+		resize();
+		let resizeTimeout;
+
+		window.addEventListener("resize", () => {
+			clearTimeout(resizeTimeout);
+			resizeTimeout = setTimeout(resize, 150);
+		});
+
+		let last = 0;
+		function animate(timestamp) {
+			if (timestamp - last < 16) { requestAnimationFrame(animate); return; }
+			last = timestamp;
+
+			ctx.fillStyle = "rgba(5, 7, 15, 0.5)"; // 0.5 = fade effect
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			
+			for (let star of stars) {
+				star.z -= 2; // speed of stars
+				if (star.z <= 0) star.z = canvas.width;
+				
+				const k = 128.0 / star.z;
+				const px = star.x * k + canvas.width / 2;
+				const py = star.y * k + canvas.height / 2;
+				
+				if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
+					const size = (1 - star.z / canvas.width) * 2;
+					ctx.beginPath();
+					ctx.fillStyle = "rgba(255,255,255," + (1 - star.z / canvas.width) + ")";
+					ctx.arc(px, py, size, 0, Math.PI * 2);
+					ctx.fill();
+				}
+			}
+			requestAnimationFrame(animate);
+		}
+		animate();
+
 	</script> 
 	
 	<div class="bottom-row">
 		<p style="text-align: left; margin: 0px;">
 			Developed by <a href="https://profiles.ucl.ac.uk/93616-connor-barker" target="_blank" rel="noopener noreferrer">Connor Barker</a> (UCL postdoc) and <a href="https://profiles.ucl.ac.uk/77783-eloise-marais" target="_blank" rel="noopener noreferrer">Eloise Marais</a> (UCL PI), in collaboration with <a href="https://www.cfa.harvard.edu/people/jonathan-mcdowell" target="_blank" rel="noopener noreferrer">Jonathan McDowell</a> (Harvard-Smithsonian Center for Astrophysics) and Eric Tan (UCL Department of Astrophysics). Interested in using the data or spot any room for improvements? Please reach out to Connor Barker at <a href= "mailto:connor.barker@ucl.ac.uk">connor.barker@ucl.ac.uk. </a>
-			<br>
 			<strong>Funding Disclaimer:</strong> This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No. 851854). <a href="https://cordis.europa.eu/project/id/851854" target="_blank" rel="noopener noreferrer">European Commission project page</a>.
 		</p>
   	</div>

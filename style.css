@@ -20,10 +20,11 @@ Tags: blue, custom header, fixed width, two columns, widgets
 
 /* Begin Typography & Colors */
 body {
+	position: relative;
 	font-size: .875rem;
-	font-family: "Inter Tight", sans-serif;
+	font-family: "Space Grotesk", sans-serif;
 	font-optical-sizing: auto;
-	color: #333;
+	color: white;
 	text-align: center;
 	margin: 0;
 	padding: 0;
@@ -39,20 +40,10 @@ body {
 	display: flex;
 	flex: 1 1 auto; /* take up remaining space, but allow footer room */
 	min-height: 0;
-}
-
-.bottom-row {
-	background-color: #e9e9e9;
-	font-size: 0.9em;
-	color: rgb(42, 42, 42);
-	padding: 4px;
-	text-align: center;
-	height: auto;
-	flex-shrink: 0;
+	background-color: transparent;
 }
 
 .left-column {
-	background-color: #7c7c7c;
 	color: white;
 	padding: 10px;
 	min-width: 0;
@@ -60,18 +51,36 @@ body {
 	gap: 5px;
 	display: flex;
 	flex-direction: column;
-	overflow-y: auto;
-	scrollbar-gutter: stable;
+	margin: 10px 0px 10px 10px;
 	}
 
 .center-column {
 	flex: 2;
-	background-color: #f0f3f6;
 	padding: 10px 10px 10px 30px;
 	gap: 20px;
-	overflow-x: hidden;
-	overflow-y: auto;
+	margin: 10px ;
+	}
+
+.left-column,
+.center-column {
 	scrollbar-gutter: stable;
+	overflow-y: auto;
+	overflow-x: hidden;
+	background: rgba(255, 255, 255, 0.1); /* semi-transparent background */
+	backdrop-filter: blur(5px); /* blur the background behind it */
+	-webkit-backdrop-filter: blur(5px); /* Safari support */
+	border: 1px solid rgba(255, 255, 255, 0.2); /* subtle border for glass effect */
+	border-radius: 9px; /* rounded corners */
+	}
+
+.bottom-row {
+		background-color: #e9e9e9;
+		font-size: 0.9em;
+		color: rgb(42, 42, 42);
+		padding: 4px;
+		text-align: center;
+		height: auto;
+		flex-shrink: 0;
 	}
 
 .alt {
@@ -568,10 +577,3 @@ div.aligncenter {
 	margin: 0;
 }
 /* End captions */
-
-
-/* "Daisy, Daisy, give me your answer do. I'm half crazy all for the love of you.
-	It won't be a stylish marriage, I can't afford a carriage.
-	But you'll look sweet upon the seat of a bicycle built for two." */
-.line-height {
-}
