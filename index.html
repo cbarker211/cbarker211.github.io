@@ -5,14 +5,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rocket Launch Emissions</title>
+
 <link rel="icon" type="image/x-icon" href="assets/images/favicon_rocket.ico">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,281;1,281&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
 <script src="https://cdn.plot.ly/plotly-3.0.3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
 <!-- TODO: Set up Google Analytics -->
 
@@ -20,11 +29,6 @@
 
 <body>
 
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,281;1,281&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
 
 	<style>
 
@@ -154,10 +158,6 @@
 			margin-bottom: 10px;
 		}
 
-		#chart-tab-pane {
-			height: 68vh;  /* 68% of viewport height */
-		}
-
 		.tab-pane {
 			height: 100%;
 			display: flex; /* Ensure children align properly */
@@ -208,9 +208,15 @@
 
 		#myTabContent {
 			padding: 15px 0px 15px 0px;
-			height: 62vh;
+			height: 56vh;
 			display: flex; /* Optional: Ensures children align properly */
 			flex-direction: column; /* Optional: Aligns children vertically */
+		}
+
+		#map {
+			width: 100%;
+			height: 56vh; /* or whatever fits your layout */
+			min-height: 400px; /* optional, ensures it doesn't collapse */
 		}
 
 		.nav-tabs{
@@ -418,10 +424,6 @@
 	
 			<h2>Filters</h2>
 
-			<div class="filter-container">
-				<div id="slider" style="margin:25px 35px 35px 35px;"></div>
-			</div>
-
 			<button class="tab" type="submit" id="applyFilters" style="margin: 10px 0 0 0;">Apply Filters</button>
 				
 			<div class="filter-container">
@@ -519,6 +521,10 @@
 				
 			</div>
 
+			<div class="filter-container">
+				<div id="slider" style="margin:35px 35px 35px 35px;"></div>
+			</div>
+
 			<div class="tab-content" id="myTabContent">
 				<div class="tab-pane fade show active" id="chart"   role="tabpanel" aria-labelledby="chart-tab">
 					<div class="row">
@@ -576,17 +582,19 @@
 
 	<script>
 
-		const startYear = 2020;
+		const startYear = 1955;
 		const endYear = 2024;
-		const totalMonths = (endYear - startYear + 1) * 12;
+		const totalMonths = (endYear - startYear + 1) * 12 - 1;
+		console.log(totalMonths)
 		let globe;
 		var slider = document.getElementById('slider');
 
 		function indexToDate(index) {
 			const year = startYear + Math.floor(index / 12);
-			const intIndex = Math.floor(Number(index)); 
-			const month = intIndex % 12;
-			return `01/${String(month + 1).padStart(2, '0')}/${year}`;
+			const monthIndex = Math.floor(Number(index)) % 12; // 0–11
+			const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+								"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+			return `${monthNames[monthIndex]} ${year}`;
 		}
 
 		const defaultlayout = {
@@ -608,25 +616,23 @@
 			}
 		};
 
-		function intToDateString(monthIndex) {
+		function intToDateString(monthIndex, isEnd = false) {
+			const year = startYear + Math.floor(monthIndex / 12);
+			const month = monthIndex % 12;
 
-			// Calculate year and month offset
-			const year = 2020 + Math.floor(monthIndex / 12);
-			const month = (monthIndex % 12);
-
-			// Build date object (day 1 of the month)
-			const date = new Date(year, month, 1);
-
-			// Format YYYY-MM-DD
-			const yyyy = date.getFullYear();
-			const mm = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based
-			const dd = String(date.getDate()).padStart(2, '0');
-
-			return `${yyyy}-${mm}-${dd}`;
-		}
+			if (isEnd) {
+				// Create a date for the *last day* of the month
+				const lastDay = new Date(year, month + 1, 0); // day 0 of next month = last day of current
+				return lastDay.toISOString().split('T')[0];
+			} else {
+				// First day of the month
+				const firstDay = new Date(year, month, 1);
+				return firstDay.toISOString().split('T')[0];
+			}
+			}
 
 		noUiSlider.create(slider, {
-			start: [0, 60],
+			start: [780, 839],
 			connect: true,
 			step: 1,
 			range: {
@@ -649,31 +655,31 @@
 			},
 			pips: {
 				mode: 'steps',
-				density: 12,
+				density: 100,
 				filter: function(value) {
-					// Show label only every 12 months (1 year)
-					return (value % 12 === 0) ? 1 : 0;  // 1 = show label, 0 = hide
+					// Show label only every 30 months (5 years)
+					if (value % 60 === 0) return 1;  // every 5 years → major tick + label
+					if (value % 12 === 0) return 2;  // every 1 year → minor tick
+					return 0;   
 				},
 				format: {
 					to: function(value) {
 						// label only for year start (Jan)
-						return value % 12 === 0 ? (startYear + value / 12) : '';
+						return value % 60 === 0 ? (startYear + value / 12) : '';
 					}
 				}
 			}
 		});	
 		
+		let fetchTimeout;
 		slider.noUiSlider.on('end', (values, handle) => {
-			// values is an array of current slider values as strings
-			// handle is 0 (left handle) or 1 (right handle)
-
-			startDate = intToDateString(Number(values[0]));
-			endDate = intToDateString(Number(values[1]));
-			console.log(startDate, endDate);
-			fetchEventsData(); // Fetch data 
-
-			// Now update your data or UI based on leftValue and rightValue
-			//updateMyData(leftValue, rightValue);
+			clearTimeout(fetchTimeout);
+			fetchTimeout = setTimeout(() => {
+				startDate = intToDateString(Number(values[0]));
+				endDate = intToDateString(Number(values[1]), true);
+				console.log(values,startDate, endDate);
+				fetchEventsData();
+			}, 100); // Wait 300ms before making the API call
 		});
 
 		function populateFilters(launches) {
@@ -965,7 +971,7 @@
 			table1Foot.appendChild(totalRow1);
 		}
 
-		function updateMaps(filtered_launches) {
+		function updateMaps2(filtered_launches) {
 			const latitudes1 = filtered_launches.lat;
 			const longitudes1 = filtered_launches.lon;
 			const labels1 = filtered_launches.id;
@@ -1041,6 +1047,55 @@
 				}
 			};
 			Plotly.newPlot('map', mapData1, {...defaultlayout, ...layout}, {responsive: true});
+		}
+
+		let leafletMap; // global map variable
+		let markersLayer; // layer to hold markers
+
+		function updateMaps(filtered_launches) {
+			// Initialize map if not already
+			if (!leafletMap) {
+				leafletMap = L.map('map');
+
+				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+					attribution: '&copy; OpenStreetMap contributors'
+				}).addTo(leafletMap); // Add OpenStreetMap tiles
+
+				markersLayer = L.layerGroup().addTo(leafletMap); // Create layer group to hold markers
+
+				// Ensure map resizes correctly when tab becomes visible
+				$('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+					if (e.target.id === 'map-tab') {
+						leafletMap.invalidateSize();
+					}
+				});
+			}
+
+			// Clear previous markers
+			markersLayer.clearLayers();
+
+			// Add new markers
+			if (filtered_launches.lat && filtered_launches.lat.length > 0) {
+				const markerList = [];
+
+				filtered_launches.lat.forEach((lat, i) => {
+					const marker = L.marker([lat, filtered_launches.lon[i]])
+						.bindPopup(`<b>${filtered_launches.id[i]}</b>`)
+						.on('click', function () {
+							console.log('Selected launch site:', filtered_launches.id[i]);
+							// Optional: add selection/highlight logic here
+						});
+					markersLayer.addLayer(marker);
+					markerList.push(marker);
+				});
+
+				// Fit map bounds to all markers
+				const group = new L.featureGroup(markerList);
+				leafletMap.fitBounds(group.getBounds().pad(0.2));
+			} else {
+				// If no markers, fallback to global view
+				leafletMap.setView([0, 0], 2);
+			}
 		}
 		
 		function updateGraph(filtered_launches) {
@@ -1149,6 +1204,9 @@
 
 		}
 		
+
+		let mapInitialized = false;
+
 		// Plot a default date when the page opens, then update when the date changes.
 		document.addEventListener('DOMContentLoaded', () => {
 
@@ -1177,8 +1235,15 @@
 						}
 					}
 					if (activatedTabId === 'map-tab') {
-						// Resize Plotly map (if you're using Plotly for map)
-						Plotly.Plots.resize(document.getElementById('map'));
+						leafletMap.invalidateSize();
+						if (!mapInitialized) {
+							// Set a default center and zoom on first load
+							const defaultCenter = [20, 0]; // adjust latitude/longitude as needed
+							const defaultZoom = 1.5;          // adjust zoom level as needed
+							leafletMap.setView(defaultCenter, defaultZoom);
+
+							mapInitialized = true; // so we don’t override user zoom later
+						}
 					}
 				});
 			});
@@ -1222,7 +1287,7 @@
 		const resizeGlobe = () => {
 			const container = document.getElementById('globe');
 			const screenHeight = window.innerHeight;
-			const globeHeight = screenHeight * 0.62 - 30;
+			const globeHeight = screenHeight * 0.56 - 30;
 			const globeWidth = container.offsetWidth - 30;
 			globe.width(globeWidth).height(globeHeight);
 			
@@ -1239,7 +1304,7 @@
 		const ctx = canvas.getContext("2d");
 
 		let stars = [];
-		const numStars = 200;
+		const numStars = 100;
 
 		function resize() {
 			canvas.width = window.innerWidth;
@@ -1256,7 +1321,7 @@
 
 		window.addEventListener("resize", () => {
 			clearTimeout(resizeTimeout);
-			resizeTimeout = setTimeout(resize, 150);
+			resizeTimeout = setTimeout(resize, 300);
 		});
 
 		let last = 0;
@@ -1285,7 +1350,7 @@
 			}
 			requestAnimationFrame(animate);
 		}
-		animate();
+		setInterval(animate, 33); // 30 FPS
 
 	</script> 
 	
