@@ -18,10 +18,27 @@ Tags: blue, custom header, fixed width, two columns, widgets
 
 */
 
+html {
+    font-size: 16px; /* default */
+}
+
+@media (max-width: 1200px) {
+    html { font-size: 15px; }
+}
+@media (max-width: 992px) {
+    html { font-size: 14px; }
+}
+@media (max-width: 768px) {
+    html { font-size: 13px; }
+}
+@media (max-width: 480px) {
+    html { font-size: 12px; }
+}
+
 /* Begin Typography & Colors */
 body {
 	position: relative;
-	font-size: .875rem;
+	font-size: 0.875rem;
 	font-family: "Space Grotesk", sans-serif;
 	font-optical-sizing: auto;
 	color: white;
@@ -45,20 +62,20 @@ body {
 
 .left-column {
 	color: white;
-	padding: 10px;
+	padding: 0.7em;
 	min-width: 0;
 	width: 21vw;
-	gap: 5px;
+	gap: 0.35em;
 	display: flex;
 	flex-direction: column;
-	margin: 10px 0px 10px 10px;
+	margin: 0.7em 0 0.7em 0.7em;
 	}
 
 .center-column {
 	flex: 2;
-	padding: 10px 10px 10px 30px;
-	gap: 20px;
-	margin: 10px ;
+	padding: 0.7em 0.7em 0.7em 2em;
+	gap: 1.4em;
+	margin: 0.7em;
 	}
 
 .left-column,
@@ -67,17 +84,17 @@ body {
 	overflow-y: auto;
 	overflow-x: hidden;
 	background: rgba(255, 255, 255, 0.1); /* semi-transparent background */
-	backdrop-filter: blur(5px); /* blur the background behind it */
-	-webkit-backdrop-filter: blur(5px); /* Safari support */
-	border: 1px solid rgba(255, 255, 255, 0.2); /* subtle border for glass effect */
-	border-radius: 9px; /* rounded corners */
+	backdrop-filter: blur(0.35em); /* blur the background behind it */
+	-webkit-backdrop-filter: blur(0.35em); /* Safari support */
+	border: 0.1em solid rgba(255, 255, 255, 0.2); /* subtle border for glass effect */
+	border-radius: 0.7em; /* rounded corners */
 	}
 
 .bottom-row {
 		background-color: #e9e9e9;
 		font-size: 0.9em;
 		color: rgb(42, 42, 42);
-		padding: 4px;
+		padding: 0.35em;
 		text-align: center;
 		height: auto;
 		flex-shrink: 0;
@@ -146,10 +163,6 @@ h3.comments {
 	margin: 40px auto 20px ;
 	}
 /* End Headers */
-
-.entry p a:visited {
-	color: #06C;
-	}
 
 .commentlist li, #commentform input, #commentform textarea {
 	font: 0.9em 'Lucida Grande', Verdana, Arial, Sans-Serif;
@@ -305,32 +318,6 @@ img.alignleft {
 	Special stylized non-IE bullets
 	Do not work in Internet Explorer, which merely default to normal bullets. */
 
-html>body .entry ul {
-	margin-left: 0px;
-	padding: 0 0 0 30px;
-	list-style: none;
-	padding-left: 10px;
-	text-indent: -10px;
-	}
-
-html>body .entry li {
-	margin: 7px 0 8px 10px;
-	}
-
-.entry ul li:before, #sidebar ul ul li:before {
-	content: "\00BB \0020";
-	}
-
-.entry ol {
-	padding: 0 0 0 35px;
-	margin: 0;
-	}
-
-.entry ol li {
-	margin: 0;
-	padding: 0;
-	}
-
 #sidebar ul, #sidebar ul ol {
 	margin: 0;
 	padding: 0;
@@ -380,9 +367,6 @@ ol li, #sidebar ul ol li {
 	padding: 1px;
 	}
 
-.entry form { /* This is mainly for password protected posts, makes them look better. */
-	text-align:center;
-	}
 
 select {
 	width: 130px;
