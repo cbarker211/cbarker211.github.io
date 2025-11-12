@@ -170,7 +170,7 @@
 			padding: 0;
 		}
 
-		.globe, .map, .chart {
+		.globe-tabpane, .chart-tabpane {
 			height: 100%;
 			width: 100%;
 		}
@@ -190,13 +190,9 @@
 
 		#myTabContent {
 			margin: 1em 0 1em 0;
-			height: 56vh;
+			height: 52vh;
 			display: flex; /* Optional: Ensures children align properly */
 			flex-direction: column; /* Optional: Aligns children vertically */
-		}
-
-		#map {
-			height: 56vh; /* or whatever fits your layout */
 		}
 
 		.nav-tabs{
@@ -241,25 +237,35 @@
 		}
 
 		/* Table styling */
-		table {
+		table, .site-table {
 			width: 100%;
 			border-collapse: collapse;
 			white-space: nowrap;
 			color: black;
 		}
 
-		th, td {
-			padding: 0.7em;
+		th, td, tr {
+			padding: 0.3em;
 			text-align: left;
 			border: 0.1em solid #ddd;
 			white-space: nowrap;
+		}
+
+		#site-table th, 
+		#site-table td {
+			word-wrap: break-word;
+		}
+
+		#site-table th:first-child,
+		#site-table td:first-child {
+			width: 150px; /* adjust as needed */
 		}
 
 		th {
 			background-color: #dddddd;
 		}
 
-		tbody {
+		tbody, tr {
 			background-color: #ffffff;
 		}
 
@@ -320,7 +326,7 @@
 			position: absolute; /* Position relative to the table container */
 			left: -1.4em; /* Place the button outside the table on the right */
 			width: 1em;
-			height: calc(0.7em *2 + 0.1em *2 + 1em - 0.2em*2);
+			height: calc(0.3em *2 + 0.1em *2 + 1em - 0.2em*2);
 			z-index: 10; /* Ensure the button is above other elements */
 		}
 
@@ -392,7 +398,7 @@
 		<div class="left-column">
 
 			<h1 style="text-align: center; padding-top:0.2em;">Rocket Launch Emissions</h1>
-			<p style="text-align: left;">Welcome to our tracker of pollutant and greenhouse gas emissions from rocket launches! Select a time window of interest to visualise pollution on interactive plots, a 3D globe, or a 2D map. For more information, see the FAQs at the bottom of this section. </p>	
+			<p style="text-align: left;">Welcome to our tracker of pollutant and greenhouse gas emissions from rocket launches! Select a time window of interest to visualise pollution on interactive plots or a 3D globe. For more information, see the FAQs at the bottom of this section. </p>	
 	
 			<h2>Filters</h2>
 
@@ -477,28 +483,35 @@
 		</div>
 		
 		<div class="center-column">
-			<!-- Tabs for globe and map -->
+			<!-- Tabs for charts and globe -->
 			<div class="nav-tabs-container d-flex justify-content-between align-items-center">
 				<ul class="nav nav-tabs" id="myTab" role="tablist">
 					<li class="nav-item" role="presentation">
-					<button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart" type="button" role="tab" aria-controls="chart" aria-selected="true">Emissions Data</button>
+					<button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-tabpane" type="button" role="tab" aria-controls="chart" aria-selected="true">Emissions Data</button>
 					</li>
 					<li class="nav-item" role="presentation">
-					<button class="nav-link"        id="globe-tab" data-bs-toggle="tab" data-bs-target="#globe" type="button" role="tab" aria-controls="globe" aria-selected="false">3D Globe</button>
-					</li>
-					<li class="nav-item" role="presentation">
-					<button class="nav-link"        id="map-tab"   data-bs-toggle="tab" data-bs-target="#map"   type="button" role="tab" aria-controls="map"   aria-selected="false">2D Map</button>
+					<button class="nav-link"        id="globe-tab" data-bs-toggle="tab" data-bs-target="#globe-tabpane" type="button" role="tab" aria-controls="globe" aria-selected="false">Launch Sites</button>
 					</li>
 				</ul>
-				
 			</div>
 
 			<div class="filter-container">
 				<div id="slider" style="margin:3em;"></div>
 			</div>
 
+			<div style="display:flex; justify-content:space-between; align-items:center; margin-top:1em;">
+				<div>
+				  <select id="month-select1"></select>
+				  <select id="year-select1"></select>
+				</div>
+				<div>
+				  <select id="month-select2"></select>
+				  <select id="year-select2"></select>
+				</div>
+			</div>
+
 			<div class="tab-content" id="myTabContent">
-				<div class="tab-pane fade show active" id="chart"   role="tabpanel" aria-labelledby="chart-tab">
+				<div class="tab-pane fade show active" id="chart-tabpane"   role="tabpanel" aria-labelledby="chart-tab">
 					<div class="row">
 						<div class="col-8" style="padding:0;"> <!-- 75% -->
 							<div id="stack" class="chart"></div>
@@ -508,11 +521,21 @@
 						</div>
 					</div>
 				</div>
-				<div class="tab-pane fade"             id="globe"   role="tabpanel" aria-labelledby="globe-tab">
-					<div id="globe" class="globe"></div>
-				</div>
-				<div class="tab-pane fade"             id="map"     role="tabpanel" aria-labelledby="map-tab">
-					<div id="map" class="map"></div> 
+				<div class="tab-pane fade" id="globe-tabpane" role="tabpanel" aria-labelledby="globe-tab">
+					<div style="display: flex;">
+						<div id="globe" class="globe" style="width: 50vw;"></div>
+						<div id="site-details" style="width: 50vw; padding: 0 1em 1em 1em;">
+							<h3 style="padding-top:0; margin: 0;">Launch Site Details</h3>
+							<p style="text-align: left;">[click on site path for more information]</p>
+							<table id="site-table" border="1">
+								<tr>
+									<th>Property</th>
+									<th>Value</th>
+								</tr>
+							</table>
+						</div>
+					</div>
+					
 				</div>
 			</div>
 
@@ -557,7 +580,6 @@
 		const startYear = 1955;
 		const endYear = 2024;
 		const totalMonths = (endYear - startYear + 1) * 12 - 1;
-		console.log(totalMonths)
 		let globe;
 		var slider = document.getElementById('slider');
 
@@ -569,24 +591,39 @@
 			return `${monthNames[monthIndex]} ${year}`;
 		}
 
-		const defaultlayout = {
-			paper_bgcolor: 'rgba(0,0,0,0)',
-			plot_bgcolor: 'rgba(0,0,0,0)',
-			autosize: true,
-			font: { color: 'white', family: 'Space Grotesk, sans-serif', size: 15}, // general font
-			legend: { 
-				orientation: 'v',
-				x: 1.05, 
-				y: 1, 
-				itemwidth: 3, 
-				font: { 
-				color: 'white', 
-				size: 13, 
-				family: 'Space Grotesk, sans-serif'
-				}
-			},
-			margin: { t: 70, r: 40, b: 20, l: 40 } 
-		};
+		function updateSiteTable(site) {
+			const table = document.getElementById('site-table');
+			table.innerHTML = `<tr><th>Property</th><th>Value</th></tr>`;
+
+			const cleanedLaunches = site.labels.map(label => label.replace(/^Launch\s+/, ''));
+
+			const launchesHTML = `
+				<div style="
+					max-height: 150px; 
+					overflow-y: auto; 
+					padding: 4px; 
+					border: 1px solid rgba(255, 255, 255, 0.2);
+					border-radius: 4px;
+					background: rgba(255, 255, 255, 0.05);
+				">
+					${cleanedLaunches.join('<br>')}
+				</div>
+			`;
+
+			const rows = [
+				['Name', site.name],
+				['Latitude', site.lat + 1],
+				['Longitude', site.lng],
+				['Number of Launches', site.labels.length],
+				['Launches', launchesHTML],
+			];
+
+			rows.forEach(([prop, val]) => {
+				const tr = document.createElement('tr');
+				tr.innerHTML = `<td class="wrap-text">${prop}</td><td class="wrap-text">${val}</td>`;
+				table.appendChild(tr);
+			});
+		}
 
 		function intToDateString(monthIndex, isEnd = false) {
 			const year = startYear + Math.floor(monthIndex / 12);
@@ -642,17 +679,110 @@
 				}
 			}
 		});	
-		
-		let fetchTimeout;
-		slider.noUiSlider.on('end', (values, handle) => {
-			clearTimeout(fetchTimeout);
-			fetchTimeout = setTimeout(() => {
-				startDate = intToDateString(Number(values[0]));
-				endDate = intToDateString(Number(values[1]), true);
-				console.log(values,startDate, endDate);
-				fetchEventsData();
-			}, 100); // Wait 300ms before making the API call
+
+		var yearSelect1 = document.getElementById('year-select1');
+		var yearSelect2 = document.getElementById('year-select2');
+
+		// Append the option elements
+		for (var i = 1957; i <= 2024; i++) {
+
+			var option1 = document.createElement("option");
+			option1.text = i;
+			option1.value = i;
+
+			var option2 = document.createElement("option");
+			option2.text = i;
+			option2.value = i;
+
+			yearSelect1.appendChild(option1);
+			yearSelect2.appendChild(option2);
+		}
+
+		var monthSelect1 = document.getElementById('month-select1');
+		var monthSelect2 = document.getElementById('month-select2');
+
+		var months = [
+		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+		];
+
+		months.forEach((month, index) => {
+		var option1 = document.createElement("option");
+		option1.text = month;
+		option1.value = index + 1; // 1 = Jan, 12 = Dec
+
+		var option2 = document.createElement("option");
+		option2.text = month;
+		option2.value = index + 1;
+
+		monthSelect1.appendChild(option1);
+		monthSelect2.appendChild(option2);
 		});
+
+		slider.noUiSlider.on('update', (values, handle) => {
+			const startIndex = Math.round(values[0]);
+			const endIndex = Math.round(values[1]);
+
+			// Update the selects to match the slider
+			const start = fromMonthIndex(startIndex);
+			const end = fromMonthIndex(endIndex);
+
+			monthSelect1.value = start.month;
+			yearSelect1.value = start.year;
+			monthSelect2.value = end.month;
+			yearSelect2.value = end.year;
+		});
+
+		slider.noUiSlider.on('end', (values) => {
+			const startIndex = Math.round(values[0]);
+			const endIndex = Math.round(values[1]);
+
+			startDate = intToDateString(startIndex);
+			endDate = intToDateString(endIndex, true);
+			fetchEventsData();
+		});
+
+		function fromMonthIndex(index) {
+			const year = startYear + Math.floor(index / 12);
+			const month = (index % 12) + 1; // 1–12
+			return { year, month };
+		}
+
+		function toMonthIndex(year, month) {
+			return (year - startYear) * 12 + (month - 1);
+		}
+
+		function updateSliderFromSelects() {
+			console.log(yearSelect1.value,yearSelect2.value,monthSelect1.value,monthSelect2.value)
+			// Convert month/year to an index (months since startYear)
+			let startMonthIndex =
+				(yearSelect1.value - startYear) * 12 + (monthSelect1.value - 1);
+			let endMonthIndex =
+				(yearSelect2.value - startYear) * 12 + (monthSelect2.value - 1);
+
+			if (endMonthIndex <= startMonthIndex) {
+				endMonthIndex = startMonthIndex + 1;
+
+				// Update the selects so UI reflects the change
+				let newEndYear = startYear + Math.floor(endMonthIndex / 12);
+				let newEndMonth = (endMonthIndex % 12) + 1;
+
+				yearSelect2.value = newEndYear;
+				monthSelect2.value = newEndMonth;
+			}
+
+			slider.noUiSlider.set([startMonthIndex, endMonthIndex]);
+
+			startDate = intToDateString(startMonthIndex);
+			endDate = intToDateString(endMonthIndex, true);
+			console.log(startDate, endDate);
+			fetchEventsData();
+		}
+
+		yearSelect1.addEventListener('change', updateSliderFromSelects);
+		monthSelect1.addEventListener('change', updateSliderFromSelects);
+		yearSelect2.addEventListener('change', updateSliderFromSelects);
+		monthSelect2.addEventListener('change', updateSliderFromSelects);
 
 		function populateFilters(launches) {
 			// Get unique values from filtered_launches for each filter
@@ -788,7 +918,6 @@
 
 		function updateVisualizations(filtered_launches) {
 			updateTables(filtered_launches);
-			updateMaps(filtered_launches);
 			updateGraph(filtered_launches);
 			updateGlobe(filtered_launches);
 			updateStack(filtered_launches);
@@ -816,16 +945,6 @@
 
 		function updateGlobe(filtered_launches) {
 
-			const gData = filtered_launches.lat.map((latitude, index) => {
-				const longitude = filtered_launches.lon[index];
-
-				return {
-					lat: latitude,
-					lon: longitude,
-					//name: `Launch ID ${filtered_launches.id[index]}`,
-				};
-			});
-
 			// Step 1: Group launches by site (lat/lng + site name as key)
 			const siteMap = {};
 			filtered_launches.lat.forEach((lat, i) => {
@@ -833,7 +952,7 @@
 				const site = filtered_launches.text[i];  // launch site name
 				const id = filtered_launches.id[i];
 				const vehicle = filtered_launches.rocket[i];
-				const key = `${site}_${lat}_${lng}`;
+				const key = `${site}}`;
 
 				if (!siteMap[key]) {
 					siteMap[key] = {
@@ -847,33 +966,52 @@
 				siteMap[key].labels.push(`Launch ${id} - ${vehicle}`);
 			});
 
-			// Step 2: Convert to array
-			const labelSites = Object.values(siteMap);
+			const gData = filtered_launches.lat.map((latitude, index) => {
+				const longitude = filtered_launches.lon[index];
+				const site = filtered_launches.text[index];
+				const key = `${site}}`;
+				const siteInfo = siteMap[key];
 
+				return {
+					lat: latitude,
+					lon: longitude,
+					siteObj: siteInfo   
+					//name: `Launch ID ${filtered_launches.id[index]}`,
+				};
+			});
+
+			// Step 2: Convert to array
+			const labelSites = Object.values(siteMap).sort((a, b) => a.lat - b.lat);
 			const OPACITYPATH  = 0.3;
 
 			if (!globe) {
 				globe = new Globe(document.getElementById('globe'))
 					.globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg')
+					.showGraticules(true)
 					.pointLat(d => d.lat)
 					.pointLng(d => d.lon)
 					.pointColor(() => `rgba(0, 255, 0, ${OPACITYPATH})`)
-					.pointRadius(0.5)
-					.pointAltitude(0.2)
+					.pointRadius(0.4)
+					.pointAltitude(d => 0.05 + 0.0005 * d.siteObj.labels.length)
 					.labelLat(d => d.lat)
 					.labelLng(d => d.lng)
-					.labelText(d => d.name)  // Label the location with the launch site.
-					.labelLabel(d => d.labels.join('<br>'))  // Hover over label gives launch IDs.
+					.labelText(d => d.name)
+					//.labelLabel(d => d.labels.join('<br>'))  // Hover over label gives launch IDs.
 					.labelResolution(2)
-					.labelSize(1.5)
-					.labelDotRadius(0);
-
+					.labelsTransitionDuration(0)
+					.labelSize(1)
+					.labelDotRadius(0)
+					.onPointClick(d => {
+						updateSiteTable(d.siteObj);
+						globe.labelsData([d.siteObj]);
+					})
+				
+				globe.labelsData([]);
 				globe.pointsData(gData);
-				globe.labelsData(labelSites);
 
 				setTimeout(() => {
 				globe
-					.pointOfView({ lat: 0, lng: 0, altitude: 1.9 }, 1000);
+					.pointOfView({ lat: 35, lng: -95, altitude: 1.5 }, 1000);
 				}, 0);
 		
 			} else {
@@ -942,127 +1080,6 @@
 			`;
 			table1Foot.appendChild(totalRow1);
 		}
-
-		function updateMaps2(filtered_launches) {
-			const latitudes1 = filtered_launches.lat;
-			const longitudes1 = filtered_launches.lon;
-			const labels1 = filtered_launches.id;
-
-			const mapData1 = latitudes1.length > 0 && longitudes1.length > 0 ? [{
-				type: 'scattergeo',
-				lat: latitudes1,
-				lon: longitudes1,
-				text: labels1,
-				mode: 'markers+text',
-				marker: {
-				size: 12,
-				color: 'blue',
-				symbol: 'x',
-				},
-				textfont: {
-					size: 15,  // Font size for the labels
-					color: 'black',  // Color of the text
-					weight: 'bold',
-					family: 'Space Grotesk, sans-serif',
-				},
-				textposition: 'right',
-			}] : [{
-				type: 'scattergeo',
-				mode: 'markers', // Keep the map but without data points
-				marker: { size: 0 }, // Invisible markers
-			}];
-
-			const layout = {
-				geo: {
-					resolution: 100, 
-					projection: { type: 'robinson' },
-					showland: true,
-					landcolor: 'rgb(217, 217, 217)',
-					showocean: true,
-					oceancolor: 'rgb(204, 233, 255)',
-					showcountries: true,
-					countrycolor: 'rgb(50, 50, 50)',
-					showsubunits: true,
-					subunitcolor: 'rgb(150, 150, 150)',
-					showgrid: true,
-					gridcolor: 'rgb(220, 220, 220)',
-					gridwidth: 2,
-					griddash: 'dash', // Dashed gridlines for both axes
-					lataxis: {
-						showgrid: true,  // Gridline for latitude axis
-						gridcolor: 'rgb(220, 220, 220)', // Optional: specify grid color
-						griddash: 'dash', // Dashed gridline style
-						tickmode: 'array',
-						ticks: '',
-						ticklen: 10,
-						tickcolor: 'rgb(220, 220, 220)',
-						showticklabels: false,
-						zeroline: false
-					},
-					lonaxis: {
-						showgrid: true,  // Gridline for longitude axis
-						gridcolor: 'rgb(220, 220, 220)', // Optional: specify grid color
-						griddash: 'dash', // Dashed gridline style
-						tickmode: 'array',
-						ticks: '',
-						ticklen: 10,
-						tickcolor: 'rgb(220, 220, 220)',
-						showticklabels: false,
-						zeroline: false
-					}
-				},
-			};
-			Plotly.newPlot('map', mapData1, {...defaultlayout, ...layout}, {responsive: true, displayModeBar: true });
-		}
-
-		let leafletMap; // global map variable
-		let markersLayer; // layer to hold markers
-
-		function updateMaps(filtered_launches) {
-			// Initialize map if not already
-			if (!leafletMap) {
-				leafletMap = L.map('map');
-
-				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-					attribution: '&copy; OpenStreetMap contributors'
-				}).addTo(leafletMap); // Add OpenStreetMap tiles
-
-				markersLayer = L.layerGroup().addTo(leafletMap); // Create layer group to hold markers
-
-				// Ensure map resizes correctly when tab becomes visible
-				$('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-					if (e.target.id === 'map-tab') {
-						leafletMap.invalidateSize();
-					}
-				});
-			}
-
-			// Clear previous markers
-			markersLayer.clearLayers();
-
-			// Add new markers
-			if (filtered_launches.lat && filtered_launches.lat.length > 0) {
-				const markerList = [];
-
-				filtered_launches.lat.forEach((lat, i) => {
-					const marker = L.marker([lat, filtered_launches.lon[i]])
-						.bindPopup(`<b>${filtered_launches.id[i]}</b>`)
-						.on('click', function () {
-							console.log('Selected launch site:', filtered_launches.id[i]);
-							// Optional: add selection/highlight logic here
-						});
-					markersLayer.addLayer(marker);
-					markerList.push(marker);
-				});
-
-				// Fit map bounds to all markers
-				const group = new L.featureGroup(markerList);
-				leafletMap.fitBounds(group.getBounds().pad(0.2));
-			} else {
-				// If no markers, fallback to global view
-				leafletMap.setView([0, 0], 2);
-			}
-		}
 		
 		function updateGraph(filtered_launches) {
 
@@ -1097,20 +1114,37 @@
 			}));
 			
 			const layout = {
+				paper_bgcolor: 'rgba(0,0,0,0)',
+				plot_bgcolor: 'rgba(0,0,0,0)',
+				autosize: true,
+				font: { color: 'white', family: 'Space Grotesk, sans-serif', size: 14}, // general font
+				legend: { 
+					orientation: 'v',
+					x: 1.05, 
+					y: 1, 
+					itemwidth: 3, 
+					font: { 
+					color: 'white', 
+					size: 13, 
+					family: 'Space Grotesk, sans-serif'
+					}
+				},
 				title: {
 					text: 'Total Emissions [kt]',
-					font: { color: 'white' },
 				    xref: 'paper',
 					xanchor: 'center',
-    				y: 0.89,},
+					yref:'paper',
+					y: 1,
+					pad: { t: -30 }},
 				barmode: 'stack',
 				yaxis: {
 					range: [0,maxYValue / 1000]
 				},
+				margin: { t: 70, r: 40, b: 20, l: 40 } 
 			};
 
 			// Plot the chart inside the 'emissionsChart' div
-			Plotly.newPlot('bar', trace, {...defaultlayout, ...layout}, {responsive: true, displayModeBar: true });
+			Plotly.newPlot('bar', trace, layout, {responsive: true, displayModeBar: true });
 
 		}
 
@@ -1145,25 +1179,40 @@
 			}));
 
 			const layout = {
+				paper_bgcolor: 'rgba(0,0,0,0)',
+				plot_bgcolor: 'rgba(0,0,0,0)',
+				autosize: true,
+				font: { color: 'white', family: 'Space Grotesk, sans-serif', size: 14}, // general font
+				legend: { 
+					orientation: 'v',
+					x: 1.05, 
+					y: 1, 
+					itemwidth: 3, 
+					font: { 
+					color: 'white', 
+					size: 13, 
+					family: 'Space Grotesk, sans-serif'
+					}
+				},
 				title: {
 					text: 'Monthly Emissions (click legend to show/hide species)',
-					font: { color: 'white' },
 				    xref: 'paper',
 					xanchor: 'center',
-    				y: 0.89,},
+					yref:'paper',
+					y: 1,
+					pad: { t: -30 }},
 				yaxis: {
 					title: {
 						text: 'Mass [kilotonnes]',
 					},
 					range: [0,maxYValue / 1000]
 				},
+
+				margin: { t: 70, r: 40, b: 20, l: 40 } 
 			};
-			Plotly.newPlot('stack', traces , {...defaultlayout, ...layout}, {responsive: true, displayModeBar: true });
+			Plotly.newPlot('stack', traces , layout, {responsive: true, displayModeBar: true });
 
 		}
-		
-
-		let mapInitialized = false;
 
 		// Plot a default date when the page opens, then update when the date changes.
 		document.addEventListener('DOMContentLoaded', () => {
@@ -1190,17 +1239,6 @@
 						// Resize your Globe.gl renderer (assuming you have one)
 						if (window.globe) {
 							resizeGlobe();
-						}
-					}
-					if (activatedTabId === 'map-tab') {
-						leafletMap.invalidateSize();
-						if (!mapInitialized) {
-							// Set a default center and zoom on first load
-							const defaultCenter = [20, 0]; // adjust latitude/longitude as needed
-							const defaultZoom = 1.5;          // adjust zoom level as needed
-							leafletMap.setView(defaultCenter, defaultZoom);
-
-							mapInitialized = true; // so we don’t override user zoom later
 						}
 					}
 				});
@@ -1245,7 +1283,7 @@
 		const resizeGlobe = () => {
 			const container = document.getElementById('globe');
 			const screenHeight = window.innerHeight;
-			const globeHeight = screenHeight * 0.56 - 30;
+			const globeHeight = screenHeight * 0.52 - 30;
 			const globeWidth = container.offsetWidth - 30;
 			globe.width(globeWidth).height(globeHeight);
 			
