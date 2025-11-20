@@ -1,589 +1,100 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="description" content="A tracker of rocket launch and re-entry emissions based on Barker, C.R., Marais, E.A. & McDowell, J.C. Global 3D rocket launch and re-entry air pollutant and CO2 emissions at the onset of the megaconstellation era. Sci Data 11, 1079 (2024).">
 
-<meta charset="utf-8">
-<meta name="description" content="A tracker of rocket launch and re-entry emissions based on Barker, C.R., Marais, E.A. & McDowell, J.C. Global 3D rocket launch and re-entry air pollutant and CO2 emissions at the onset of the megaconstellation era. Sci Data 11, 1079 (2024).">
-<title>Rocket Launch Emissions</title>
-
-<!-- Preconnect and DNS Prefetch -->
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-<link rel="dns-prefetch" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="dns-prefetch" href="https://fonts.gstatic.com">
-
-<link rel="icon" type="image/x-icon" href="assets/images/favicon_rocket.ico">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,281;1,281&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
-
-<script defer src="https://cdn.plot.ly/plotly-basic-latest.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-
-<!-- TODO: Set up Google Analytics -->
+    <title>Space Emissions Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon_rocket.ico">
 
 </head>
-
 <body>
 
-	<style>
+    <style>
 
-		/* ✨ 3D Moving Starfield Background */
-		#starfield {
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			z-index: -1; /* sits behind your content */
-			background: radial-gradient(circle at 50% 50%, #0a0f24, #05070f 80%);
-		}
+        .landing-page {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-color: #111;
+            }
 
-		*, ::after, ::before {
-			box-sizing: content-box !important;
-		}
+        .buttons {
+            position: absolute;
+            z-index: 2;
+            display: flex;
+            gap: 40px;
+            }
 
-		#slider, #slider * {
-			box-sizing: border-box !important;
-		}
-
-		p {
-			margin-top: 0.85em;
-			margin-bottom: 0.85em;
-		}
-
-		.filter-container {
-			display: flex; 
-			flex-direction: column; 
-		}
-
-		.filter {
-			position: relative;
-			background: #143d59;
-			color: whitesmoke;
-			padding: 0.3em;
-			height: auto;
-			cursor: pointer; /* show pointer on hover */
-			text-align: left;
-			margin-top: 0.5em;
-		}
-
-		.filter label {
-			font-size: 1.125em;
-			user-select: none;
-			display: inline-flex;
-			align-items: center;
-			gap: 0.375rem;
-		}
-
-		.filter label::after {
-			content: '';
-			display: inline-block;
-			width: 0; 
-			height: 0; 
-			border-left: 0.4em solid transparent;
-			border-right: 0.4em solid transparent;
-			border-top: 0.4em solid whitesmoke;
-			vertical-align: middle;
-			transition: transform 0.3s ease;
-			margin-left: 0.5em;
-		}
-
-		/* Arrow down (open) */
-		.filter.open label::after {
-			transform: rotate(180deg);
-		}
-
-		/* Remove any arrows from dropdown labels */
-		.dropdown label::after {
-			display: none !important;
-			content: none !important;
-		}
-		
-		/* Hide dropdown initially */
-		.dropdown ul {
-			display: none;
-			position: absolute;
-			list-style-type: none;
-			background-color: #8dc4ee;
-			max-height: 30vh;
-			overflow-y: auto;
-			width: 100%;
-			min-width: unset; /* Ensure a minimum width */
-			white-space: normal;
-			border-radius: 0.3rem;
-			z-index: 100;
-			top: calc(100% + 0.3rem);
-			left: calc(0% - 0.3rem);
-		}
-
-		.dropdown label {
-			font-size: 1.2em;
-			display: flex;
-			align-items: center;
-			text-align: left;
-			padding: 0;
-		}
-
-		.filter.open .dropdown ul {
-			display: block;
-			padding: 0.4em;
-		}
-
-		.wrap-text {
-			white-space: normal;
-			word-wrap: break-word;
-			max-width: 25vh; /* Adjust the width as needed */
-		}
-
-		.tab-pane {
-			height: 100%;
-			display: flex; /* Ensure children align properly */
-    		flex-direction: column; /* Align children vertically */
-			background: rgba(255, 255, 255, 0.08);        /* semi-transparent glass */
-			backdrop-filter: blur(0.85em) brightness(1.05); /* blur background */
-			-webkit-backdrop-filter: blur(0.85em) brightness(1.05); /* Safari */
-			border-radius: 1em;                           /* rounded corners */
-			border: 0.1em solid rgba(255, 255, 255, 0.2);   /* subtle border */
-			box-shadow: 0 0.5em 2em rgba(0, 0, 0, 0.2);    /* optional shadow */
-			box-sizing: border-box;
-			padding: 1em;
-			overflow: hidden;
-		}
-
-		.tab-pane .row {
-			flex-grow: 1;
-			height: 100%;
-		}
-
-		.row {
-			margin: 0;
-			padding: 0;
-			height: 100%;
-		}
-
-		.col-8, .col-4 {
-			height: 100%;
-			padding: 0;
-		}
-
-		.globe-tabpane, .chart-tabpane {
-			height: 100%;
-			width: 100%;
-		}
-
-		.apply-filters {
-			padding: 0.4em;
-			background-color: #143d59;
-			border: 0.1em solid #ccc;
-			border-radius: 0.5em;
-			color: whitesmoke;
-			margin: 0;
-		}
-
-		#myTab {
-			padding-left: 0;
-		}
-
-		#myTabContent {
-			margin: 1em 0 1em 0;
-			height: 52vh;
-			display: flex; /* Optional: Ensures children align properly */
-			flex-direction: column; /* Optional: Aligns children vertically */
-		}
-
-		.nav-tabs{
-			border: 0;
-			font-size: 1.6em;
-		}
-
-		.nav-tabs .nav-item {
-			padding-right: 1em;
-			margin: 0;
-		}
-
-		.nav-tabs .nav-link {
-			background-color: #143d59;
-			color: whitesmoke;
-			margin-bottom: 0;
-			border: 0.1em solid transparent;
-			border-bottom-left-radius: 0;
-			padding: 0.2em;
-		}
-
-		.nav-tabs .nav-link:hover {
-			background-color: #246a99;
+        .btn {
+            padding: 20px;
+            width: 200px;
+            font-size: 2em;
+            text-decoration: none;
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            transition: all 0.5s ease;
+            background-color: #246a99;
 			border-color: transparent;
-		}
-
-		.nav-tabs .nav-link.active {
-			background-color: #588db1;
-			font-weight: bold;
-			color: whitesmoke;
-			border-color: #588db1;
 			box-shadow: inset 0 0 0 0 transparent, 0 0 0 0 transparent, inset 0 0 0 0 transparent, 0 0.3rem 0 0 #143d59;
-		}
+		    }
 
-		.nav-tabs-container {
-			border-bottom: 0.3rem solid #e9e9e9; /* or your desired color */
-		}
+        .btn:hover {
+            background-color: #588db1;
+            transform: scale(1.1);
+            cursor: pointer;
+            font-weight: bold;
+            }
 
-		/* Container to align the tables side by side */
-		.table-container {
-			position: relative;
-		}
+        .images-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            }
 
-		/* Table styling */
-		table, .site-table {
-			width: 100%;
-			border-collapse: collapse;
-			white-space: nowrap;
-			color: black;
-		}
+        .image-panel {
+            flex: 1; /* default: half the screen each */
+            height: 100%;
+            background-size: auto 100%;
+            background-position: center;
+            background-repeat: no-repeat; 
+            transition: flex 0.5s ease;
+            filter: blur(4px); /* default blur */
+            }
 
-		th, td, tr {
-			padding: 0.3em;
-			text-align: left;
-			border: 0.1em solid #ddd;
-			white-space: nowrap;
-		}
+    </style>
 
-		#site-table th, 
-		#site-table td {
-			word-wrap: break-word;
-		}
 
-		#site-table th:first-child,
-		#site-table td:first-child {
-			width: 150px; /* adjust as needed */
-		}
+    <div class="landing-page">
+        <div class="buttons">
+            <a href="launch.html" class="btn" id="launch-btn">Launch</a>
+            <a href="reentry.html" class="btn" id="reentry-btn">Re-entry</a>
+        </div>
+    <div class="images-container">
+        <div class="image-panel" id="launch-panel"></div>
+        <div class="image-panel" id="reentry-panel"></div>
+    </div>
+  </div>
 
-		th {
-			background-color: #dddddd;
-		}
+  <div class="bottom-row">
+    <p style="text-align: left; margin: 0;">
+        Developed by <a href="https://profiles.ucl.ac.uk/93616-connor-barker" target="_blank" rel="noopener noreferrer">Connor Barker</a> (UCL postdoc) and <a href="https://profiles.ucl.ac.uk/77783-eloise-marais" target="_blank" rel="noopener noreferrer">Eloise Marais</a> (UCL PI), in collaboration with <a href="https://www.cfa.harvard.edu/people/jonathan-mcdowell" target="_blank" rel="noopener noreferrer">Jonathan McDowell</a> (Harvard-Smithsonian Center for Astrophysics). Interested in using the data or spot any room for improvements? Please reach out to Connor Barker at <a href= "mailto:connor.barker@ucl.ac.uk">connor.barker@ucl.ac.uk. </a>
+        <strong>Funding Disclaimer:</strong> This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No. 851854). <a href="https://cordis.europa.eu/project/id/851854" target="_blank" rel="noopener noreferrer">European Commission project page</a>. Images: ESA/David Ducross, ESA/SpaceX. 
+    </p>
+  </div>
 
-		tbody, tr {
-			background-color: #ffffff;
-		}
+  <script src="js/index.js"></script>
 
-		tfoot {
-			font-weight: bold;
-			background-color: #ffffff;
-		}
-
-		.faq-item {
-			display: block;
-			margin-top: 0.5rem;
-		}
-
-		.item-question {
-			background: #143d59;
-			color: whitesmoke;
-			font-size: 1.125em;
-			padding: 0.5rem;
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			text-align: left;
-		}
-		.question-text {
-			display: inline-block;
-		}
-		.arrows-container {
-			margin: 0.4rem;
-		}
-		.item-answer {
-			display: none;
-			color: rgb(0, 0, 0);
-			padding: 0.7em;
-		}
-		.close {
-			display: none;
-		}
-
-		.show-answer .item-answer {
-			display: block;
-			background: #8dc4ee;
-		}
-		.show-answer .close {
-			display: inline;
-		}
-		.show-answer .expand {
-			display: none;
-		}
-
-		/* Style for the arrow button on the table*/
-		.arrow-button {
-			padding: 0.2em;
-			background: #143d59;
-			border: none;
-			margin: none;
-			color: whitesmoke;			
-			font-size: 1em; /* Increase size for better visibility */
-			position: absolute; /* Position relative to the table container */
-			left: -1.4em; /* Place the button outside the table on the right */
-			width: 1em;
-			height: calc(0.3em *2 + 0.1em *2 + 1em - 0.2em*2);
-			z-index: 10; /* Ensure the button is above other elements */
-		}
-
-		.arrow-button:focus {
-			outline: none;
-		}
-
-		/* Styling for the date range slider */
-
-		.noUi-horizontal {
-			height: 0.35em;
-		}
-
-		.noUi-target {
-			border: none;
-			background: #e9e9e9;
-		}
-
-		.noUi-value {
-			margin-top: 0.5em;
-		}
-
-		.noUi-tooltip {
-			padding: 0;
-			border: 0;
-			color: #ffffff;
-			background-color: transparent;
-		}
-
-		.noUi-connect {
-			background: #588db1;;
-		}
-
-		.noUi-handle {
-			background: #143d59;
-			box-shadow: none;
-			border: 0;
-			border-radius: 50%; 
-		}
-
-		.noUi-handle:before, .noUi-handle:after {
-			display: none;
-		}
-
-		.noUi-pips-horizontal {
-			padding: 0.7em;
-			height: 0.7em;
-			color: #ffffff;
-		}
-
-		.noUi-marker, .noUi-marker-large {
-			background:  #ffffff;
-		}
-
-		.noUi-horizontal .noUi-handle{
-			width: 1.4em;
-			height: 1.4em;
-			color: #000000;
-			right: -0.7em;
-			top: -0.7em;
-		}
-
-	</style>
-
-	<canvas id="starfield"></canvas>
-
-	<div class="main-row">
-
-		<div class="left-column">
-
-			<h1 style="text-align: center; padding-top:0.2em;">Rocket Launch Emissions</h1>
-			<p style="text-align: left;">Welcome to our tracker of pollutant and greenhouse gas emissions from rocket launches! Select a time window of interest to visualise pollution on interactive plots or a 3D globe. For more information, see the FAQs at the bottom of this section. </p>	
-	
-			<h2>Filters</h2>
-
-			<button class="apply-filters" type="submit" id="applyFilters">Apply Filters</button>
-				
-			<div class="filter-container">
-
-				<div class="filter">
-					<label>Launch Site</label>
-					<div class="dropdown" id="locationFilter">
-						<ul></ul>
-					</div>
-				</div>
-			
-				<div class="filter">
-					<label>Launch Vehicle</label>
-					<div class="dropdown" id="rocketFilter">
-						<ul></ul>
-					</div>
-				</div>
-			
-				<div class="filter">
-					<label>Megaconstellation</label>
-					<div class="dropdown" id="smcFilter">
-						<ul></ul>
-					</div>
-				</div>
-					
-			</div>
-			<h2>Frequently Asked Questions</h2>
-			<div id="faqs-container"></div>
-
-			<script>
-				const faqData = [ 
-					{ question: "What are these chemicals?",
-						answer: "NO<sub>x</sub> is nitrogen oxides, H<sub>2</sub>O is water vapour, CO<sub>2</sub> is carbon dioxide, BC is black carbon or soot, Al<sub>2</sub>O<sub>3</sub> is aluminium oxide or alumina, and Cl<sub>y</sub> is a family of chlorine compounds. NO<sub>x</sub>, H<sub>2</sub>O, CO<sub>2</sub>, and Cl<sub>y</sub> are released as gases, BC and Al<sub>2</sub>O<sub>3</sub> as particles."
-					},
-					{ question: "How do these chemicals affect the atmosphere?",
-						answer: "Unlike man-made emissions from the surface of the Earth, rocket launches release air pollutant and CO<sub>2</sub> emissions throughout the atmosphere, where they can have an outsized impact on our atmosphere and climate. NO<sub>x</sub> and Cl<sub>y</sub> are the largest contributors to destruction of the ozone layer from rocket emissions, with smaller destruction occuring from emissions of BC and Al<sub>2</sub>O<sub>3</sub> particles. The largest climate impacts come from BC emissions, which warm the upper layers of the atmosphere while cooling the lower layers."
-					},
-					{ question: "What does each filter represent?",
-						answer: "Launch site refers to the location of the rocket launch. Launch vehicle refers to the type of rocket used for the launch. Megaconstellation refers to whether the launch contains megaconstellation payloads."
-					},
-					{ question: "How is this data calculated?",
-						answer: "Our calculations are based on the current best scientific knowledge available for emissions from rocket launches. We include the effects of a changing chemical environment with altitude in our launch emissions, and calculate emissions globally up to a maximum altitude of 80 km. Paths shown in the Globe view are fixed at the launch site and do not represent real rocket trajectories."
-					},
-					{ question: "Where can I find the original methodology and data?",
-					answer: "You can find further details in our study published in Nature Scientific Data: Global 3D rocket launch and re-entry air pollutant and carbon dioxide emissions for 2020-2022</strong>. C. R. Barker, E. A. Marais (2024). doi:10.5522/04/26325382. [<a href='https://doi.org/10.5522/04/26325382' target='_blank' rel='noopener noreferrer'>Data</a>]. [<a href='https://www.nature.com/articles/s41597-024-03910-z' target='_blank' rel='noopener noreferrer'>Publication</a>]."
-					}
-				];
-
-				const faqsContainer = document.getElementById('faqs-container');
-
-				faqData.map(function(item) {
-
-					let article = document.createElement('article');
-					article.classList.add('faq-item');
-
-					const markup = `
-							<div class="filter">
-								<label>${item.question}</label>
-							</div>
-							<div class="item-answer">
-								<span>${item.answer}</span>
-							</div>
-					`;
-					
-					article.innerHTML = markup;
-					faqsContainer.append(article);
-				});
-
-				const faqQuestions = document.querySelectorAll('.filter');
-					
-				faqQuestions.forEach(question => {
-					question.addEventListener('click', function(e) {
-						const faqItem = question.parentElement;
-						faqItem.classList.toggle("show-answer");
-					});
-				});
-
-			</script>
-		</div>
-		
-		<div class="center-column">
-			<!-- Tabs for charts and globe -->
-			<div class="nav-tabs-container d-flex justify-content-between align-items-center">
-				<ul class="nav nav-tabs" id="myTab" role="tablist">
-					<li class="nav-item" role="presentation">
-					<button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-tabpane" type="button" role="tab" aria-controls="chart" aria-selected="true">Emissions Data</button>
-					</li>
-					<li class="nav-item" role="presentation">
-					<button class="nav-link"        id="globe-tab" data-bs-toggle="tab" data-bs-target="#globe-tabpane" type="button" role="tab" aria-controls="globe" aria-selected="false">Launch Sites</button>
-					</li>
-				</ul>
-			</div>
-
-			<div class="filter-container">
-				<div id="slider" style="margin:3em;"></div>
-			</div>
-
-			<div style="display:flex; justify-content:space-between; align-items:center; margin-top:1em;">
-				<div>
-				  <select id="month-select1"></select>
-				  <select id="year-select1"></select>
-				</div>
-				<div>
-				  <select id="month-select2"></select>
-				  <select id="year-select2"></select>
-				</div>
-			</div>
-
-			<div class="tab-content" id="myTabContent">
-				<div class="tab-pane fade show active" id="chart-tabpane"   role="tabpanel" aria-labelledby="chart-tab">
-					<div class="row">
-						<div class="col-8" style="padding:0;"> <!-- 75% -->
-							<div id="stack" class="chart"></div>
-						</div>
-						<div class="col-4" style="padding:0;"> <!-- 25% -->
-							<div id="bar" class="chart"></div>
-						</div>
-					</div>
-				</div>
-				<div class="tab-pane fade" id="globe-tabpane" role="tabpanel" aria-labelledby="globe-tab">
-					<div style="display: flex;">
-						<div id="globe" class="globe" style="width: 50vw;"></div>
-						<div id="site-details" style="width: 50vw; padding: 0 1em 1em 1em;">
-							<h3 style="padding-top:0; margin: 0;">Launch Site Details</h3>
-							<p style="text-align: left;">[click on site path for more information]</p>
-							<table id="site-table" border="1">
-								<tr>
-									<th>Property</th>
-									<th>Value</th>
-								</tr>
-							</table>
-						</div>
-					</div>
-					
-				</div>
-			</div>
-
-			<!-- Table for Launch Locations -->
-			<div class="table-container">
-				<div>
-					<h3 style="margin: 0;">Launch Details (Click arrow to expand)</h3>
-					<p style="text-align: left;">[Emissions in tonnes, time in UTC. SMC=Satellite Megaconstellation]</p>
-					<table id="launchTable">
-						<thead>
-							<tr>
-								<th>Date</th>
-								<th>ID</th>
-								<th>Time</th>
-								<th>Launch Site</th>
-								<th>Rocket</th>
-								<th>SMC</th>
-								<th>BC</th>
-								<th>CO</th>
-								<th>CO<sub>2</sub></th>
-								<th>H<sub>2</sub>O</th>
-								<th>Al<sub>2</sub>O<sub>3</sub></th>
-								<th>Cl<sub>y</sub></th>
-								<th>NO<sub>x</sub></th>
-							</tr>
-						</thead>
-						<tbody id="launchTableBody" style="display: none;">
-							<!-- Dynamic rows for launch locations will be inserted here -->
-						</tbody>
-						<tfoot id="launchTableFoot">
-							<!-- Totals for launches -->
-						</tfoot>
-						<button id="toggleTableButton" class="arrow-button">&#9650;</button>
-					</table>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<script defer src="launches.js"></script>
-	
-	<div class="bottom-row">
-		<p style="text-align: left; margin: 0;">
-			Developed by <a href="https://profiles.ucl.ac.uk/93616-connor-barker" target="_blank" rel="noopener noreferrer">Connor Barker</a> (UCL postdoc) and <a href="https://profiles.ucl.ac.uk/77783-eloise-marais" target="_blank" rel="noopener noreferrer">Eloise Marais</a> (UCL PI), in collaboration with <a href="https://www.cfa.harvard.edu/people/jonathan-mcdowell" target="_blank" rel="noopener noreferrer">Jonathan McDowell</a> (Harvard-Smithsonian Center for Astrophysics). Interested in using the data or spot any room for improvements? Please reach out to Connor Barker at <a href= "mailto:connor.barker@ucl.ac.uk">connor.barker@ucl.ac.uk. </a>
-			<strong>Funding Disclaimer:</strong> This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No. 851854). <a href="https://cordis.europa.eu/project/id/851854" target="_blank" rel="noopener noreferrer">European Commission project page</a>.
-		</p>
-  	</div>
 </body>
 </html>
