@@ -34,7 +34,7 @@ function updateSiteTable(site) {
     const rows = [
         ['Name', site.name],
         ['Latitude', site.lat],
-        ['Longitude', site.lng],
+        ['Longitude', site.lon],
         ['Number of Launches', site.labels.length],
         ['Launches', launchesHTML],
     ];
@@ -381,7 +381,7 @@ const strongColors = {
 
 function updateGlobe(filtered_launches) {
 
-    // Step 1: Group launches by site (lat/lng + site name as key)
+    // Step 1: Group launches by site (lat/lon + site name as key)
     const siteMap = {};
     filtered_launches.lat.forEach((lat, i) => {
         const lon = filtered_launches.lon[i];
