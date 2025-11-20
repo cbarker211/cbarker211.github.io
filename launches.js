@@ -577,7 +577,7 @@ function updateGraph(filtered_launches) {
     };
 
     // Plot the chart inside the 'emissionsChart' div
-    Plotly.newPlot('bar', trace, layout, {responsive: true, displayModeBar: true });
+    Plotly.react('bar', trace, layout, {responsive: true, displayModeBar: true });
 
 }
 
@@ -643,7 +643,7 @@ function updateStack(filtered_launches) {
         hovermode: 'closest',
         margin: { t: 70, r: 40, b: 20, l: 40 } 
     };
-    Plotly.newPlot('stack', traces , layout, {responsive: true, displayModeBar: true });
+    Plotly.react('stack', traces , layout, {responsive: true, displayModeBar: true });
 
 }
 
