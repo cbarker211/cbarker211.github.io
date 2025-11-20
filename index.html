@@ -6,17 +6,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rocket Launch Emissions</title>
 
+<!-- Preconnect and DNS Prefetch -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="dns-prefetch" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://fonts.gstatic.com">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="dns-prefetch" href="https://unpkg.com">
+<link rel="preconnect" href="https://code.jquery.com" crossorigin>
+<link rel="dns-prefetch" href="https://code.jquery.com">
+
 <link rel="icon" type="image/x-icon" href="assets/images/favicon_rocket.ico">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,281;1,281&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
-<script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-basic-latest.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
@@ -612,7 +624,7 @@
 
 			const rows = [
 				['Name', site.name],
-				['Latitude', site.lat + 1],
+				['Latitude', site.lat],
 				['Longitude', site.lng],
 				['Number of Launches', site.labels.length],
 				['Launches', launchesHTML],
@@ -731,6 +743,21 @@
 			yearSelect1.value = start.year;
 			monthSelect2.value = end.month;
 			yearSelect2.value = end.year;
+		});
+
+		slider.noUiSlider.on('slide', (values, handle) => {
+			const minSelectableIndex = (1957 - startYear) * 12; // January 1957
+			const maxSelectableIndex = totalMonths;
+
+			let value = Math.round(values[handle]);
+			if (value < minSelectableIndex) {
+				value = minSelectableIndex;
+			} else if (value > maxSelectableIndex) {
+				value = maxSelectableIndex;
+			}
+
+			// Set the slider handle back to the restricted value
+			slider.noUiSlider.setHandle(handle, value);
 		});
 
 		slider.noUiSlider.on('end', (values) => {
@@ -948,16 +975,16 @@
 			// Step 1: Group launches by site (lat/lng + site name as key)
 			const siteMap = {};
 			filtered_launches.lat.forEach((lat, i) => {
-				const lng = filtered_launches.lon[i];
+				const lon = filtered_launches.lon[i];
 				const site = filtered_launches.text[i];  // launch site name
 				const id = filtered_launches.id[i];
 				const vehicle = filtered_launches.rocket[i];
-				const key = `${site}}`;
+				const key = `${site}`;
 
 				if (!siteMap[key]) {
 					siteMap[key] = {
-					lat: lat - 1,
-					lng,
+					lat: lat,
+					lon,
 					name: site,
 					labels: []
 					};
@@ -966,48 +993,45 @@
 				siteMap[key].labels.push(`Launch ${id} - ${vehicle}`);
 			});
 
-			const gData = filtered_launches.lat.map((latitude, index) => {
-				const longitude = filtered_launches.lon[index];
-				const site = filtered_launches.text[index];
-				const key = `${site}}`;
-				const siteInfo = siteMap[key];
-
-				return {
-					lat: latitude,
-					lon: longitude,
-					siteObj: siteInfo   
-					//name: `Launch ID ${filtered_launches.id[index]}`,
-				};
-			});
-
 			// Step 2: Convert to array
 			const labelSites = Object.values(siteMap).sort((a, b) => a.lat - b.lat);
 			const OPACITYPATH  = 0.3;
+			const minimalSites = labelSites.map(s => ({
+				lat: s.lat,
+				lon: s.lon,
+				name: s.name,
+				altitude: 0.05 + 0.0005 * s.labels.length
+			}));
+
+			const siteDataMap = {};
+			labelSites.forEach(s => siteDataMap[s.name] = s);
 
 			if (!globe) {
 				globe = new Globe(document.getElementById('globe'))
 					.globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg')
 					.showGraticules(true)
+					.showAtmosphere(false)
+					.backgroundColor('rgba(0,0,0,0)')
 					.pointLat(d => d.lat)
 					.pointLng(d => d.lon)
 					.pointColor(() => `rgba(0, 255, 0, ${OPACITYPATH})`)
 					.pointRadius(0.4)
-					.pointAltitude(d => 0.05 + 0.0005 * d.siteObj.labels.length)
+					.pointAltitude(d => d.altitude) 
 					.labelLat(d => d.lat)
-					.labelLng(d => d.lng)
+					.labelLng(d => d.lon)
 					.labelText(d => d.name)
 					//.labelLabel(d => d.labels.join('<br>'))  // Hover over label gives launch IDs.
 					.labelResolution(2)
 					.labelsTransitionDuration(0)
 					.labelSize(1)
 					.labelDotRadius(0)
-					.onPointClick(d => {
-						updateSiteTable(d.siteObj);
-						globe.labelsData([d.siteObj]);
+					.onPointClick(site => {
+						updateSiteTable(siteDataMap[site.name]);
+						globe.labelsData([site]);
 					})
 				
-				globe.labelsData([]);
-				globe.pointsData(gData);
+				console.log("Sending to globe:", minimalSites);
+				globe.pointsData(minimalSites);
 
 				setTimeout(() => {
 				globe
@@ -1015,8 +1039,7 @@
 				}, 0);
 		
 			} else {
-				globe.pointsData(gData);
-				globe.labelsData(labelSites);
+				globe.pointsData(minimalSites);
 			}
 		}
 
@@ -1137,6 +1160,7 @@
 					y: 1,
 					pad: { t: -30 }},
 				barmode: 'stack',
+				hovermode: 'closest',
 				yaxis: {
 					range: [0,maxYValue / 1000]
 				},
@@ -1207,7 +1231,7 @@
 					},
 					range: [0,maxYValue / 1000]
 				},
-
+				hovermode: 'closest',
 				margin: { t: 70, r: 40, b: 20, l: 40 } 
 			};
 			Plotly.newPlot('stack', traces , layout, {responsive: true, displayModeBar: true });
@@ -1306,8 +1330,8 @@
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
 			stars = Array.from({ length: numStars }, () => ({
-				x: (Math.random() - 0.5) * canvas.width * 5,
-				y: (Math.random() - 0.5) * canvas.height* 5,
+				x: (Math.random() - 0.5) * canvas.width,
+				y: (Math.random() - 0.5) * canvas.height,
 				z: Math.random() * canvas.width
 			}));
 		}
@@ -1320,37 +1344,33 @@
 			resizeTimeout = setTimeout(resize, 300);
 		});
 
-		let last = 0;
-		const targetFPS = 30;
-		function animate(timestamp) {
-			const timeSinceLastFrame = timestamp - last;
-			if (timeSinceLastFrame < 1000 / targetFPS) {
-				requestAnimationFrame(animate);
-				return;
-			}
-			last = timestamp;
+		function animate() {
+			ctx.fillStyle = "rgba(5,7,15,0.5)";
+			ctx.fillRect(0,0,canvas.width,canvas.height);
 
-			ctx.fillStyle = "rgba(5, 7, 15, 0.5)"; // 0.5 = fade effect
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			
+			ctx.beginPath();
 			for (let star of stars) {
-				star.z -= 2; // speed of stars
+				star.z -= 2;
 				if (star.z <= 0) star.z = canvas.width;
-				
+
 				const k = 128.0 / star.z;
 				const px = star.x * k + canvas.width / 2;
 				const py = star.y * k + canvas.height / 2;
-				
-				if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
-					const size = (1 - star.z / canvas.width) * 2;
-					ctx.beginPath();
-					ctx.fillStyle = "rgba(255,255,255," + (1 - star.z / canvas.width) + ")";
-					ctx.arc(px, py, size, 0, Math.PI * 2);
-					ctx.fill();
-				}
+
+				if (px < 0 || px > canvas.width || py < 0 || py > canvas.height) continue;
+
+				const starScale = 1 - star.z / canvas.width;
+				const size = starScale * 2;
+
+				ctx.moveTo(px, py);
+				ctx.arc(px, py, size, 0, Math.PI*2);
 			}
+			ctx.fillStyle = "white";
+			ctx.fill();
+
 			requestAnimationFrame(animate);
 		}
+
 		requestAnimationFrame(animate);
 	</script> 
 	

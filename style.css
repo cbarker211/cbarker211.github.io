@@ -83,9 +83,9 @@ body {
 	scrollbar-gutter: stable;
 	overflow-y: auto;
 	overflow-x: hidden;
-	background: rgba(255, 255, 255, 0.1); /* semi-transparent background */
-	backdrop-filter: blur(0.35em); /* blur the background behind it */
-	-webkit-backdrop-filter: blur(0.35em); /* Safari support */
+	background: rgba(255, 255, 255, 0.05); /* semi-transparent background */
+	backdrop-filter: blur(0.25em); /* blur the background behind it */
+	-webkit-backdrop-filter: blur(0.25em); /* Safari support */
 	border: 0.1em solid rgba(255, 255, 255, 0.2); /* subtle border for glass effect */
 	border-radius: 0.7em; /* rounded corners */
 	}
