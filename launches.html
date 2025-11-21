@@ -52,9 +52,32 @@
 			box-sizing: border-box !important;
 		}
 
+		.chart {
+			height: 100% !important;
+		}
+
 		p {
 			margin-top: 0.85em;
 			margin-bottom: 0.85em;
+		}
+
+		.title-container {
+			display: flex;
+			align-items: center;   /* vertically align */
+			width: 100%;
+		}
+
+		.home-link {
+			width: 3em;
+			height: 3em;
+			padding: 1em;
+		}
+
+		/* Center the heading text */
+		.title-container h1 {
+			text-align: center;
+			margin: 0;
+			padding-top: 0.2em;
 		}
 
 		.filter-container {
@@ -184,6 +207,7 @@
 			border-radius: 0.5em;
 			color: whitesmoke;
 			margin: 0;
+			margin-top: 0.5em;
 		}
 
 		#myTab {
@@ -399,12 +423,16 @@
 
 		<div class="left-column">
 
-			<h1 style="text-align: center; padding-top:0.2em;">Rocket Launch Emissions</h1>
+			<div class="title-container">
+				<a href="index.html">
+					<img src="assets/images/home.png" alt="Home" style="filter: brightness(0) invert(1);" class="home-link">
+				</a>
+				<h1 style="text-align: center; padding-top:0.2em;">Rocket Launch Emissions</h1>
+			</div>
+			
 			<p style="text-align: left;">Welcome to our tracker of pollutant and greenhouse gas emissions from rocket launches! Select a time window of interest to visualise pollution on interactive plots or a 3D globe. For more information, see the FAQs at the bottom of this section. </p>	
 	
 			<h2>Filters</h2>
-
-			<button class="apply-filters" type="submit" id="applyFilters">Apply Filters</button>
 				
 			<div class="filter-container">
 
@@ -428,6 +456,8 @@
 						<ul></ul>
 					</div>
 				</div>
+
+				<button class="apply-filters" type="submit" id="applyFilters">Apply Filters</button>
 					
 			</div>
 			<h2>Frequently Asked Questions</h2>
@@ -582,7 +612,7 @@
 	<div class="bottom-row">
 		<p style="text-align: left; margin: 0;">
 			Developed by <a href="https://profiles.ucl.ac.uk/93616-connor-barker" target="_blank" rel="noopener noreferrer">Connor Barker</a> (UCL postdoc) and <a href="https://profiles.ucl.ac.uk/77783-eloise-marais" target="_blank" rel="noopener noreferrer">Eloise Marais</a> (UCL PI), in collaboration with <a href="https://www.cfa.harvard.edu/people/jonathan-mcdowell" target="_blank" rel="noopener noreferrer">Jonathan McDowell</a> (Harvard-Smithsonian Center for Astrophysics). Interested in using the data or spot any room for improvements? Please reach out to Connor Barker at <a href= "mailto:connor.barker@ucl.ac.uk">connor.barker@ucl.ac.uk. </a>
-			<strong>Funding Disclaimer:</strong> This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No. 851854). <a href="https://cordis.europa.eu/project/id/851854" target="_blank" rel="noopener noreferrer">European Commission project page</a>.
+			<strong>Funding Disclaimer:</strong> This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No. 851854). <a href="https://cordis.europa.eu/project/id/851854" target="_blank" rel="noopener noreferrer">European Commission project page</a>.<a href="https://www.flaticon.com/free-icons/home-button" title="home button icons"> Home button icons created by Freepik - Flaticon.</a>
 		</p>
   	</div>
 </body>
