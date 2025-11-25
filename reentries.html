@@ -4,7 +4,7 @@
 
 <meta charset="utf-8">
 <meta name="description" content="A tracker of rocket launch and re-entry emissions based on Barker, C.R., Marais, E.A. & McDowell, J.C. Global 3D rocket launch and re-entry air pollutant and CO2 emissions at the onset of the megaconstellation era. Sci Data 11, 1079 (2024).">
-<title>Rocket Launch Emissions</title>
+<title>Object Re-entry Emissions</title>
 
 <!-- Preconnect and DNS Prefetch -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://fonts.gstatic.com">
 
-<link rel="icon" type="image/x-icon" href="assets/images/favicon_rocket.ico">
+<link rel="icon" type="image/x-icon" href="assets/images/favicon_satellite.ico">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
@@ -24,6 +24,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+<script defer src="https://d3js.org/d3.v7.min.js"></script>
+
 
 <!-- TODO: Set up Google Analytics -->
 
@@ -263,7 +266,7 @@
 		}
 
 		/* Table styling */
-		table, .site-table {
+		table, .country-table {
 			width: 100%;
 			border-collapse: collapse;
 			white-space: nowrap;
@@ -277,13 +280,13 @@
 			white-space: nowrap;
 		}
 
-		#site-table th, 
-		#site-table td {
+		#country-table th, 
+		#country-table td {
 			word-wrap: break-word;
 		}
 
-		#site-table th:first-child,
-		#site-table td:first-child {
+		#country-table th:first-child,
+		#country-table td:first-child {
 			width: 150px; /* adjust as needed */
 		}
 
@@ -422,30 +425,29 @@
 	<div class="main-row">
 
 		<div class="left-column">
-
 			<div class="title-container">
 				<a href="index.html">
 					<img src="assets/images/home.png" alt="Home" style="filter: brightness(0) invert(1);" class="home-link">
 				</a>
-				<h1 style="text-align: center; padding-top:0.2em;">Rocket Launch Emissions</h1>
+				<h1 style="text-align: center; padding-top:0.2em;">Object Re-entry Emissions</h1>
 			</div>
-			
-			<p style="text-align: left;">Welcome to our tracker of pollutant and greenhouse gas emissions from rocket launches! Select a time window of interest to visualise pollution on interactive plots or a 3D globe. For more information, see the FAQs at the bottom of this section. </p>
+		
+			<p style="text-align: left;">Welcome to our tracker for objects re-entering the atmosphere! Select a time window of interest to visualise the location and ID of each re-entry for the time windows, mission type, and object categories selected. For more information, see the FAQs at the bottom of this section. Large ranges may be slow to load.</p>
 	
 			<h2>Filters</h2>
-				
+			
 			<div class="filter-container">
 
 				<div class="filter">
-					<label>Launch Site</label>
+					<label>Re-entry Point</label>
 					<div class="dropdown" id="locationFilter">
 						<ul></ul>
 					</div>
 				</div>
 			
 				<div class="filter">
-					<label>Launch Vehicle</label>
-					<div class="dropdown" id="rocketFilter">
+					<label>Object Type</label>
+					<div class="dropdown" id="categoryFilter">
 						<ul></ul>
 					</div>
 				</div>
@@ -466,19 +468,19 @@
 			<script>
 				const faqData = [ 
 					{ question: "What are these chemicals?",
-						answer: "NO<sub>x</sub> is nitrogen oxides, H<sub>2</sub>O is water vapour, CO<sub>2</sub> is carbon dioxide, BC is black carbon or soot, Al<sub>2</sub>O<sub>3</sub> is aluminium oxide or alumina, and Cl<sub>y</sub> is a family of chlorine compounds. NO<sub>x</sub>, H<sub>2</sub>O, CO<sub>2</sub>, and Cl<sub>y</sub> are released as gases, BC and Al<sub>2</sub>O<sub>3</sub> as particles."
+						answer: "NO<sub>x</sub> is nitrogen oxides, BC is black carbon or soot, and Cl<sub>y</sub> is a family of chlorine compounds. AlO<sub>x</sub> is a family of oxidised aluminium compounds produced as metal objects re-enter the Earth's atmosphere. The current scientific understanding is that this may be a mixture of aluminium oxide (alumina, Al<sub>2</sub>O<sub>3</sub>) and aluminium hydroxide (Al(OH)<sub>3</sub>). NO<sub>x</sub> and Cl<sub>y</sub> are gases. BC and Al<sub>2</sub>O<sub>3</sub> are particles."
 					},
 					{ question: "How do these chemicals affect the atmosphere?",
-						answer: "Unlike man-made emissions from the surface of the Earth, rocket launches release air pollutant and CO<sub>2</sub> emissions throughout the atmosphere, where they can have an outsized impact on our atmosphere and climate. NO<sub>x</sub> and Cl<sub>y</sub> are the largest contributors to destruction of the ozone layer from rocket emissions, with smaller destruction occuring from emissions of BC and Al<sub>2</sub>O<sub>3</sub> particles. The largest climate impacts come from BC emissions, which warm the upper layers of the atmosphere while cooling the lower layers."
+						answer: "Re-entries release air pollutant emissions into the upper layers of the atmosphere, where they can have an outsized impact on our atmosphere and climate. NO<sub>x</sub> and Cl<sub>y</sub> are the largest contributors to destruction of the ozone layer from rocket emissions, with smaller destruction occuring from emissions of BC and AlO<sub>x</sub>. The largest climate impacts come from BC emissions, which warm the upper layers of the atmosphere while cooling the lower layers."
 					},
 					{ question: "What does each filter represent?",
-						answer: "Launch site refers to the location of the rocket launch. Launch vehicle refers to the type of rocket used for the launch. Megaconstellation refers to whether the launch contains megaconstellation payloads."
+						answer: "Re-entry point allows users to filter for re-entering objects that are known and that we have had to approximate, as exact location data is not available. Known re-entries are further separated into Falcon and non-Falcon rocket and fairing re-entries.  Object Type distinguishes individual re-entering objects as Payload (P), C=Component (C1), Booster (B1-B4), and rocket stage (S1-S4). Megaconstellation allows users to select re-entries that are or are not associated with megaconstellation missions."
 					},
 					{ question: "How is this data calculated?",
-						answer: "Our calculations are based on the current best scientific knowledge available for emissions from rocket launches. We include the effects of a changing chemical environment with altitude in our launch emissions, and calculate emissions globally up to a maximum altitude of 80 km. Paths shown in the Globe view are fixed at the launch site and do not represent real rocket trajectories."
+						answer: "Our calculations are based on the current best scientific knowledge available for emissions from object re-entries. We use object-specific ablation profiles to calculate AlO<sub>x</sub> emissions from object re-entries, including all objects with an apogee above 50 km. Paths shown in the Globe view are fixed at the re-entry location and do not represent real object trajectories."
 					},
 					{ question: "Where can I find the original methodology and data?",
-					answer: "You can find further details in our study published in Nature Scientific Data: Global 3D rocket launch and re-entry air pollutant and carbon dioxide emissions for 2020-2022</strong>. C. R. Barker, E. A. Marais (2024). doi:10.5522/04/26325382. [<a href='https://doi.org/10.5522/04/26325382' target='_blank' rel='noopener noreferrer'>Data</a>]. [<a href='https://www.nature.com/articles/s41597-024-03910-z' target='_blank' rel='noopener noreferrer'>Publication</a>]."
+					answer: "You can find further details in our study published in Nature Scientific Data: Global 3D rocket launch and re-entry air pollutant and carbon dioxide emissions for 2020-2022</strong>. C. R. Barker, E. A. Marais (2024). doi:10.5522/04/26325382. [<a href='https://doi.org/10.5522/04/26325382' target='_blank' rel='noopener noreferrer'>Data</a>]. [<a href='https://www.nature.com/articles/s41597-024-03910-z' target='_blank' rel='noopener noreferrer'>Publication</a>]</p>"
 					}
 				];
 
@@ -519,10 +521,10 @@
 			<div class="nav-tabs-container d-flex justify-content-between align-items-center">
 				<ul class="nav nav-tabs" id="myTab" role="tablist">
 					<li class="nav-item" role="presentation">
-					<button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-tabpane" type="button" role="tab" aria-controls="chart" aria-selected="true">Emissions Data</button>
+						<button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-tabpane" type="button" role="tab" aria-controls="chart" aria-selected="true">Emissions Data</button>
 					</li>
 					<li class="nav-item" role="presentation">
-					<button class="nav-link"        id="globe-tab" data-bs-toggle="tab" data-bs-target="#globe-tabpane" type="button" role="tab" aria-controls="globe" aria-selected="false">Launch Sites</button>
+						<button class="nav-link"        id="globe-tab" data-bs-toggle="tab" data-bs-target="#globe-tabpane" type="button" role="tab" aria-controls="globe" aria-selected="false">Re-entry Locations</button>
 					</li>
 				</ul>
 			</div>
@@ -556,10 +558,10 @@
 				<div class="tab-pane fade" id="globe-tabpane" role="tabpanel" aria-labelledby="globe-tab">
 					<div style="display: flex;">
 						<div id="globe" class="globe" style="width: 50%;"></div>
-						<div id="site-details" style="width: 50%; padding: 0 1em 1em 1em;">
-							<h3 style="padding-top:0; margin: 0;">Launch Site Details</h3>
-							<p style="text-align: left;">[click on site path for more information]</p>
-							<table id="site-table" border="1">
+						<div id="country-details" style="width: 50%; padding: 0 1em 1em 1em;">
+							<h3 style="padding-top:0; margin: 0;">Region-Specific Details</h3>
+							<p style="text-align: left;">[click on region for more information]</p>
+							<table id="country-table" border="1">
 								<tr>
 									<th>Property</th>
 									<th>Value</th>
@@ -570,33 +572,33 @@
 				</div>
 			</div>
 
-			<!-- Table for Launch Locations -->
+			<!-- Table for Re-entry Locations -->
 			<div class="table-container">
 				<div>
-					<h3 style="margin: 0;">Launch Details (Click arrow to expand)</h3>
-					<p style="text-align: left;">[Emissions in tonnes, time in UTC. SMC=Satellite Megaconstellation]</p>
-					<table id="launchTable">
+					<h3 style="margin: 0;">Re-entry Details (Click arrow to expand)</h3>
+					<p style="text-align: left;">[Emissions in tonnes, time in UTC. SMC=Satellite Megaconstellation, Cat=Category, P=Payload, C=Component, B=Booster, S=Stage.]</p>
+					<table id="reentryTable">
 						<thead>
 							<tr>
 								<th>Date</th>
 								<th>ID</th>
 								<th>Time</th>
-								<th>Launch Site</th>
-								<th>Rocket</th>
+								<th>Location</th>
+								<th>Name</th>
+								<th>Cat</th>
 								<th>SMC</th>
-								<th>BC</th>
-								<th>CO</th>
-								<th>CO<sub>2</sub></th>
-								<th>H<sub>2</sub>O</th>
-								<th>Al<sub>2</sub>O<sub>3</sub></th>
-								<th>Cl<sub>y</sub></th>
+								<th>AlO<sub>x</sub></th>
 								<th>NO<sub>x</sub></th>
+								<th>BC</th>
+								<th>HCl</th>
+								<th>Cl</th>
+								<th>Unablated Mass</th>
 							</tr>
 						</thead>
-						<tbody id="launchTableBody" style="display: none;">
-							<!-- Dynamic rows for launch locations will be inserted here -->
+						<tbody id="reentryTableBody" style="display: none;">
+							<!-- Dynamic rows for re-entry locations will be inserted here -->
 						</tbody>
-						<tfoot id="launchTableFoot">
+						<tfoot id="reentryTableFoot">
 							<!-- Totals for launches -->
 						</tfoot>
 						<button id="toggleTableButton" class="arrow-button">&#9650;</button>
@@ -606,7 +608,7 @@
 		</div>
 	</div>
 
-	<script defer src="js/launches.js"></script>
+	<script defer src="js/reentries.js"></script>
 	
 	<div class="bottom-row">
 		<p style="text-align: left; margin: 0;">

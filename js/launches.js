@@ -244,7 +244,7 @@ function populateFilters(launches) {
 
     // Populate each filter
     populateCheckboxes('locationFilter', locations.sort());
-    populateCheckboxes('rocketFilter', rockets.sort());
+    populateCheckboxes('rocketFilter',   rockets.sort());
     populateCheckboxes('smcFilter', smcValues);
 }
 
@@ -264,19 +264,19 @@ function filterlaunches(all_launches) {
     // Find indices to keep based on selected filters
     let indicesToKeep = [...Array(all_launches.date.length).keys()];  // All indices initially
 
-    // Filter based on location
+    // Filter by location
     if (selectedLocations.length > 0) {
         indicesToKeep = indicesToKeep.filter(i => selectedLocations.includes(all_launches.text[i]));
     }
 
-    // Filter based on rocket
+    // Filter by rocket
     if (selectedRockets.length > 0) {
         indicesToKeep = indicesToKeep.filter(i => selectedRockets.includes(all_launches.rocket[i]));
     }
 
-    // Filter based on smc
+    // Filter by SMC
     if (selectedSmc.length > 0) {
-        indicesToKeep = indicesToKeep.filter(i => selectedSmc.includes(all_launches.smc[i]));	
+        indicesToKeep = indicesToKeep.filter(i => selectedSmc.includes(all_launches.smc[i]));
     }
 
     // Filter the column arrays using the indicesToKeep
@@ -306,8 +306,8 @@ async function fetchEventsData() {
     try {
         // Fetch the data from the API (replace with your actual API URL)
         // Data is in tonnes in json files.
-        const response1 = await fetch(`https://cbarker.pythonanywhere.com/api/launches?start_date=${startDate}&end_date=${endDate}`); // Replace with your actual API URL
-        const launchData = await response1.json();
+        const response = await fetch(`https://cbarker.pythonanywhere.com/api/launches?start_date=${startDate}&end_date=${endDate}`); // Replace with your actual API URL
+        const launchData = await response.json();
         
         all_launches = {
             date: [],
@@ -330,7 +330,7 @@ async function fetchEventsData() {
         Object.keys(launchData).forEach(date => {
             launchData[date].launches.forEach(launch => {
                 all_launches.date.push(launch.date);
-                all_launches.time.push(launch.time)
+                all_launches.time.push(launch.time);
                 all_launches.lat.push(parseFloat(launch.lat));
                 all_launches.lon.push(parseFloat(launch.lon));
                 all_launches.text.push(launch.location);
@@ -417,7 +417,6 @@ function updateGlobe(filtered_launches) {
 
     siteDataMap = {};
     labelSites.forEach(s => siteDataMap[s.name] = s);
-    console.log("Site Data Map:", siteDataMap);
 
     if (!globe) {
         globe = new Globe(document.getElementById('globe'))
@@ -433,7 +432,6 @@ function updateGlobe(filtered_launches) {
             .labelLat(d => d.lat)
             .labelLng(d => d.lon)
             .labelText(d => d.name)
-            //.labelLabel(d => d.labels.join('<br>'))  // Hover over label gives launch IDs.
             .labelResolution(2)
             .labelsTransitionDuration(0)
             .labelSize(1)
@@ -443,16 +441,11 @@ function updateGlobe(filtered_launches) {
                 globe.labelsData([site]);
             })
         
-        globe.pointsData(minimalSites);
-
         setTimeout(() => {
-        globe
-            .pointOfView({ lat: 35, lng: -95, altitude: 1.5 }, 1000);
-        }, 0);
+            globe.pointOfView({ lat: 35, lng: -95, altitude: 1.5 }, 1000);
+        }, 0);};
 
-    } else {
-        globe.pointsData(minimalSites);
-    }
+    globe.pointsData(minimalSites);
 }
 
 function updateTables(filtered_launches) {
@@ -465,34 +458,35 @@ function updateTables(filtered_launches) {
     let totalAl2O3 = 0, totalCly = 0, totalNOx = 0;
     filtered_launches.id.forEach((location, index) => {
         const row = document.createElement('tr');
-        const BC = filtered_launches.BC[index];
         const CO = filtered_launches.CO[index];
         const CO2 = filtered_launches.CO2[index];
         const H2O = filtered_launches.H2O[index];
+        const BC = filtered_launches.BC[index];
         const Al2O3 = filtered_launches.Al2O3[index];
         const Cly = filtered_launches.Cly[index];
         const NOx = filtered_launches.NOx[index];
-        totalBC    += BC;
         totalCO    += CO;
         totalCO2   += CO2;
         totalH2O   += H2O;
+        totalBC    += BC;
         totalAl2O3 += Al2O3;
-        totalCly   += Cly;
         totalNOx   += NOx;
+        totalCly   += Cly;
+        
         row.innerHTML = `
-            <td>${filtered_launches.date[index]}</td> 
-            <td>${location}</td>  
-            <td>${filtered_launches.time[index].toFixed(2)}</td> 
-            <td class="wrap-text">${filtered_launches.text[index]}</td> 
-            <td class="wrap-text">${filtered_launches.rocket[index]}</td> 
-            <td>${filtered_launches.smc[index]}</td> 
-            <td>${filtered_launches.BC[index].toFixed(1)}</td> 
-            <td>${filtered_launches.CO[index].toFixed(1)}</td> 
-            <td>${filtered_launches.CO2[index].toFixed(1)}</td> 
-            <td>${filtered_launches.H2O[index].toFixed(1)}</td> 
-            <td>${filtered_launches.Al2O3[index].toFixed(1)}</td> 
-            <td>${filtered_launches.Cly[index].toFixed(1)}</td> 
-            <td>${filtered_launches.NOx[index].toFixed(1)}</td> 
+            <td>${filtered_launches.date[index]}</td>
+            <td>${location}</td>
+            <td>${filtered_launches.time[index].toFixed(2)}</td>
+            <td class="wrap-text">${filtered_launches.text[index]}</td>
+            <td class="wrap-text">${filtered_launches.rocket[index]}</td>
+            <td>${filtered_launches.smc[index]}</td>
+            <td>${filtered_launches.BC[index].toFixed(1)}</td>
+            <td>${filtered_launches.CO[index].toFixed(1)}</td>
+            <td>${filtered_launches.CO2[index].toFixed(1)}</td>
+            <td>${filtered_launches.H2O[index].toFixed(1)}</td>
+            <td>${filtered_launches.Al2O3[index].toFixed(1)}</td>
+            <td>${filtered_launches.Cly[index].toFixed(1)}</td>
+            <td>${filtered_launches.NOx[index].toFixed(1)}</td>
         `;
         table1Body.appendChild(row);
     });
@@ -542,7 +536,7 @@ function updateGraph(filtered_launches) {
     
     const trace = Object.keys(totals).map(key => ({
         x: ['Total'],
-        y: [totals[key] / 1000]  ,
+        y: [totals[key] / 1000],
         name: prettyNames[key],
         type: 'bar',
         marker: {color: strongColors[key]}
@@ -644,7 +638,7 @@ function updateStack(filtered_launches) {
             range: [0,maxYValue / 1000]
         },
         hovermode: 'closest',
-        margin: { t: 70, r: 40, b: 20, l: 40 } 
+        margin: {t: 70, r: 40, b: 20,l: 40}
     };
     Plotly.react('stack', traces , layout, {responsive: true, displayModeBar: true });
 
