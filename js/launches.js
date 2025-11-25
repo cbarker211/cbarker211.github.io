@@ -2,6 +2,7 @@ const startYear = 1955;
 const endYear = 2024;
 const totalMonths = (endYear - startYear + 1) * 12 - 1;
 let globe;
+let siteDataMap = {};
 var slider = document.getElementById('slider');
 
 function indexToDate(index) {
@@ -15,6 +16,8 @@ function indexToDate(index) {
 function updateSiteTable(site) {
     const table = document.getElementById('site-table');
     table.innerHTML = `<tr><th>Property</th><th>Value</th></tr>`;
+
+    console.log("Updating site table for:", site);
 
     const cleanedLaunches = site.labels.map(label => label.replace(/^Launch\s+/, ''));
 
@@ -412,8 +415,9 @@ function updateGlobe(filtered_launches) {
         altitude: 0.05 + 0.0005 * s.labels.length
     }));
 
-    const siteDataMap = {};
+    siteDataMap = {};
     labelSites.forEach(s => siteDataMap[s.name] = s);
+    console.log("Site Data Map:", siteDataMap);
 
     if (!globe) {
         globe = new Globe(document.getElementById('globe'))
@@ -439,7 +443,6 @@ function updateGlobe(filtered_launches) {
                 globe.labelsData([site]);
             })
         
-        console.log("Sending to globe:", minimalSites);
         globe.pointsData(minimalSites);
 
         setTimeout(() => {
