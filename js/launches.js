@@ -1,9 +1,19 @@
+// Constants
 const startYear = 1955;
 const endYear = 2024;
 const totalMonths = (endYear - startYear + 1) * 12 - 1;
+const toggleButton = document.getElementById('toggleTableButton');
+const tableBody = document.getElementById('launchTableBody');
+//Variables
 let globe;
 let siteDataMap = {};
 var slider = document.getElementById('slider');
+var yearSelect1 = document.getElementById('year-select1');
+var yearSelect2 = document.getElementById('year-select2');
+var monthSelect1 = document.getElementById('month-select1');
+var monthSelect2 = document.getElementById('month-select2');
+var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function indexToDate(index) {
     const year = startYear + Math.floor(index / 12);
@@ -16,8 +26,6 @@ function indexToDate(index) {
 function updateSiteTable(site) {
     const table = document.getElementById('site-table');
     table.innerHTML = `<tr><th>Property</th><th>Value</th></tr>`;
-
-    console.log("Updating site table for:", site);
 
     const cleanedLaunches = site.labels.map(label => label.replace(/^Launch\s+/, ''));
 
@@ -62,7 +70,19 @@ function intToDateString(monthIndex, isEnd = false) {
         const firstDay = new Date(year, month, 1);
         return firstDay.toISOString().split('T')[0];
     }
-    }
+}
+
+function fromMonthIndex(index) {
+    const year = startYear + Math.floor(index / 12);
+    const month = (index % 12) + 1; // 1–12
+    return { year, month };
+}
+
+function toMonthIndex(year, month) {
+    return (year - startYear) * 12 + (month - 1);
+}
+
+// Main functions
 
 noUiSlider.create(slider, {
     start: [780, 839],
@@ -102,10 +122,7 @@ noUiSlider.create(slider, {
             }
         }
     }
-});	
-
-var yearSelect1 = document.getElementById('year-select1');
-var yearSelect2 = document.getElementById('year-select2');
+});
 
 // Append the option elements
 for (var i = 1957; i <= 2024; i++) {
@@ -122,14 +139,6 @@ for (var i = 1957; i <= 2024; i++) {
     yearSelect2.appendChild(option2);
 }
 
-var monthSelect1 = document.getElementById('month-select1');
-var monthSelect2 = document.getElementById('month-select2');
-
-var months = [
-"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-];
-
 months.forEach((month, index) => {
 var option1 = document.createElement("option");
 option1.text = month;
@@ -142,54 +151,6 @@ option2.value = index + 1;
 monthSelect1.appendChild(option1);
 monthSelect2.appendChild(option2);
 });
-
-slider.noUiSlider.on('update', (values, handle) => {
-    const startIndex = Math.round(values[0]);
-    const endIndex = Math.round(values[1]);
-
-    // Update the selects to match the slider
-    const start = fromMonthIndex(startIndex);
-    const end = fromMonthIndex(endIndex);
-
-    monthSelect1.value = start.month;
-    yearSelect1.value = start.year;
-    monthSelect2.value = end.month;
-    yearSelect2.value = end.year;
-});
-
-slider.noUiSlider.on('slide', (values, handle) => {
-    const minSelectableIndex = (1957 - startYear) * 12; // January 1957
-    const maxSelectableIndex = totalMonths;
-
-    let value = Math.round(values[handle]);
-    if (value < minSelectableIndex) {
-        value = minSelectableIndex;
-    } else if (value > maxSelectableIndex) {
-        value = maxSelectableIndex;
-    }
-
-    // Set the slider handle back to the restricted value
-    slider.noUiSlider.setHandle(handle, value);
-});
-
-slider.noUiSlider.on('end', (values) => {
-    const startIndex = Math.round(values[0]);
-    const endIndex = Math.round(values[1]);
-
-    startDate = intToDateString(startIndex);
-    endDate = intToDateString(endIndex, true);
-    fetchEventsData();
-});
-
-function fromMonthIndex(index) {
-    const year = startYear + Math.floor(index / 12);
-    const month = (index % 12) + 1; // 1–12
-    return { year, month };
-}
-
-function toMonthIndex(year, month) {
-    return (year - startYear) * 12 + (month - 1);
-}
 
 function updateSliderFromSelects() {
     console.log(yearSelect1.value,yearSelect2.value,monthSelect1.value,monthSelect2.value)
@@ -382,7 +343,7 @@ const strongColors = {
     NOx: '#c99b24'
 };
 
-function updateGlobe(filtered_launches) {
+async function updateGlobe(filtered_launches) {
 
     // Step 1: Group launches by site (lat/lon + site name as key)
     const siteMap = {};
@@ -644,12 +605,52 @@ function updateStack(filtered_launches) {
 
 }
 
-// Plot a default date when the page opens, then update when the date changes.
-document.addEventListener('DOMContentLoaded', () => {
+// Events
+
+slider.noUiSlider.on('update', (values, handle) => {
+    const startIndex = Math.round(values[0]);
+    const endIndex = Math.round(values[1]);
+
+    // Update the selects to match the slider
+    const start = fromMonthIndex(startIndex);
+    const end = fromMonthIndex(endIndex);
+
+    monthSelect1.value = start.month;
+    yearSelect1.value = start.year;
+    monthSelect2.value = end.month;
+    yearSelect2.value = end.year;
+});
+
+slider.noUiSlider.on('slide', (values, handle) => {
+    const minSelectableIndex = (1957 - startYear) * 12; // January 1957
+    const maxSelectableIndex = totalMonths;
+
+    let value = Math.round(values[handle]);
+    if (value < minSelectableIndex) {
+        value = minSelectableIndex;
+    } else if (value > maxSelectableIndex) {
+        value = maxSelectableIndex;
+    }
+
+    // Set the slider handle back to the restricted value
+    slider.noUiSlider.setHandle(handle, value);
+});
+
+slider.noUiSlider.on('end', (values) => {
+    const startIndex = Math.round(values[0]);
+    const endIndex = Math.round(values[1]);
+
+    startDate = intToDateString(startIndex);
+    endDate = intToDateString(endIndex, true);
+    fetchEventsData();
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
 
     const daterange = slider.noUiSlider.get();
     startDate = intToDateString(Number(daterange[0]));
-    endDate = intToDateString(Number(daterange[1]));
+    endDate = intToDateString(Number(daterange[1]),true);
+    console.log(startDate, endDate);
     fetchEventsData(); // Fetch data for the default date
 
     document.getElementById('applyFilters').addEventListener('click', () => {
@@ -668,16 +669,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activatedTabId === 'globe-tab') {
                 // Resize your Globe.gl renderer (assuming you have one)
                 if (window.globe) {
-                    resizeGlobe();
+                    const container = document.getElementById('globe');
+                    const screenHeight = window.innerHeight;
+                    const globeHeight = screenHeight * 0.52 - 30;
+                    const globeWidth = container.offsetWidth - 30;
+                    globe.width(globeWidth).height(globeHeight);
+                    
+                    // Manually reset the canvas element size to match the container size
+                    const canvas = document.querySelector('#globe canvas');
+                    if (canvas) {
+                        canvas.style.width = `${globeWidth}px`;
+                        canvas.style.height = `${globeHeight}px`;
+                        canvas.style.transform = 'none';
+                    }	
                 }
             }
         });
     });
 });
-
-// JavaScript to toggle the table visibility and update the arrow
-const toggleButton = document.getElementById('toggleTableButton');
-const tableBody = document.getElementById('launchTableBody');
 
 toggleButton.addEventListener('click', () => {
     const isHidden = tableBody.style.display === 'none';
@@ -700,7 +709,6 @@ document.querySelectorAll('.filter').forEach(filter => {
     });
 });
 
-// Optional: Close dropdowns if clicked outside
 document.addEventListener('click', e => {
     if (!e.target.closest('.filter')) {
         document.querySelectorAll('.filter.open').forEach(openFilter => {
@@ -709,23 +717,7 @@ document.addEventListener('click', e => {
     }
 });
 
-// Function to resize the globe based on its container size
-const resizeGlobe = () => {
-    const container = document.getElementById('globe');
-    const screenHeight = window.innerHeight;
-    const globeHeight = screenHeight * 0.52 - 30;
-    const globeWidth = container.offsetWidth - 30;
-    globe.width(globeWidth).height(globeHeight);
-    
-    // Manually reset the canvas element size to match the container size
-    const canvas = document.querySelector('#globe canvas');
-    if (canvas) {
-        canvas.style.width = `${globeWidth}px`;
-        canvas.style.height = `${globeHeight}px`;
-        canvas.style.transform = 'none';
-    }	
-};
-
+// Starfield
 const canvas = document.getElementById("starfield");
 const ctx = canvas.getContext("2d");
 

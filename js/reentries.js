@@ -13,6 +13,23 @@ const locationGroups = {
 };
 const toggleButton = document.getElementById('toggleTableButton');
 const tableBody = document.getElementById('reentryTableBody');
+const prettyNames = {
+    BC: 'BC',
+    unab_mass: 'Unablated Mass',
+    Cl: 'Cl',
+    Al2O3: 'AlO<sub>x</sub>',
+    HCl: 'HCl',
+    NOx: 'NO<sub>x</sub>'
+};
+
+const strongColors = {
+    BC: 'rgba(0,0,0,1)',
+    unab_mass: '#575757',
+    Cl: '#2c20c9',
+    Al2O3: '#c40000',
+    HCl: '#1cba26',
+    NOx: '#c99b24'
+};
 
 // Variables
 let globe;
@@ -69,6 +86,39 @@ function toMonthIndex(year, month) {
 
 // Main functions
 
+function updateCountryTable(country) {
+    const table = document.getElementById('country-table');
+    table.innerHTML = `<tr><th>Property</th><th>Value</th></tr>`;
+
+
+    const reentriesHTML = `
+        <div style="
+            max-height: 150px; 
+            overflow-y: auto; 
+            padding: 4px; 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+        ">
+            ${country.reentries.map(e =>
+                `${e.date} — ${e.objname} (${e.id}) [${e.category}]`
+            ).join('<br>')}
+        </div>
+    `;
+
+    const rows = [
+        ['Country', country.name],
+        ['Re-entry Count', country.count],
+        ['Re-entry Details', reentriesHTML]
+    ];
+
+    rows.forEach(([prop, val]) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="wrap-text">${prop}</td><td class="wrap-text">${val}</td>`;
+        table.appendChild(tr);
+    });
+}
+
 function aggregateByRegion(reentries) {
     const regionCounts = {};
 
@@ -98,40 +148,6 @@ function aggregateByRegion(reentries) {
         }
     }
     return regionCounts;
-}
-
-function updateCountryTable(country) {
-    const table = document.getElementById('country-table');
-    table.innerHTML = `<tr><th>Property</th><th>Value</th></tr>`;
-
-    console.log(country)
-
-    const reentriesHTML = `
-        <div style="
-            max-height: 150px; 
-            overflow-y: auto; 
-            padding: 4px; 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.05);
-        ">
-            ${country.reentries.map(e =>
-                `${e.date} — ${e.objname} (${e.id}) [${e.category}]`
-            ).join('<br>')}
-        </div>
-    `;
-
-    const rows = [
-        ['Country', country.name],
-        ['Re-entry Count', country.count],
-        ['Re-entry Details', reentriesHTML]
-    ];
-
-    rows.forEach(([prop, val]) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="wrap-text">${prop}</td><td class="wrap-text">${val}</td>`;
-        table.appendChild(tr);
-    });
 }
 
 noUiSlider.create(slider, {
@@ -170,7 +186,7 @@ noUiSlider.create(slider, {
             }
         }
     }
-});	
+});
 
 // Append the option elements
 for (var i = 2020; i <= 2024; i++) {
@@ -372,24 +388,6 @@ function updateVisualizations(filtered_reentries) {
     updateStack(filtered_reentries);
 }
 
-const prettyNames = {
-    BC: 'BC',
-    unab_mass: 'Unablated Mass',
-    Cl: 'Cl',
-    Al2O3: 'AlO<sub>x</sub>',
-    HCl: 'HCl',
-    NOx: 'NO<sub>x</sub>'
-};
-
-const strongColors = {
-    BC: 'rgba(0,0,0,1)',
-    unab_mass: '#575757',
-    Cl: '#2c20c9',
-    Al2O3: '#c40000',
-    HCl: '#1cba26',
-    NOx: '#c99b24'
-};
-
 async function updateGlobe(filtered_reentries) {
 
     // Ensure country/ocean polygons are loaded
@@ -476,7 +474,7 @@ async function updateGlobe(filtered_reentries) {
 
     // Color scale for polygons
     const colorScale = d3.scaleSequentialSqrt(d3.interpolateYlOrRd).domain([0, maxCount]);
-    console.log()
+
     // Initialize Globe if not already
     if (!globe) {
         globe = new Globe(document.getElementById('globe'))
@@ -741,12 +739,12 @@ slider.noUiSlider.on('end', (values) => {
     fetchEventsData();
 });
 
-// Plot a default date when the page opens, then update when the date changes.
 document.addEventListener('DOMContentLoaded', async () => {
 
     const daterange = slider.noUiSlider.get();
     startDate = intToDateString(Number(daterange[0]));
-    endDate = intToDateString(Number(daterange[1]));
+    endDate = intToDateString(Number(daterange[1]),true);
+    console.log(startDate, endDate);
     fetchEventsData(); // Fetch data for the default date
 
     document.getElementById('applyFilters').addEventListener('click', () => {
@@ -805,7 +803,6 @@ document.querySelectorAll('.filter').forEach(filter => {
     });
 });
 
-// Optional: Close dropdowns if clicked outside
 document.addEventListener('click', e => {
     if (!e.target.closest('.filter')) {
         document.querySelectorAll('.filter.open').forEach(openFilter => {
@@ -814,6 +811,7 @@ document.addEventListener('click', e => {
     }
 });
 
+// Starfield
 const canvas = document.getElementById("starfield");
 const ctx = canvas.getContext("2d");
 
