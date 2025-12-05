@@ -7,6 +7,7 @@ const tableBody = document.getElementById('launchTableBody');
 //Variables
 let globe;
 let siteDataMap = {};
+let startDate, endDate;
 var slider = document.getElementById('slider');
 var yearSelect1 = document.getElementById('year-select1');
 var yearSelect2 = document.getElementById('year-select2');
@@ -61,15 +62,21 @@ function intToDateString(monthIndex, isEnd = false) {
     const year = startYear + Math.floor(monthIndex / 12);
     const month = monthIndex % 12;
 
+    let day;
     if (isEnd) {
-        // Create a date for the *last day* of the month
-        const lastDay = new Date(year, month + 1, 0); // day 0 of next month = last day of current
-        return lastDay.toISOString().split('T')[0];
+        // Last day of month: create date for the first day of next month, then subtract 1 day
+        day = new Date(Date.UTC(year, month + 1, 0)); // UTC ensures no timezone shift
     } else {
-        // First day of the month
-        const firstDay = new Date(year, month, 1);
-        return firstDay.toISOString().split('T')[0];
+        // First day of month
+        day = new Date(Date.UTC(year, month, 1));
     }
+
+    // Format as YYYY-MM-DD
+    const yyyy = day.getUTCFullYear();
+    const mm = String(day.getUTCMonth() + 1).padStart(2, '0'); // month is 0-indexed
+    const dd = String(day.getUTCDate()).padStart(2, '0');
+
+    return `${yyyy}-${mm}-${dd}`;
 }
 
 function fromMonthIndex(index) {
@@ -175,7 +182,7 @@ function updateSliderFromSelects() {
 
     startDate = intToDateString(startMonthIndex);
     endDate = intToDateString(endMonthIndex, true);
-    console.log(startDate, endDate);
+    console.log(startDate, endDate,'Update');
     fetchEventsData();
 }
 
@@ -543,18 +550,44 @@ function updateStack(filtered_launches) {
 
     const species = ['BC', 'CO', 'CO2', 'H2O', 'Al2O3', 'Cly', 'NOx'];
     const monthlySums = {};
+    
+    function monthRange(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+    
+        // Normalize both to the first day of their month
+        const startUTC = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
+        const endUTC = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), 1));
+    
+        const months = [];
+        const current = new Date(startUTC);
+    
+        while (current <= endUTC) {
+            const year = current.getUTCFullYear();
+            const month = String(current.getUTCMonth() + 1).padStart(2, "0");
+            months.push(`${year}-${month}`);
+    
+            // Move to next month
+            current.setUTCMonth(current.getUTCMonth() + 1);
+        }
+    
+        return months;
+    }
+    
+    const allMonths = monthRange(startDate,endDate);
 
-    // Step 1: Loop through each launch (index)
+    // Zero the monthly emissions
+    allMonths.forEach(m => {
+        monthlySums[m] = {};
+        species.forEach(sp => monthlySums[m][sp] = 0);
+    });
+
     for (let i = 0; i < filtered_launches.date.length; i++) {
-        const month = filtered_launches.date[i].slice(0, 7);  // 'YYYY-MM'
-        if (!monthlySums[month]) {
-            monthlySums[month] = {};
-            species.forEach(sp => monthlySums[month][sp] = 0);
-        }
+        const month = filtered_launches.date[i].slice(0, 7); // 'YYYY-MM'
         species.forEach(sp => {
-            monthlySums[month][sp] += Number(filtered_launches[sp][i]) || 0; // Ensure numeric
+            monthlySums[month][sp] += Number(filtered_launches[sp][i]) || 0;
         });
-        }
+    }
 
     const months = Object.keys(monthlySums).sort();
     const maxYValue = Math.max(...months);
@@ -642,6 +675,7 @@ slider.noUiSlider.on('end', (values) => {
 
     startDate = intToDateString(startIndex);
     endDate = intToDateString(endIndex, true);
+    console.log(startDate, endDate,'End');
     fetchEventsData();
 });
 
@@ -650,7 +684,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const daterange = slider.noUiSlider.get();
     startDate = intToDateString(Number(daterange[0]));
     endDate = intToDateString(Number(daterange[1]),true);
-    console.log(startDate, endDate);
+    console.log(startDate, endDate,'DOM');
     fetchEventsData(); // Fetch data for the default date
 
     document.getElementById('applyFilters').addEventListener('click', () => {
@@ -722,7 +756,7 @@ const canvas = document.getElementById("starfield");
 const ctx = canvas.getContext("2d");
 
 let stars = [];
-const numStars = 50;
+const numStars = 0;
 
 function resize() {
     canvas.width = window.innerWidth;
