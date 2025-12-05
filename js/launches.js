@@ -305,13 +305,13 @@ async function fetchEventsData() {
                 all_launches.id.push(launch.id);
                 all_launches.rocket.push(launch.rocket);
                 all_launches.smc.push(launch.smc.toString());
-                all_launches.BC.push(launch.emissions.BC);
-                all_launches.CO.push(launch.emissions.CO);
-                all_launches.CO2.push(launch.emissions.CO2);
-                all_launches.H2O.push(launch.emissions.H2O);
-                all_launches.Al2O3.push(launch.emissions.Al2O3);
-                all_launches.Cly.push(launch.emissions.Cly);
-                all_launches.NOx.push(launch.emissions.NOx);
+                all_launches.BC.push(parseFloat(launch.emissions.BC));
+                all_launches.CO.push(parseFloat(launch.emissions.CO));
+                all_launches.CO2.push(parseFloat(launch.emissions.CO2));
+                all_launches.H2O.push(parseFloat(launch.emissions.H2O));
+                all_launches.Al2O3.push(parseFloat(launch.emissions.Al2O3));
+                all_launches.Cly.push(parseFloat(launch.emissions.Cly));
+                all_launches.NOx.push(parseFloat(launch.emissions.NOx));
             });
         });
         

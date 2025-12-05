@@ -364,11 +364,11 @@ async function fetchEventsData() {
                 all_reentries.category.push(reentry.category);
                 all_reentries.smc.push(reentry.smc.toString());
                 all_reentries.objname.push(reentry.name);
-                all_reentries.BC.push(reentry.emissions.BC);
-                all_reentries.Al2O3.push(reentry.emissions.Al2O3);
-                all_reentries.NOx.push(reentry.emissions.NOx);
-                all_reentries.HCl.push(reentry.emissions.HCl);
-                all_reentries.Cl.push(reentry.emissions.Cl);
+                all_reentries.BC.push(parseFloat(reentry.emissions.BC));
+                all_reentries.Al2O3.push(parseFloat(reentry.emissions.Al2O3));
+                all_reentries.NOx.push(parseFloat(reentry.emissions.NOx));
+                all_reentries.HCl.push(parseFloat(reentry.emissions.HCl));
+                all_reentries.Cl.push(parseFloat(reentry.emissions.Cl));
                 all_reentries.unab_mass.push(reentry.emissions.Unablated_Mass);
             });
         });
