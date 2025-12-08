@@ -701,26 +701,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                 Plotly.Plots.resize(document.getElementById('bar'));
             }
             if (activatedTabId === 'globe-tab') {
-                // Resize your Globe.gl renderer (assuming you have one)
-                if (window.globe) {
-                    const container = document.getElementById('globe');
-                    const screenHeight = window.innerHeight;
-                    const globeHeight = screenHeight * 0.52 - 30;
-                    const globeWidth = container.offsetWidth - 30;
-                    globe.width(globeWidth).height(globeHeight);
-                    
-                    // Manually reset the canvas element size to match the container size
-                    const canvas = document.querySelector('#globe canvas');
-                    if (canvas) {
-                        canvas.style.width = `${globeWidth}px`;
-                        canvas.style.height = `${globeHeight}px`;
-                        canvas.style.transform = 'none';
-                    }	
-                }
+                resizeGlobe();
             }
         });
     });
 });
+
+// Function to resize the globe
+function resizeGlobe() {
+    const globeContainer = document.getElementById('globe');
+    console.log(globeContainer.offsetWidth,globeContainer.offsetHeight)
+    const globeWidth = globeContainer.offsetWidth;
+    const globeHeight = globeContainer.offsetHeight;
+
+    // Update the globe's dimensions
+    if (globe) {
+        globe.width(globeWidth).height(globeHeight);
+    }
+}
+
+// Attach the resize function to the window resize event
+window.onresize = resizeGlobe;
 
 toggleButton.addEventListener('click', () => {
     const isHidden = tableBody.style.display === 'none';
