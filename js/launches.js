@@ -198,14 +198,16 @@ function populateFilters(launches) {
     const smcValues = [...new Set(launches.smc)];
 
     // Function to populate checkboxes inside a given filter dropdown
-    function populateCheckboxes(filterId, values) {
+    function populateCheckboxes(filterId, values, defaultCheckedValue = null) {
         const dropdown = document.getElementById(filterId);
         const ul = dropdown.querySelector('ul');
         ul.innerHTML = ''; // Clear any previous entries
 
         values.forEach(value => {
+            // Only check the box if it matches the defaultCheckedValue
+            const checked = value === defaultCheckedValue ? 'checked' : '';
             const li = document.createElement('li');
-            li.innerHTML = `<label><input type="checkbox" value="${value}" /> ${value}</label>`;
+            li.innerHTML = `<label><input type="checkbox" value="${value}" ${checked} /> ${value}</label>`;
             ul.appendChild(li);
         });
     }
@@ -214,6 +216,7 @@ function populateFilters(launches) {
     populateCheckboxes('locationFilter', locations.sort());
     populateCheckboxes('rocketFilter',   rockets.sort());
     populateCheckboxes('smcFilter', smcValues);
+    populateCheckboxes('altitudeFilter', ['0-80 km', '>80 km'], '0-80 km');
 }
 
 function filterlaunches(all_launches) {
@@ -228,6 +231,7 @@ function filterlaunches(all_launches) {
     const selectedLocations = getSelectedfilters('locationFilter');
     const selectedRockets   = getSelectedfilters('rocketFilter');
     const selectedSmc       = getSelectedfilters('smcFilter');
+    const selectedAltitudes = getSelectedfilters('altitudeFilter');
 
     // Find indices to keep based on selected filters
     let indicesToKeep = [...Array(all_launches.date.length).keys()];  // All indices initially
@@ -257,14 +261,42 @@ function filterlaunches(all_launches) {
         id: indicesToKeep.map(i => all_launches.id[i]),
         rocket: indicesToKeep.map(i => all_launches.rocket[i]),
         smc: indicesToKeep.map(i => all_launches.smc[i] ? "Yes" : "No"),
-        BC: indicesToKeep.map(i => all_launches.BC[i]),
-        CO: indicesToKeep.map(i => all_launches.CO[i]),
-        CO2: indicesToKeep.map(i => all_launches.CO2[i]),
-        H2O: indicesToKeep.map(i => all_launches.H2O[i]),
-        Al2O3: indicesToKeep.map(i => all_launches.Al2O3[i]),
-        Cly: indicesToKeep.map(i => all_launches.Cly[i]),
-        NOx: indicesToKeep.map(i => all_launches.NOx[i]),
     };
+
+    // Include emissions based on selected altitude ranges
+    const includeLow = selectedAltitudes.includes('0-80 km');
+    const includeHigh = selectedAltitudes.includes('>80 km');
+
+    filteredData.BC = [];
+    filteredData.CO = [];
+    filteredData.CO2 = [];
+    filteredData.H2O = [];
+    filteredData.Al2O3 = [];
+    filteredData.Cly = [];
+    filteredData.NOx = [];
+
+    indicesToKeep.forEach(i => {
+        // Add low-altitude emissions if selected
+        if (includeLow) {
+            filteredData.BC.push(all_launches.BC[i]);
+            filteredData.CO.push(all_launches.CO[i]);
+            filteredData.CO2.push(all_launches.CO2[i]);
+            filteredData.H2O.push(all_launches.H2O[i]);
+            filteredData.Al2O3.push(all_launches.Al2O3[i]);
+            filteredData.Cly.push(all_launches.Cly[i]);
+            filteredData.NOx.push(all_launches.NOx[i]);
+        }
+        // Add high-altitude emissions if selected
+        if (includeHigh) {
+            filteredData.BC.push(all_launches.BCabove[i]);
+            filteredData.CO.push(all_launches.COabove[i]);
+            filteredData.CO2.push(all_launches.CO2above[i]);
+            filteredData.H2O.push(all_launches.H2Oabove[i]);
+            filteredData.Al2O3.push(all_launches.Al2O3above[i]);
+            filteredData.Cly.push(all_launches.Clyabove[i]);
+            filteredData.NOx.push(all_launches.NOxabove[i]);
+        }
+    });
 
     // Update the visualizations with the filtered data
     updateVisualizations(filteredData);
@@ -292,7 +324,14 @@ async function fetchEventsData() {
             H2O: [],
             Al2O3: [],
             Cly: [],
-            NOx: []
+            NOx: [],
+            BCabove: [],
+            COabove: [],
+            CO2above: [],
+            H2Oabove: [],
+            Al2O3above: [],
+            Clyabove: [],
+            NOxabove: []
         };
 
         Object.keys(launchData).forEach(date => {
@@ -312,6 +351,13 @@ async function fetchEventsData() {
                 all_launches.Al2O3.push(parseFloat(launch.emissions.Al2O3));
                 all_launches.Cly.push(parseFloat(launch.emissions.Cly));
                 all_launches.NOx.push(parseFloat(launch.emissions.NOx));
+                all_launches.BCabove.push(parseFloat(launch.emissions_above.BC));
+                all_launches.COabove.push(parseFloat(launch.emissions_above.CO));
+                all_launches.CO2above.push(parseFloat(launch.emissions_above.CO2));
+                all_launches.H2Oabove.push(parseFloat(launch.emissions_above.H2O));
+                all_launches.Al2O3above.push(parseFloat(launch.emissions_above.Al2O3));
+                all_launches.Clyabove.push(parseFloat(launch.emissions_above.Cly));
+                all_launches.NOxabove.push(parseFloat(launch.emissions_above.NOx));
             });
         });
         

@@ -168,12 +168,8 @@
 			height: 100%;
 			display: flex; /* Ensure children align properly */
     		flex-direction: column; /* Align children vertically */
-			background: rgba(255, 255, 255, 0.08);        /* semi-transparent glass */
-			backdrop-filter: blur(0.85em) brightness(1.05); /* blur background */
-			-webkit-backdrop-filter: blur(0.85em) brightness(1.05); /* Safari */
+			background: rgba(255, 255, 255, 0.2);        /* semi-transparent glass */
 			border-radius: 1em;                           /* rounded corners */
-			border: 0.1em solid rgba(255, 255, 255, 0.2);   /* subtle border */
-			box-shadow: 0 0.5em 2em rgba(0, 0, 0, 0.2);    /* optional shadow */
 			box-sizing: border-box;
 			padding: 0.75em;
 			overflow: hidden;
@@ -468,6 +464,13 @@
 				<div class="filter">
 					<label>Megaconstellation</label>
 					<div class="dropdown" id="smcFilter">
+						<ul></ul>
+					</div>
+				</div>
+
+				<div class="filter">
+					<label>Altitude Range</label>
+					<div class="dropdown" id="altitudeFilter">
 						<ul></ul>
 					</div>
 				</div>
