@@ -266,6 +266,7 @@ function filterlaunches(all_launches) {
     // Include emissions based on selected altitude ranges
     const includeLow = selectedAltitudes.includes('0-80 km');
     const includeHigh = selectedAltitudes.includes('>80 km');
+    const includeAllAltitudes = selectedAltitudes.length === 0;  // If no filter selected
 
     filteredData.BC = [];
     filteredData.CO = [];
@@ -276,26 +277,29 @@ function filterlaunches(all_launches) {
     filteredData.NOx = [];
 
     indicesToKeep.forEach(i => {
-        // Add low-altitude emissions if selected
-        if (includeLow) {
-            filteredData.BC.push(all_launches.BC[i]);
-            filteredData.CO.push(all_launches.CO[i]);
-            filteredData.CO2.push(all_launches.CO2[i]);
-            filteredData.H2O.push(all_launches.H2O[i]);
-            filteredData.Al2O3.push(all_launches.Al2O3[i]);
-            filteredData.Cly.push(all_launches.Cly[i]);
-            filteredData.NOx.push(all_launches.NOx[i]);
-        }
-        // Add high-altitude emissions if selected
-        if (includeHigh) {
-            filteredData.BC.push(all_launches.BCabove[i]);
-            filteredData.CO.push(all_launches.COabove[i]);
-            filteredData.CO2.push(all_launches.CO2above[i]);
-            filteredData.H2O.push(all_launches.H2Oabove[i]);
-            filteredData.Al2O3.push(all_launches.Al2O3above[i]);
-            filteredData.Cly.push(all_launches.Clyabove[i]);
-            filteredData.NOx.push(all_launches.NOxabove[i]);
-        }
+        // Sum emissions per launch
+        const BC   = ((includeAllAltitudes || includeLow) ? all_launches.BC[i] : 0)
+                   + ((includeAllAltitudes || includeHigh) ? all_launches.BCabove[i] : 0);
+        const CO   = ((includeAllAltitudes || includeLow) ? all_launches.CO[i] : 0)
+                   + ((includeAllAltitudes || includeHigh) ? all_launches.COabove[i] : 0);
+        const CO2  = ((includeAllAltitudes || includeLow) ? all_launches.CO2[i] : 0)
+                   + ((includeAllAltitudes || includeHigh) ? all_launches.CO2above[i] : 0);
+        const H2O  = ((includeAllAltitudes || includeLow) ? all_launches.H2O[i] : 0)
+                   + ((includeAllAltitudes || includeHigh) ? all_launches.H2Oabove[i] : 0);
+        const Al2O3 = ((includeAllAltitudes || includeLow) ? all_launches.Al2O3[i] : 0)
+                    + ((includeAllAltitudes || includeHigh) ? all_launches.Al2O3above[i] : 0);
+        const Cly  = ((includeAllAltitudes || includeLow) ? all_launches.Cly[i] : 0)
+                   + ((includeAllAltitudes || includeHigh) ? all_launches.Clyabove[i] : 0);
+        const NOx  = ((includeAllAltitudes || includeLow) ? all_launches.NOx[i] : 0)
+                   + ((includeAllAltitudes || includeHigh) ? all_launches.NOxabove[i] : 0);
+
+        filteredData.BC.push(BC);
+        filteredData.CO.push(CO);
+        filteredData.CO2.push(CO2);
+        filteredData.H2O.push(H2O);
+        filteredData.Al2O3.push(Al2O3);
+        filteredData.Cly.push(Cly);
+        filteredData.NOx.push(NOx);
     });
 
     // Update the visualizations with the filtered data
