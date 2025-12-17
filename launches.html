@@ -33,15 +33,57 @@
 
 	<style>
 
+		.toggle-container {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		/* Switch container */
+		.switch {
+			position: relative;
+			display: inline-block;
+			width: 50px;
+			height: 24px;
+		}
+
+		/* Hide default checkbox */
+		.switch input {
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
+
+		/* Slider */
+		.slider {
+			position: absolute;
+			cursor: pointer;
+			inset: 0;
+			background-color: #ccc;
+			border-radius: 24px;
+			transition: 0.3s;
+		}
+
+		/* Knob */
+		.slider::before {
+		position: absolute;
+		content: "";
+		height: 18px;
+		width: 18px;
+		left: 3px;
+		bottom: 3px;
+		background-color: #143d59;
+		border-radius: 50%;
+		transition: 0.3s;
+		}
+
+		input:checked + .slider::before {
+			transform: translateX(26px);
+		}
+
 		/* ✨ 3D Moving Starfield Background */
-		#starfield {
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			z-index: -1; /* sits behind your content */
-			background: radial-gradient(circle at 50% 50%, #0a0f24, #05070f 80%);
+		body {
+			background-color: #05070f;
 		}
 
 		*, ::after, ::before {
@@ -428,8 +470,6 @@
 
 	</style>
 
-	<canvas id="starfield"></canvas>
-
 	<div class="main-row">
 
 		<div class="left-column">
@@ -441,10 +481,10 @@
 				<h1 style="text-align: center; padding-top:0.2em;">Rocket Launch Emissions</h1>
 			</div>
 			
-			<p style="text-align: left;">Welcome to our tracker of pollutant and greenhouse gas emissions from rocket launches! Select a time window of interest to visualise pollution on interactive plots or a 3D globe. For more information, see the FAQs at the bottom of this section. </p>
+			<p style="text-align: left;">Welcome to our tracker of pollutant and greenhouse gas emissions from rocket launches! Select a time window of interest to visualise pollution on interactive plots or a 3D globe. For more information, see the FAQs at the bottom of this section.</p>
 	
-			<h2>Filters</h2>
-				
+			<h2>Filters </h2>
+			Updating the date range will clear any selected filters.	
 			<div class="filter-container">
 
 				<div class="filter">
@@ -493,7 +533,7 @@
 						answer: "Launch site refers to the location of the rocket launch. Launch vehicle refers to the type of rocket used for the launch. Megaconstellation refers to whether the launch contains megaconstellation payloads."
 					},
 					{ question: "How is this data calculated?",
-						answer: "Our calculations are based on the current best scientific knowledge available for emissions from rocket launches. We include the effects of a changing chemical environment with altitude in our launch emissions, and calculate emissions globally up to a maximum altitude of 80 km. Paths shown in the Globe view are fixed at the launch site and do not represent real rocket trajectories."
+						answer: "Our calculations are based on the current best scientific knowledge available for emissions from rocket launches. We include the effects of a changing chemical environment with altitude in our launch emissions, and calculate geolocated emissions globally up to a maximum altitude of 80 km. Paths shown in the Globe view are fixed at the launch site and do not represent real rocket trajectories. Emissions from failed launches before 2020 are not included."
 					},
 					{ question: "Where can I find the original methodology and data?",
 					answer: "You can find further details on the methodology in our study published in Nature Scientific Data: Global 3D rocket launch and re-entry air pollutant and carbon dioxide emissions for 2020-2022</strong>. C. R. Barker, E. A. Marais (2024). doi:10.5522/04/26325382. [<a href='https://doi.org/10.5522/04/26325382' target='_blank' rel='noopener noreferrer'>Data</a>]. [<a href='https://www.nature.com/articles/s41597-024-03910-z' target='_blank' rel='noopener noreferrer'>Publication</a>]. For details of changes since the publication, please visit the <a href='https://github.com/cbarker211/Emissions_API/blob/main/docs/changefile.md' target='_blank' rel='noopener noreferrer'>changefile.</a>"
@@ -553,6 +593,16 @@
 				<div>
 					<select id="month-select1"></select>
 					<select id="year-select1"></select>
+				</div>
+				<div class="toggle-container">
+					<span id="label-monthly">Monthly</span>
+
+					<label class="switch">
+					  <input type="checkbox" id="timeToggle" checked>
+					  <span class="slider"></span>
+					</label>
+				  
+					<span id="label-annual">Annual</span>
 				</div>
 				<div>
 					<select id="month-select2"></select>

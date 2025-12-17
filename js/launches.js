@@ -4,10 +4,32 @@ const endYear = 2024;
 const totalMonths = (endYear - startYear + 1) * 12 - 1;
 const toggleButton = document.getElementById('toggleTableButton');
 const tableBody = document.getElementById('launchTableBody');
+
+const prettyNames = {
+    BC: 'BC',
+    CO: 'CO',
+    CO2: 'CO<sub>2</sub>',
+    H2O: 'H<sub>2</sub>O',
+    Al2O3: 'Al<sub>2</sub>O<sub>3</sub>',
+    Cly: 'Cl<sub>y</sub>',
+    NOx: 'NO<sub>x</sub>'
+};
+
+const strongColors = {
+    BC: 'rgba(0,0,0,1)',
+    CO: '#A820A8',
+    CO2: '#969696',
+    H2O: '#2c20c9',
+    Al2O3: '#c40000',
+    Cly: '#1cba26',
+    NOx: '#c99b24'
+};
+
 //Variables
 let globe;
 let siteDataMap = {};
 let startDate, endDate;
+let timeAggregation = "annual";
 var slider = document.getElementById('slider');
 var yearSelect1 = document.getElementById('year-select1');
 var yearSelect2 = document.getElementById('year-select2');
@@ -92,7 +114,7 @@ function toMonthIndex(year, month) {
 // Main functions
 
 noUiSlider.create(slider, {
-    start: [780, 839],
+    start: [540, 839],
     connect: true,
     step: 1,
     range: {
@@ -380,26 +402,6 @@ function updateVisualizations(filtered_launches) {
     updateStack(filtered_launches);
 }
 
-const prettyNames = {
-    BC: 'BC',
-    CO: 'CO',
-    CO2: 'CO<sub>2</sub>',
-    H2O: 'H<sub>2</sub>O',
-    Al2O3: 'Al<sub>2</sub>O<sub>3</sub>',
-    Cly: 'Cl<sub>y</sub>',
-    NOx: 'NO<sub>x</sub>'
-};
-
-const strongColors = {
-    BC: 'rgba(0,0,0,1)',
-    CO: '#A820A8',
-    CO2: '#969696',
-    H2O: '#2c20c9',
-    Al2O3: '#c40000',
-    Cly: '#1cba26',
-    NOx: '#c99b24'
-};
-
 async function updateGlobe(filtered_launches) {
 
     // Step 1: Group launches by site (lat/lon + site name as key)
@@ -599,7 +601,18 @@ function updateGraph(filtered_launches) {
 function updateStack(filtered_launches) {
 
     const species = ['BC', 'CO', 'CO2', 'H2O', 'Al2O3', 'Cly', 'NOx'];
-    const monthlySums = {};
+    const sums = {};
+
+    function yearRange(startDate, endDate) {
+        const start = new Date(startDate);
+        const end   = new Date(endDate);
+        const years = [];
+
+        for (let y = start.getUTCFullYear(); y <= end.getUTCFullYear(); y++) {
+            years.push(String(y));
+        }
+        return years;
+    }
     
     function monthRange(startDate, endDate) {
         const start = new Date(startDate);
@@ -623,68 +636,99 @@ function updateStack(filtered_launches) {
     
         return months;
     }
-    
-    const allMonths = monthRange(startDate,endDate);
 
-    // Zero the monthly emissions
-    allMonths.forEach(m => {
-        monthlySums[m] = {};
-        species.forEach(sp => monthlySums[m][sp] = 0);
+    // --- Choose bins ---
+    let bins;
+    if (timeAggregation === "annual") {
+        bins = yearRange(startDate, endDate);
+    } else {
+        bins = monthRange(startDate, endDate);
+    }
+
+    // --- Zero sums ---
+    bins.forEach(t => {
+        sums[t] = {};
+        species.forEach(sp => sums[t][sp] = 0);
     });
 
+    // --- Accumulate ---
     for (let i = 0; i < filtered_launches.date.length; i++) {
-        const month = filtered_launches.date[i].slice(0, 7); // 'YYYY-MM'
+        const dateStr = filtered_launches.date[i];
+
+        const bin = (timeAggregation === "annual")
+            ? dateStr.slice(0, 4)   // YYYY
+            : dateStr.slice(0, 7);  // YYYY-MM
+
         species.forEach(sp => {
-            monthlySums[month][sp] += Number(filtered_launches[sp][i]) || 0;
+            sums[bin][sp] += Number(filtered_launches[sp][i]) || 0;
         });
     }
 
-    const months = Object.keys(monthlySums).sort();
-    const maxYValue = Math.max(...months);
+    const xVals = Object.keys(sums).sort();
+    const maxYValue = Math.max(...xVals);
 
-    const traces = species.map(sp => ({
-        x: months,
-        y: months.map(m => monthlySums[m][sp] / 1000),
-        stackgroup: 'one',
-        name: prettyNames[sp],
-        type: 'scatter',
-        mode: 'none',
-        fillcolor: strongColors[sp]
-    }));
+    const traces = species.map(sp => {
+        if (timeAggregation === "annual") {
+            return {
+                x: xVals,
+                y: xVals.map(b => sums[b][sp] / 1000),
+                type: 'bar',
+                name: prettyNames[sp],
+                marker: { color: strongColors[sp] }
+            };
+        } else {
+            return {
+                x: xVals,
+                y: xVals.map(b => sums[b][sp] / 1000),
+                type: 'scatter',
+                mode: 'none',
+                stackgroup: 'one',
+                name: prettyNames[sp],
+                fillcolor: strongColors[sp]
+            };
+        }
+    });
 
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         autosize: true,
-        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: 14}, // general font
+        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: 14},
         legend: { 
             orientation: 'v',
             x: 1.05, 
             y: 1, 
-            itemwidth: 3, 
             font: { 
-            color: 'white', 
-            size: 13, 
-            family: 'Space Grotesk, sans-serif'
+                color: 'white', 
+                size: 13, 
+                family: 'Space Grotesk, sans-serif'
             }
         },
         title: {
-            text: 'Monthly Emissions (click legend to show/hide species)',
+            text: timeAggregation === "annual"
+                ? 'Annual Emissions (click legend to show/hide species)'
+                : 'Monthly Emissions (click legend to show/hide species)',
             xref: 'paper',
             xanchor: 'center',
-            yref:'paper',
             y: 1,
             pad: { t: -30 }},
         yaxis: {
-            title: {
-                text: 'Mass [kilotonnes]',
-            },
-            range: [0,maxYValue / 1000]
+            title: {text: 'Mass [kilotonnes]'},
+            showgrid: false,
+            zeroline: false
+        },
+        xaxis: {
+            showgrid: false,
+            zeroline: false
         },
         hovermode: 'closest',
-        margin: {t: 70, r: 40, b: 20,l: 40}
+        margin: {t: 70, r: 40, b: 20,l: 40},
+        barmode: 'stack',
     };
-    Plotly.react('stack', traces , layout, {responsive: true, displayModeBar: true });
+    Plotly.react('stack', traces , layout, {
+        responsive: true, 
+        displayModeBar: true 
+    });
 
 }
 
@@ -739,6 +783,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('applyFilters').addEventListener('click', () => {
         filterlaunches(all_launches);
+    });
+
+    const toggle = document.getElementById("timeToggle");
+    toggle.addEventListener("change", () => {
+        timeAggregation = toggle.checked ? "annual" : "monthly";
+        const filteredLaunches = filterlaunches(all_launches);
+        updateVisualizations(filteredLaunches);
     });
 
     const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
@@ -801,57 +852,3 @@ document.addEventListener('click', e => {
         });
     }
 });
-
-// Starfield
-const canvas = document.getElementById("starfield");
-const ctx = canvas.getContext("2d");
-
-let stars = [];
-const numStars = 0;
-
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    stars = Array.from({ length: numStars }, () => ({
-        x: (Math.random() - 0.5) * canvas.width,
-        y: (Math.random() - 0.5) * canvas.height,
-        z: Math.random() * canvas.width
-    }));
-}
-
-resize();
-let resizeTimeout;
-
-window.addEventListener("resize", () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(resize, 300);
-});
-
-function animate() {
-    ctx.fillStyle = "rgba(5,7,15,0.5)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    ctx.beginPath();
-    for (let star of stars) {
-        star.z -= 2;
-        if (star.z <= 0) star.z = canvas.width;
-
-        const k = 128.0 / star.z;
-        const px = star.x * k + canvas.width / 2;
-        const py = star.y * k + canvas.height / 2;
-
-        if (px < 0 || px > canvas.width || py < 0 || py > canvas.height) continue;
-
-        const starScale = 1 - star.z / canvas.width;
-        const size = starScale * 2;
-
-        ctx.moveTo(px, py);
-        ctx.arc(px, py, size, 0, Math.PI*2);
-    }
-    ctx.fillStyle = "white";
-    ctx.fill();
-
-    requestAnimationFrame(animate);
-}
-
-requestAnimationFrame(animate);
