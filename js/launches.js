@@ -789,7 +789,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     toggle.addEventListener("change", () => {
         timeAggregation = toggle.checked ? "annual" : "monthly";
         const filteredLaunches = filterlaunches(all_launches);
-        updateVisualizations(filteredLaunches);
+        updateStack(filteredLaunches);
     });
 
     const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
