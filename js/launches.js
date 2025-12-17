@@ -711,7 +711,7 @@ function updateStack(filtered_launches) {
             xref: 'paper',
             xanchor: 'center',
             y: 1,
-            pad: { t: -30 }},
+            pad: { t: 40 }},
         yaxis: {
             title: {text: 'Mass [kilotonnes]'},
             showgrid: false,
