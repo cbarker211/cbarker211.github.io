@@ -1,6 +1,6 @@
 // Constants
 const startYear = 1955;
-const endYear = 2024;
+const endYear = 2025;
 const totalMonths = (endYear - startYear + 1) * 12 - 1;
 const toggleButton = document.getElementById('toggleTableButton');
 const tableBody = document.getElementById('launchTableBody');
@@ -154,7 +154,7 @@ noUiSlider.create(slider, {
 });
 
 // Append the option elements
-for (var i = 1957; i <= 2024; i++) {
+for (var i = 1957; i <= 2025; i++) {
 
     var option1 = document.createElement("option");
     option1.text = i;

@@ -24,9 +24,6 @@
 <script defer src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
-<script defer src="https://d3js.org/d3.v7.min.js"></script>
-
 
 <!-- TODO: Set up Google Analytics -->
 
@@ -36,15 +33,57 @@
 
 	<style>
 
+		.toggle-container {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		/* Switch container */
+		.switch {
+			position: relative;
+			display: inline-block;
+			width: 50px;
+			height: 24px;
+		}
+
+		/* Hide default checkbox */
+		.switch input {
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
+
+		/* Slider */
+		.slider {
+			position: absolute;
+			cursor: pointer;
+			inset: 0;
+			background-color: #ccc;
+			border-radius: 24px;
+			transition: 0.3s;
+		}
+
+		/* Knob */
+		.slider::before {
+		position: absolute;
+		content: "";
+		height: 18px;
+		width: 18px;
+		left: 3px;
+		bottom: 3px;
+		background-color: #143d59;
+		border-radius: 50%;
+		transition: 0.3s;
+		}
+
+		input:checked + .slider::before {
+			transform: translateX(26px);
+		}
+
 		/* ✨ 3D Moving Starfield Background */
-		#starfield {
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			z-index: -1; /* sits behind your content */
-			background: radial-gradient(circle at 50% 50%, #0a0f24, #05070f 80%);
+		body {
+			background-color: #05070f;
 		}
 
 		*, ::after, ::before {
@@ -171,12 +210,8 @@
 			height: 100%;
 			display: flex; /* Ensure children align properly */
     		flex-direction: column; /* Align children vertically */
-			background: rgba(255, 255, 255, 0.08);        /* semi-transparent glass */
-			backdrop-filter: blur(0.85em) brightness(1.05); /* blur background */
-			-webkit-backdrop-filter: blur(0.85em) brightness(1.05); /* Safari */
+			background: rgba(255, 255, 255, 0.2);        /* semi-transparent glass */
 			border-radius: 1em;                           /* rounded corners */
-			border: 0.1em solid rgba(255, 255, 255, 0.2);   /* subtle border */
-			box-shadow: 0 0.5em 2em rgba(0, 0, 0, 0.2);    /* optional shadow */
 			box-sizing: border-box;
 			padding: 0.75em;
 			overflow: hidden;
@@ -281,7 +316,7 @@
 		}
 
 		/* Table styling */
-		table, .country-table {
+		table {
 			width: 100%;
 			border-collapse: collapse;
 			white-space: nowrap;
@@ -295,15 +330,6 @@
 			white-space: nowrap;
 		}
 
-		#country-table th, 
-		#country-table td {
-			word-wrap: break-word;
-		}
-
-		#country-table th:first-child,
-		#country-table td:first-child {
-			width: 150px; /* adjust as needed */
-		}
 
 		th {
 			background-color: #dddddd;
@@ -435,11 +461,10 @@
 
 	</style>
 
-	<canvas id="starfield"></canvas>
-
 	<div class="main-row">
 
 		<div class="left-column">
+
 			<div class="title-container">
 				<a href="index.html">
 					<img src="assets/images/home.png" alt="Home" style="filter: brightness(0) invert(1);" class="home-link">
@@ -449,8 +474,8 @@
 		
 			<p style="text-align: left;">Welcome to our tracker for objects re-entering the atmosphere! Select a time window of interest to visualise the location and ID of each re-entry for the time windows, mission type, and object categories selected. For more information, see the FAQs at the bottom of this section. Large ranges may be slow to load.</p>
 	
-			<h2>Filters</h2>
-			
+			<h2>Filters </h2>
+			Updating the date range will clear any selected filters.	
 			<div class="filter-container">
 
 				<div class="filter">
@@ -533,17 +558,6 @@
 		
 		<div class="center-column">
 			<!-- Tabs for charts and globe -->
-			<div class="nav-tabs-container d-flex justify-content-between align-items-center">
-				<ul class="nav nav-tabs" id="myTab" role="tablist">
-					<li class="nav-item" role="presentation">
-						<button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-tabpane" type="button" role="tab" aria-controls="chart" aria-selected="true">Emissions Data</button>
-					</li>
-					<li class="nav-item" role="presentation">
-						<button class="nav-link"        id="globe-tab" data-bs-toggle="tab" data-bs-target="#globe-tabpane" type="button" role="tab" aria-controls="globe" aria-selected="false">Re-entry Locations</button>
-					</li>
-				</ul>
-			</div>
-
 			<div class="filter-container">
 				<div id="slider" style="margin:3em;"></div>
 			</div>
@@ -552,6 +566,16 @@
 				<div>
 					<select id="month-select1"></select>
 					<select id="year-select1"></select>
+				</div>
+				<div class="toggle-container">
+					<span id="label-monthly">Monthly</span>
+
+					<label class="switch">
+					  <input type="checkbox" id="timeToggle" checked>
+					  <span class="slider"></span>
+					</label>
+				  
+					<span id="label-annual">Annual</span>
 				</div>
 				<div>
 					<select id="month-select2"></select>
@@ -567,21 +591,6 @@
 						</div>
 						<div class="col-4" style="padding:0;"> <!-- 25% -->
 							<div id="bar" class="chart"></div>
-						</div>
-					</div>
-				</div>
-				<div class="tab-pane fade" id="globe-tabpane" role="tabpanel" aria-labelledby="globe-tab">
-					<div class="globe-row">
-						<div id="globe" class="globe"></div>
-						<div id="country-details">
-							<h3 style="padding-top:0; margin: 0;">Region-Specific Details</h3>
-							<p style="text-align: left;">[click on region for more information]</p>
-							<table id="country-table" border="1">
-								<tr>
-									<th>Property</th>
-									<th>Value</th>
-								</tr>
-							</table>
 						</div>
 					</div>
 				</div>

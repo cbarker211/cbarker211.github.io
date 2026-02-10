@@ -1,6 +1,6 @@
 // Constants
-const startYear = 2020;
-const endYear = 2024;
+const startYear = 1955;
+const endYear = 2025;
 const totalMonths = (endYear - startYear + 1) * 12 - 1;
 const locationGroups = {
     "Known (Coordinates)" : [1],
@@ -31,9 +31,10 @@ const strongColors = {
     NOx: '#c99b24'
 };
 
-// Variables
+//Variables
 let globe;
-let countryPolygons, oceanPolygons;
+let startDate, endDate;
+let timeAggregation = "annual";
 var slider = document.getElementById('slider');
 var yearSelect1 = document.getElementById('year-select1');
 var yearSelect2 = document.getElementById('year-select2');
@@ -63,15 +64,21 @@ function intToDateString(monthIndex, isEnd = false) {
     const year = startYear + Math.floor(monthIndex / 12);
     const month = monthIndex % 12;
 
+    let day;
     if (isEnd) {
-        // Create a date for the *last day* of the month
-        const lastDay = new Date(year, month + 1, 0); // day 0 of next month = last day of current
-        return lastDay.toISOString().split('T')[0];
+        // Last day of month: create date for the first day of next month, then subtract 1 day
+        day = new Date(Date.UTC(year, month + 1, 0)); // UTC ensures no timezone shift
     } else {
-        // First day of the month
-        const firstDay = new Date(year, month, 1);
-        return firstDay.toISOString().split('T')[0];
+        // First day of month
+        day = new Date(Date.UTC(year, month, 1));
     }
+
+    // Format as YYYY-MM-DD
+    const yyyy = day.getUTCFullYear();
+    const mm = String(day.getUTCMonth() + 1).padStart(2, '0'); // month is 0-indexed
+    const dd = String(day.getUTCDate()).padStart(2, '0');
+
+    return `${yyyy}-${mm}-${dd}`;
 }
 
 function fromMonthIndex(index) {
@@ -86,72 +93,8 @@ function toMonthIndex(year, month) {
 
 // Main functions
 
-function updateCountryTable(country) {
-    const table = document.getElementById('country-table');
-    table.innerHTML = `<tr><th>Property</th><th>Value</th></tr>`;
-
-
-    const reentriesHTML = `
-        <div style="
-            max-height: 150px; 
-            overflow-y: auto; 
-            padding: 4px; 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.05);
-        ">
-            ${country.reentries.map(e =>
-                `${e.date} — ${e.objname} (${e.id}) [${e.category}]`
-            ).join('<br>')}
-        </div>
-    `;
-
-    const rows = [
-        ['Country', country.name],
-        ['Re-entry Count', country.count],
-        ['Re-entry Details', reentriesHTML]
-    ];
-
-    rows.forEach(([prop, val]) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="wrap-text">${prop}</td><td class="wrap-text">${val}</td>`;
-        table.appendChild(tr);
-    });
-}
-
-function aggregateByRegion(reentries) {
-    const regionCounts = {};
-
-    for (let i = 0; i < reentries.lat.length; i++) {
-        const pt = turf.point([reentries.lon[i], reentries.lat[i]]);
-
-        // Check countries first
-        let found = false;
-        for (const feat of countryPolygons.features) {
-            if (turf.booleanPointInPolygon(pt, feat)) {
-                const name = feat.properties.ADMIN;
-                regionCounts[name] = (regionCounts[name] || 0) + 1;
-                found = true;
-                break;
-            }
-        }
-
-        // Check oceans if not in a country
-        if (!found && oceanPolygons) {
-            for (const feat of oceanPolygons.features) {
-                if (turf.booleanPointInPolygon(pt, feat)) {
-                    const name = feat.properties.NAME;
-                    regionCounts[name] = (regionCounts[name] || 0) + 1;
-                    break;
-                }
-            }
-        }
-    }
-    return regionCounts;
-}
-
 noUiSlider.create(slider, {
-    start: [48, 60],
+    start: [540, 839],
     connect: true,
     step: 1,
     range: {
@@ -174,22 +117,24 @@ noUiSlider.create(slider, {
     },
     pips: {
         mode: 'steps',
-        density: 12,
+        density: 100,
         filter: function(value) {
-            // Show label only every 12 months (1 year)
-            return (value % 12 === 0) ? 1 : 0;  // 1 = show label, 0 = hide
+            // Show label only every 30 months (5 years)
+            if (value % 60 === 0) return 1;  // every 5 years → major tick + label
+            if (value % 12 === 0) return 2;  // every 1 year → minor tick
+            return 0;   
         },
         format: {
             to: function(value) {
                 // label only for year start (Jan)
-                return value % 12 === 0 ? (startYear + value / 12) : '';
+                return value % 60 === 0 ? (startYear + value / 12) : '';
             }
         }
     }
 });
 
 // Append the option elements
-for (var i = 2020; i <= 2024; i++) {
+for (var i = 1957; i <= 2025; i++) {
 
     var option1 = document.createElement("option");
     option1.text = i;
@@ -239,7 +184,7 @@ function updateSliderFromSelects() {
 
     startDate = intToDateString(startMonthIndex);
     endDate = intToDateString(endMonthIndex, true);
-    console.log(startDate, endDate);
+    console.log(startDate, endDate,'Update');
     fetchEventsData();
 }
 
@@ -290,7 +235,6 @@ function filterreentries(all_reentries) {
     // Find indices to keep based on selected filters
     let indicesToKeep = [...Array(all_reentries.date.length).keys()];  // All indices initially
 
-    console.log(all_reentries.location)
     // Filter by reusability
     if (selectedReusabilities.length > 0) {
         indicesToKeep = indicesToKeep.filter(i => selectedReusabilities.includes(String(all_reentries.location[i])));
@@ -384,126 +328,7 @@ async function fetchEventsData() {
 function updateVisualizations(filtered_reentries) {
     updateTables(filtered_reentries);
     updateGraph(filtered_reentries);
-    updateGlobe(filtered_reentries);
     updateStack(filtered_reentries);
-}
-
-async function updateGlobe(filtered_reentries) {
-
-    // Ensure country/ocean polygons are loaded
-    if (!window.countryPolygons || !window.oceanPolygons) {
-        const countriesRes = await fetch('datasets/ne_110m_admin_0_countries.geojson');
-        window.countryPolygons = await countriesRes.json();
-
-        //const oceansRes = await fetch('datasets/ne_110m_ocean.geojson');
-        //window.oceanPolygons = await oceansRes.json();
-    }
-
-    // Aggregate re-entries by region
-    const regionCounts = {};
-    for (let i = 0; i < filtered_reentries.lat.length; i++) {
-        const pt = turf.point([filtered_reentries.lon[i], filtered_reentries.lat[i]]);
-        let found = false;
-
-        // Check countries first
-        for (const feat of window.countryPolygons.features) {
-            if (turf.booleanPointInPolygon(pt, feat)) {
-                const name = feat.properties.ADMIN;
-                regionCounts[name] = (regionCounts[name] || 0) + 1;
-                found = true;
-                break;
-            }
-        }
-
-        // Check oceans if not in a country
-        if (!found && window.oceanPolygons) {
-            for (const feat of window.oceanPolygons.features) {
-                if (turf.booleanPointInPolygon(pt, feat)) {
-                    const name = feat.properties.NAME;
-                    regionCounts[name] = (regionCounts[name] || 0) + 1;
-                    break;
-                }
-            }
-        }
-    }
-
-    // Build country detail map
-    const countryDataMap = {};
-
-    window.countryPolygons.features.forEach(f => {
-        const name = f.properties.ADMIN;
-        const count = regionCounts[name] || 0;
-
-        countryDataMap[name] = {
-            name: name,
-            count: count,
-            // Extract all matching re-entries for this country:
-            reentries: filtered_reentries.date
-                .map((_, i) => i)
-                .filter(i => {
-                    const pt = turf.point([filtered_reentries.lon[i], filtered_reentries.lat[i]]);
-                    return turf.booleanPointInPolygon(pt, f);
-                })
-                .map(i => ({
-                    date: filtered_reentries.date[i],
-                    id: filtered_reentries.id[i],
-                    objname: filtered_reentries.objname[i],
-                    category: filtered_reentries.category[i]
-                }))
-        };
-    });
-
-    window.countryDataMap = countryDataMap;
-
-    // Map counts to country polygons
-    window.countryPolygons.features.forEach(f => {
-        const name = f.properties.ADMIN;
-        f.properties.reentryCount = regionCounts[name] || 0;
-    });
-
-    // Optional: Map counts to oceans
-    if (window.oceanPolygons) {
-        window.oceanPolygons.features.forEach(f => {
-            const name = f.properties.NAME;
-            f.properties.reentryCount = regionCounts[name] || 0;
-        });
-    }
-
-    // Determine max count for scaling
-    const maxCount = Math.max(...Object.values(regionCounts), 1);
-
-    // Color scale for polygons
-    const colorScale = d3.scaleSequentialSqrt(d3.interpolateYlOrRd).domain([0, maxCount]);
-
-    // Initialize Globe if not already
-    if (!globe) {
-        globe = new Globe(document.getElementById('globe'))
-            .showGraticules(true)
-            .showAtmosphere(false)
-            .backgroundColor('rgba(0,0,0,0)')
-            .polygonAltitude(0.01)
-            .onPolygonHover(hoverD => globe
-                .polygonCapColor(d => d === hoverD ? 'steelblue' : colorScale(d.properties.reentryCount))
-            )
-            .polygonsTransitionDuration(0)
-            .onPolygonClick(country => {
-                const data = window.countryDataMap[country.properties.ADMIN];
-                updateCountryTable(data);
-            });
-
-        // Initial camera view
-        setTimeout(() => {
-            globe.pointOfView({ lat: 35, lng: -95, altitude: 1.5 }, 1000);
-        }, 0);
-    }
-
-    // Add country polygons
-    globe.polygonsData(window.countryPolygons.features)
-        .polygonCapColor(f => colorScale(f.properties.reentryCount))
-        .polygonLabel(f => `
-            <b>${f.properties.ADMIN}</b><br/>
-            Re-entries: ${f.properties.reentryCount || 0}
-        `);
 }
 
 function updateTables(filtered_reentries) {
@@ -569,21 +394,20 @@ function updateTables(filtered_reentries) {
 function updateGraph(filtered_reentries) {
 
     const totals = {
-        Al2O3: 0,
-        NOx: 0,
-        unab_mass: 0,
         BC: 0,
+        Al2O3: 0,
+        unab_mass: 0, 
         HCl: 0,
-        Cl: 0
+        Cl: 0,
+        NOx: 0
     };
-
     filtered_reentries.id.forEach((location, index) => {
-        totals.Al2O3     += filtered_reentries.Al2O3[index];
-        totals.NOx       += filtered_reentries.NOx[index];
         totals.unab_mass += filtered_reentries.unab_mass[index];
         totals.BC        += filtered_reentries.BC[index];
+        totals.Al2O3     += filtered_reentries.Al2O3[index];
         totals.HCl       += filtered_reentries.HCl[index];
         totals.Cl        += filtered_reentries.Cl[index];
+        totals.NOx       += filtered_reentries.NOx[index];
     });
     
     // Prepare the data for Plotly
@@ -636,66 +460,134 @@ function updateGraph(filtered_reentries) {
 function updateStack(filtered_reentries) {
 
     const species = ['Al2O3', 'NOx', 'unab_mass', 'BC', 'HCl', 'Cl'];
-    const monthlySums = {};
+    const sums = {};
 
-    // Step 1: Loop through each launch (index)
+    function yearRange(startDate, endDate) {
+        const start = new Date(startDate);
+        const end   = new Date(endDate);
+        const years = [];
+
+        for (let y = start.getUTCFullYear(); y <= end.getUTCFullYear(); y++) {
+            years.push(String(y));
+        }
+        return years;
+    }
+
+    function monthRange(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+    
+        // Normalize both to the first day of their month
+        const startUTC = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
+        const endUTC = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), 1));
+    
+        const months = [];
+        const current = new Date(startUTC);
+    
+        while (current <= endUTC) {
+            const year = current.getUTCFullYear();
+            const month = String(current.getUTCMonth() + 1).padStart(2, "0");
+            months.push(`${year}-${month}`);
+    
+            // Move to next month
+            current.setUTCMonth(current.getUTCMonth() + 1);
+        }
+    
+        return months;
+    }
+
+    // --- Choose bins ---
+    let bins;
+    if (timeAggregation === "annual") {
+        bins = yearRange(startDate, endDate);
+    } else {
+        bins = monthRange(startDate, endDate);
+    }
+
+    // --- Zero sums ---
+    bins.forEach(t => {
+        sums[t] = {};
+        species.forEach(sp => sums[t][sp] = 0);
+    });
+
+    // --- Accumulate ---
     for (let i = 0; i < filtered_reentries.date.length; i++) {
-        const month = filtered_reentries.date[i].slice(0, 7);  // 'YYYY-MM'
-        if (!monthlySums[month]) {
-            monthlySums[month] = {};
-            species.forEach(sp => monthlySums[month][sp] = 0);
-        }
+        const dateStr = filtered_reentries.date[i];
+
+        const bin = (timeAggregation === "annual")
+            ? dateStr.slice(0, 4)   // YYYY
+            : dateStr.slice(0, 7);  // YYYY-MM
+
         species.forEach(sp => {
-            monthlySums[month][sp] += Number(filtered_reentries[sp][i]) || 0; // Ensure numeric
+            sums[bin][sp] += Number(filtered_reentries[sp][i]) || 0;
         });
+    }
+
+    const xVals = Object.keys(sums).sort();
+    const maxYValue = Math.max(...xVals);
+
+    const traces = species.map(sp => {
+        if (timeAggregation === "annual") {
+            return {
+                x: xVals,
+                y: xVals.map(b => sums[b][sp] / 1000),
+                type: 'bar',
+                name: prettyNames[sp],
+                marker: { color: strongColors[sp] }
+            };
+        } else {
+            return {
+                x: xVals,
+                y: xVals.map(b => sums[b][sp] / 1000),
+                type: 'scatter',
+                mode: 'none',
+                stackgroup: 'one',
+                name: prettyNames[sp],
+                fillcolor: strongColors[sp]
+            };
         }
-
-    const months = Object.keys(monthlySums).sort();
-    const maxYValue = Math.max(...months);
-
-    const traces = species.map(sp => ({
-        x: months,
-        y: months.map(m => monthlySums[m][sp] / 1000),
-        stackgroup: 'one',
-        name: prettyNames[sp],
-        type: 'scatter',
-        mode: 'none',
-        fillcolor: strongColors[sp]
-    }));
+    });
 
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         autosize: true,
-        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: 14}, // general font
+        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: 14},
         legend: { 
             orientation: 'v',
             x: 1.05, 
             y: 1, 
-            itemwidth: 3, 
             font: { 
-            color: 'white', 
-            size: 13, 
-            family: 'Space Grotesk, sans-serif'
+                color: 'white', 
+                size: 13, 
+                family: 'Space Grotesk, sans-serif'
             }
         },
         title: {
-            text: 'Monthly Emissions (click legend to show/hide species)',
+            text: timeAggregation === "annual"
+                ? 'Annual Emissions (click legend to show/hide species)'
+                : 'Monthly Emissions (click legend to show/hide species)',
             xref: 'paper',
             xanchor: 'center',
-            yref:'paper',
             y: 1,
-            pad: { t: -30 }},
+            pad: { t: 40 }},
         yaxis: {
-            title: {
-                text: 'Mass [kilotonnes]',
-            },
-            range: [0,maxYValue / 1000]
+            title: {text: 'Mass [kilotonnes]'},
+            showgrid: false,
+            zeroline: false
+        },
+        xaxis: {
+            showgrid: false,
+            zeroline: false
         },
         hovermode: 'closest',
-        margin: {t: 70, r: 40, b: 20,l: 40}
+        margin: {t: 70, r: 40, b: 20,l: 40},
+        barmode: 'stack',
     };
-    Plotly.react('stack', traces , layout, {responsive: true, displayModeBar: true });
+    Plotly.react('stack', traces , layout, {
+        responsive: true, 
+        displayModeBar: true 
+    });
 
 }
 
@@ -716,7 +608,7 @@ slider.noUiSlider.on('update', (values, handle) => {
 });
 
 slider.noUiSlider.on('slide', (values, handle) => {
-    const minSelectableIndex = (2020 - startYear) * 12; // January 1957
+    const minSelectableIndex = (1957 - startYear) * 12; // January 1957
     const maxSelectableIndex = totalMonths;
 
     let value = Math.round(values[handle]);
@@ -736,6 +628,7 @@ slider.noUiSlider.on('end', (values) => {
 
     startDate = intToDateString(startIndex);
     endDate = intToDateString(endIndex, true);
+    console.log(startDate, endDate,'End');
     fetchEventsData();
 });
 
@@ -744,11 +637,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const daterange = slider.noUiSlider.get();
     startDate = intToDateString(Number(daterange[0]));
     endDate = intToDateString(Number(daterange[1]),true);
-    console.log(startDate, endDate);
+    console.log(startDate, endDate,'DOM');
     fetchEventsData(); // Fetch data for the default date
 
     document.getElementById('applyFilters').addEventListener('click', () => {
         filterreentries(all_reentries);
+    });
+
+    const toggle = document.getElementById("timeToggle");
+    toggle.addEventListener("change", () => {
+        timeAggregation = toggle.checked ? "annual" : "monthly";
+        const filteredReentries = filterreentries(all_reentries);
+        updateStack(filteredReentries);
     });
 
     const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
@@ -811,57 +711,3 @@ document.addEventListener('click', e => {
         });
     }
 });
-
-// Starfield
-const canvas = document.getElementById("starfield");
-const ctx = canvas.getContext("2d");
-
-let stars = [];
-const numStars = 50;
-
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    stars = Array.from({ length: numStars }, () => ({
-        x: (Math.random() - 0.5) * canvas.width,
-        y: (Math.random() - 0.5) * canvas.height,
-        z: Math.random() * canvas.width
-    }));
-}
-
-resize();
-let resizeTimeout;
-
-window.addEventListener("resize", () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(resize, 300);
-});
-
-function animate() {
-    ctx.fillStyle = "rgba(5,7,15,0.5)";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    ctx.beginPath();
-    for (let star of stars) {
-        star.z -= 2;
-        if (star.z <= 0) star.z = canvas.width;
-
-        const k = 128.0 / star.z;
-        const px = star.x * k + canvas.width / 2;
-        const py = star.y * k + canvas.height / 2;
-
-        if (px < 0 || px > canvas.width || py < 0 || py > canvas.height) continue;
-
-        const starScale = 1 - star.z / canvas.width;
-        const size = starScale * 2;
-
-        ctx.moveTo(px, py);
-        ctx.arc(px, py, size, 0, Math.PI*2);
-    }
-    ctx.fillStyle = "white";
-    ctx.fill();
-
-    requestAnimationFrame(animate);
-}
-
-requestAnimationFrame(animate);
