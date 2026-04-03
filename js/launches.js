@@ -368,7 +368,9 @@ async function fetchEventsData() {
                 all_launches.lon.push(parseFloat(launch.lon));
                 all_launches.text.push(launch.location);
                 all_launches.id.push(launch.id);
-                all_launches.rocket.push(launch.rocket);
+                all_launches.rocket.push(
+                    launch.variant === "-" ? launch.rocket : launch.rocket + " " + launch.variant
+                  );
                 all_launches.smc.push(launch.smc.toString());
                 all_launches.BC.push(parseFloat(launch.emissions.BC));
                 all_launches.CO.push(parseFloat(launch.emissions.CO));
