@@ -114,7 +114,7 @@ function toMonthIndex(year, month) {
 // Main functions
 
 noUiSlider.create(slider, {
-    start: [540, 839],
+    start: [540, 851],
     connect: true,
     step: 1,
     range: {
