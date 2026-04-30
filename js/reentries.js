@@ -425,14 +425,14 @@ function updateGraph(filtered_reentries) {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         autosize: true,
-        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: 14}, // general font
+        font: { color: 'black', family: 'Space Grotesk, sans-serif', size: 14}, // general font
         legend: { 
             orientation: 'v',
             x: 1.05, 
             y: 1, 
             itemwidth: 3, 
             font: { 
-            color: 'white', 
+            color: 'black', 
             size: 13, 
             family: 'Space Grotesk, sans-serif'
             }
@@ -552,13 +552,13 @@ function updateStack(filtered_reentries) {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         autosize: true,
-        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: 14},
+        font: { color: 'black', family: 'Space Grotesk, sans-serif', size: 14},
         legend: { 
             orientation: 'v',
             x: 1.05, 
             y: 1, 
             font: { 
-                color: 'white', 
+                color: 'black', 
                 size: 13, 
                 family: 'Space Grotesk, sans-serif'
             }
