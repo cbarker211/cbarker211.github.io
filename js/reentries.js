@@ -420,12 +420,15 @@ function updateGraph(filtered_reentries) {
         type: 'bar',
         marker: {color: strongColors[key]}
     }));
-    
+
+    const bodyStyles = window.getComputedStyle(document.body);
+    const chartFontSize = parseFloat(bodyStyles.fontSize);
+
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         autosize: true,
-        font: { color: 'black', family: 'Space Grotesk, sans-serif', size: 14}, // general font
+        font: { color: 'black', family: 'Space Grotesk, sans-serif', size: chartFontSize}, // general font
         legend: { 
             orientation: 'v',
             x: 1.05, 
@@ -446,6 +449,7 @@ function updateGraph(filtered_reentries) {
             pad: { t: -30 }},
         barmode: 'stack',
         hovermode: 'closest',
+        dragmode: false,
         yaxis: {
             range: [0,maxYValue / 1000]
         },
@@ -453,7 +457,7 @@ function updateGraph(filtered_reentries) {
     };
 
     // Plot the chart inside the 'emissionsChart' div
-    Plotly.react('bar', trace, layout, {responsive: true, displayModeBar: true });
+    Plotly.react('bar', trace, layout, {responsive: true, displayModeBar: false, scrollZoom: false });
 
 }
 
@@ -548,18 +552,21 @@ function updateStack(filtered_reentries) {
         }
     });
 
+    const bodyStyles = window.getComputedStyle(document.body);
+    const chartFontSize = parseFloat(bodyStyles.fontSize);
+    
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         autosize: true,
-        font: { color: 'black', family: 'Space Grotesk, sans-serif', size: 14},
+        font: { color: 'black', family: 'Space Grotesk, sans-serif', size: chartFontSize},
         legend: { 
             orientation: 'v',
-            x: 1.05, 
+            x: 1, 
             y: 1, 
             font: { 
                 color: 'black', 
-                size: 13, 
+                size: chartFontSize * 0.95, 
                 family: 'Space Grotesk, sans-serif'
             }
         },
@@ -570,7 +577,7 @@ function updateStack(filtered_reentries) {
             xref: 'paper',
             xanchor: 'center',
             y: 1,
-            pad: { t: 40 }},
+            pad: { t: chartFontSize * 3 }},
         yaxis: {
             title: {text: 'Mass [kilotonnes]'},
             showgrid: false,
@@ -581,7 +588,12 @@ function updateStack(filtered_reentries) {
             zeroline: false
         },
         hovermode: 'closest',
-        margin: {t: 70, r: 40, b: 20,l: 40},
+        margin: {
+            t: chartFontSize * 5,
+            r: chartFontSize * 2,
+            b: chartFontSize * 2,
+            l: chartFontSize * 4
+        },
         barmode: 'stack',
     };
     Plotly.react('stack', traces , layout, {
