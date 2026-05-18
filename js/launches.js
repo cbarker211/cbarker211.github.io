@@ -866,3 +866,18 @@ document.addEventListener('click', e => {
         });
     }
 });
+
+const sidebarToggle = document.getElementById('toggleSidebar');
+
+sidebarToggle.addEventListener('click', () => {
+    document.body.classList.toggle('sidebar-collapsed');
+
+    setTimeout(() => {
+        if (typeof Plotly !== 'undefined') {
+            Plotly.Plots.resize(document.getElementById('stack'));
+            Plotly.Plots.resize(document.getElementById('bar'));
+        }
+
+        resizeGlobe();
+    }, 300);
+});

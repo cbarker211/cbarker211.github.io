@@ -254,8 +254,6 @@ function filterreentries(all_reentries) {
     const filteredData = {
         date: indicesToKeep.map(i => all_reentries.date[i]),
         time: indicesToKeep.map(i => all_reentries.time[i]),
-        lat: indicesToKeep.map(i => all_reentries.lat[i]),
-        lon: indicesToKeep.map(i => all_reentries.lon[i]),
         location: indicesToKeep.map(i => all_reentries.location[i]),
         id: indicesToKeep.map(i => all_reentries.id[i]),
         category: indicesToKeep.map(i => all_reentries.category[i]),
@@ -285,8 +283,6 @@ async function fetchEventsData() {
             time: [],
             location: [],
             objname: [],
-            lat: [],
-            lon: [],
             smc: [],
             category: [],
             Al2O3: [],
@@ -301,8 +297,6 @@ async function fetchEventsData() {
             reentryData[date].reentries.forEach(reentry => {
                 all_reentries.date.push(reentry.date);
                 all_reentries.time.push(reentry.time);
-                all_reentries.lat.push(parseFloat(reentry.lat));
-                all_reentries.lon.push(parseFloat(reentry.lon));
                 all_reentries.location.push(reentry.location);
                 all_reentries.id.push(reentry.id);
                 all_reentries.category.push(reentry.category);
@@ -722,4 +716,19 @@ document.addEventListener('click', e => {
         openFilter.classList.remove('open');
         });
     }
+});
+
+const sidebarToggle = document.getElementById('toggleSidebar');
+
+sidebarToggle.addEventListener('click', () => {
+    document.body.classList.toggle('sidebar-collapsed');
+
+    setTimeout(() => {
+        if (typeof Plotly !== 'undefined') {
+            Plotly.Plots.resize(document.getElementById('stack'));
+            Plotly.Plots.resize(document.getElementById('bar'));
+        }
+
+        resizeGlobe();
+    }, 300);
 });

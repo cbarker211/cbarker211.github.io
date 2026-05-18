@@ -16,8 +16,9 @@
 
 <link rel="icon" type="image/x-icon" href="assets/images/favicon_satellite.ico">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
+<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,281;1,281&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
 
 <script defer src="https://cdn.plot.ly/plotly-basic-latest.min.js"></script>
@@ -31,529 +32,113 @@
 
 <body>
 
-	<style>
-
-		.toggle-container {
-			display: flex;
-			align-items: center;
-			gap: 10px;
-		}
-
-		/* Switch container */
-		.switch {
-			position: relative;
-			display: inline-block;
-			width: 50px;
-			height: 24px;
-		}
-
-		/* Hide default checkbox */
-		.switch input {
-			opacity: 0;
-			width: 0;
-			height: 0;
-		}
-
-		/* Slider */
-		.slider {
-			position: absolute;
-			cursor: pointer;
-			inset: 0;
-			background-color: #ccc;
-			border-radius: 24px;
-			transition: 0.3s;
-		}
-
-		/* Knob */
-		.slider::before {
-		position: absolute;
-		content: "";
-		height: 18px;
-		width: 18px;
-		left: 3px;
-		bottom: 3px;
-		background-color: #143d59;
-		border-radius: 50%;
-		transition: 0.3s;
-		}
-
-		input:checked + .slider::before {
-			transform: translateX(26px);
-		}
-
-		/* ✨ 3D Moving Starfield Background */
-		body {
-			background-color: #05070f;
-		}
-
-		*, ::after, ::before {
-			box-sizing: content-box !important;
-		}
-
-		#slider, #slider * {
-			box-sizing: border-box !important;
-		}
-
-		.chart {
-			height: 100% !important;
-		}
-
-		p {
-			margin-top: 0.85em;
-			margin-bottom: 0.85em;
-		}
-
-		.title-container {
-			display: flex;
-			align-items: center;   /* vertically align */
-			width: 100%;
-		}
-
-		.home-link {
-			width: 3em;
-			height: 3em;
-			padding: 1em;
-		}
-
-		/* Center the heading text */
-		.title-container h1 {
-			text-align: center;
-			margin: 0;
-			padding-top: 0.2em;
-		}
-
-		.filter-container {
-			display: flex; 
-			flex-direction: column; 
-		}
-
-		.filter {
-			position: relative;
-			background: #143d59;
-			color: whitesmoke;
-			padding: 0.3em;
-			height: auto;
-			cursor: pointer; /* show pointer on hover */
-			text-align: left;
-			margin-top: 0.5em;
-		}
-
-		.filter label {
-			font-size: 1.125em;
-			user-select: none;
-			display: inline-flex;
-			align-items: center;
-			gap: 0.375rem;
-		}
-
-		.filter label::after {
-			content: '';
-			display: inline-block;
-			width: 0; 
-			height: 0; 
-			border-left: 0.4em solid transparent;
-			border-right: 0.4em solid transparent;
-			border-top: 0.4em solid whitesmoke;
-			vertical-align: middle;
-			transition: transform 0.3s ease;
-			margin-left: 0.5em;
-		}
-
-		/* Arrow down (open) */
-		.filter.open label::after {
-			transform: rotate(180deg);
-		}
-
-		/* Remove any arrows from dropdown labels */
-		.dropdown label::after {
-			display: none !important;
-			content: none !important;
-		}
-		
-		/* Hide dropdown initially */
-		.dropdown ul {
-			display: none;
-			position: absolute;
-			list-style-type: none;
-			background-color: #8dc4ee;
-			max-height: 30vh;
-			overflow-y: auto;
-			width: 100%;
-			min-width: unset; /* Ensure a minimum width */
-			white-space: normal;
-			border-radius: 0.3rem;
-			z-index: 100;
-			top: calc(100% + 0.3rem);
-			left: calc(0% - 0.3rem);
-		}
-
-		.dropdown label {
-			font-size: 1.2em;
-			display: flex;
-			align-items: center;
-			text-align: left;
-			padding: 0;
-		}
-
-		.filter.open .dropdown ul {
-			display: block;
-			padding: 0.4em;
-		}
-
-		.wrap-text {
-			white-space: normal;
-			word-wrap: break-word;
-			max-width: 25vh; /* Adjust the width as needed */
-		}
-
-		.tab-pane {
-			height: 100%;
-			display: flex; /* Ensure children align properly */
-    		flex-direction: column; /* Align children vertically */
-			background: rgb(235, 245, 255);        /* semi-transparent glass */
-			border-radius: 1em;                           /* rounded corners */
-			box-sizing: border-box;
-			padding: 0.75em;
-			overflow: hidden;
-		}
-
-		.tab-pane .row {
-			flex-grow: 1;
-			height: 100%;
-		}
-
-		.row {
-			margin: 0;
-			padding: 0;
-			height: 100%;
-		}
-
-		.col-9, .col-3 {
-			height: 100%;
-			padding: 0;
-		}
-
-		.globe-tabpane, .chart-tabpane {
-			height: 100%;
-			width: 100%;
-		}
-
-		.apply-filters {
-			padding: 0.4em;
-			background-color: #143d59;
-			border: 0.1em solid #ccc;
-			border-radius: 0.5em;
-			color: whitesmoke;
-			margin: 0;
-			margin-top: 0.5em;
-		}
-
-		#myTab {
-			padding-left: 0;
-		}
-
-		#myTabContent {
-			margin: 1em 0 1em 0;
-			height: 52vh;
-			display: flex; /* Optional: Ensures children align properly */
-			flex-direction: column; /* Optional: Aligns children vertically */
-		}
-
-		#globe, #site-details {
-			height: 100%;   /* Fill the column vertically */
-			width: 50%;    /* Fill the column horizontally */
-			min-height: 10px;
-			min-width: 10px;
-		}
-
-		/* The horizontal split */
-		.globe-row {
-			display: flex;
-			flex: 1;        /* fills vertical space */
-			width: 100%;
-			height: 100%;
-		}
-
-		.nav-tabs{
-			border: 0;
-			font-size: 1.6em;
-		}
-
-		.nav-tabs .nav-item {
-			padding-right: 1em;
-			margin: 0;
-		}
-
-		.nav-tabs .nav-link {
-			background-color: #143d59;
-			color: whitesmoke;
-			margin-bottom: 0;
-			border: 0.1em solid transparent;
-			border-bottom-left-radius: 0;
-			padding: 0.2em;
-		}
-
-		.nav-tabs .nav-link:hover {
-			background-color: #246a99;
-			border-color: transparent;
-		}
-
-		.nav-tabs .nav-link.active {
-			background-color: #588db1;
-			font-weight: bold;
-			color: whitesmoke;
-			border-color: #588db1;
-			box-shadow: inset 0 0 0 0 transparent, 0 0 0 0 transparent, inset 0 0 0 0 transparent, 0 0.3rem 0 0 #143d59;
-		}
-
-		.nav-tabs-container {
-			border-bottom: 0.3rem solid #e9e9e9; /* or your desired color */
-		}
-
-		/* Container to align the tables side by side */
-		.table-container {
-			position: relative;
-		}
-
-		/* Table styling */
-		table {
-			width: 100%;
-			border-collapse: collapse;
-			white-space: nowrap;
-			color: black;
-		}
-
-		th, td, tr {
-			padding: 0.3em;
-			text-align: left;
-			border: 0.1em solid #ddd;
-			white-space: nowrap;
-		}
-
-
-		th {
-			background-color: #dddddd;
-		}
-
-		tbody, tr {
-			background-color: #ffffff;
-		}
-
-		tfoot {
-			font-weight: bold;
-			background-color: #ffffff;
-		}
-
-		.faq-item {
-			display: block;
-			margin-top: 0.5rem;
-		}
-
-		.item-question {
-			background: #143d59;
-			color: whitesmoke;
-			font-size: 1.125em;
-			padding: 0.5rem;
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			text-align: left;
-		}
-		.question-text {
-			display: inline-block;
-		}
-		.arrows-container {
-			margin: 0.4rem;
-		}
-		.item-answer {
-			display: none;
-			color: rgb(0, 0, 0);
-			padding: 0.7em;
-		}
-		.close {
-			display: none;
-		}
-
-		.show-answer .item-answer {
-			display: block;
-			background: #8dc4ee;
-		}
-		.show-answer .close {
-			display: inline;
-		}
-		.show-answer .expand {
-			display: none;
-		}
-
-		/* Style for the arrow button on the table*/
-		.arrow-button {
-			padding: 0.2em;
-			background: #143d59;
-			border: none;
-			margin: none;
-			color: whitesmoke;			
-			font-size: 1em; /* Increase size for better visibility */
-			position: absolute; /* Position relative to the table container */
-			left: -1.4em; /* Place the button outside the table on the right */
-			width: 1em;
-			height: calc(0.3em *2 + 0.1em *2 + 1em - 0.2em*2);
-			z-index: 10; /* Ensure the button is above other elements */
-		}
-
-		.arrow-button:focus {
-			outline: none;
-		}
-
-		/* Styling for the date range slider */
-
-		.noUi-horizontal {
-			height: 0.35em;
-		}
-
-		.noUi-target {
-			border: none;
-			background: #e9e9e9;
-		}
-
-		.noUi-value {
-			margin-top: 0.5em;
-		}
-
-		.noUi-tooltip {
-			padding: 0;
-			border: 0;
-			color: #ffffff;
-			background-color: transparent;
-		}
-
-		.noUi-connect {
-			background: #588db1;;
-		}
-
-		.noUi-handle {
-			background: #143d59;
-			box-shadow: none;
-			border: 0;
-			border-radius: 50%; 
-		}
-
-		.noUi-handle:before, .noUi-handle:after {
-			display: none;
-		}
-
-		.noUi-pips-horizontal {
-			padding: 0.7em;
-			height: 0.7em;
-			color: #ffffff;
-		}
-
-		.noUi-marker, .noUi-marker-large {
-			background:  #ffffff;
-		}
-
-		.noUi-horizontal .noUi-handle{
-			width: 1.4em;
-			height: 1.4em;
-			color: #000000;
-			right: -0.7em;
-			top: -0.7em;
-		}
-
-	</style>
+	<style></style>
 
 	<div class="main-row">
 
 		<div class="left-column">
-
-			<div class="title-container">
+			<div class="sidebar-rail">
+				<button id="toggleSidebar" class="sidebar-toggle">☰</button>
 				<a href="index.html">
-					<img src="assets/images/home.png" alt="Home" style="filter: brightness(0) invert(1);" class="home-link">
+					<img src="assets/images/home.png" alt="Home" class="home-link">
 				</a>
-				<h1 style="text-align: center; padding-top:0.2em;">Object Re-entry Emissions</h1>
+				<h1 class="sidebar-title">
+					Object Re-entry Emissions
+				</h1>
 			</div>
+
+			<div class="sidebar-content">
+				<p style="text-align: left;">Welcome to our tracker for objects re-entering the atmosphere! Select a time window of interest to visualise the location and ID of each re-entry for the time windows, mission type, and object categories selected. For more information, see the FAQs at the bottom of this section. Large ranges may be slow to load.</p>
 		
-			<p style="text-align: left;">Welcome to our tracker for objects re-entering the atmosphere! Select a time window of interest to visualise the location and ID of each re-entry for the time windows, mission type, and object categories selected. For more information, see the FAQs at the bottom of this section. Large ranges may be slow to load.</p>
-	
-			<h2>Filters </h2>
-			Updating the date range will clear any selected filters.	
-			<div class="filter-container">
+				<h2>Filters </h2>
+				Updating the date range will clear any selected filters.	
+				<div class="filter-container">
 
-				<div class="filter">
-					<label>Re-entry Point</label>
-					<div class="dropdown" id="locationFilter">
-						<ul></ul>
+					<div class="filter">
+						<label>Re-entry Point</label>
+						<div class="dropdown" id="locationFilter">
+							<ul></ul>
+						</div>
 					</div>
-				</div>
-			
-				<div class="filter">
-					<label>Object Type</label>
-					<div class="dropdown" id="categoryFilter">
-						<ul></ul>
+				
+					<div class="filter">
+						<label>Object Type</label>
+						<div class="dropdown" id="categoryFilter">
+							<ul></ul>
+						</div>
 					</div>
-				</div>
-			
-				<div class="filter">
-					<label>Megaconstellation</label>
-					<div class="dropdown" id="smcFilter">
-						<ul></ul>
+				
+					<div class="filter">
+						<label>Megaconstellation</label>
+						<div class="dropdown" id="smcFilter">
+							<ul></ul>
+						</div>
 					</div>
+
+					<button class="apply-filters" type="submit" id="applyFilters">Apply Filters</button>
+						
 				</div>
+				<h2>Frequently Asked Questions</h2>
+				<div id="faqs-container"></div>
 
-				<button class="apply-filters" type="submit" id="applyFilters">Apply Filters</button>
-					
-			</div>
-			<h2>Frequently Asked Questions</h2>
-			<div id="faqs-container"></div>
+				<script>
+					const faqData = [ 
+						{ question: "What are these chemicals?",
+							answer: "NO<sub>x</sub> is nitrogen oxides, BC is black carbon or soot, and Cl<sub>y</sub> is a family of chlorine compounds. AlO<sub>x</sub> is a family of oxidised aluminium compounds produced as metal objects re-enter the Earth's atmosphere. The current scientific understanding is that this may be a mixture of aluminium oxide (alumina, Al<sub>2</sub>O<sub>3</sub>) and aluminium hydroxide (Al(OH)<sub>3</sub>). NO<sub>x</sub> and Cl<sub>y</sub> are gases. BC and Al<sub>2</sub>O<sub>3</sub> are particles."
+						},
+						{ question: "How do these chemicals affect the atmosphere?",
+							answer: "Re-entries release air pollutant emissions into the upper layers of the atmosphere, where they can have an outsized impact on our atmosphere and climate. NO<sub>x</sub> and Cl<sub>y</sub> are the largest contributors to destruction of the ozone layer from rocket emissions, with smaller destruction occuring from emissions of BC and AlO<sub>x</sub>. The largest climate impacts come from BC emissions, which warm the upper layers of the atmosphere while cooling the lower layers."
+						},
+						{ question: "What does each filter represent?",
+							answer: "Re-entry point allows users to filter for re-entering objects that are known and that we have had to approximate, as exact location data is not available. Known re-entries are further separated into Falcon and non-Falcon rocket and fairing re-entries.  Object Type distinguishes individual re-entering objects as Payload (P), C=Component (C1), Booster (B1-B4), and rocket stage (S1-S4). Megaconstellation allows users to select re-entries that are or are not associated with megaconstellation missions."
+						},
+						{ question: "How is this data calculated?",
+							answer: "Our calculations are based on the current best scientific knowledge available for emissions from object re-entries. We use object-specific ablation profiles to calculate AlO<sub>x</sub> emissions from object re-entries, including all objects with an apogee above 50 km. Emissions from failed launches before 2020 are not included."
+						},
+						{ question: "Where can I find the original methodology and data?",
+						answer: "You can find further details on the methodology in our study published in Nature Scientific Data: Global 3D rocket launch and re-entry air pollutant and carbon dioxide emissions for 2020-2022</strong>. C. R. Barker, E. A. Marais (2024). doi:10.5522/04/26325382. [<a href='https://doi.org/10.5522/04/26325382' target='_blank' rel='noopener noreferrer'>Data</a>]. [<a href='https://www.nature.com/articles/s41597-024-03910-z' target='_blank' rel='noopener noreferrer'>Publication</a>]. For details of changes since the publication, please visit the <a href='https://github.com/cbarker211/Emissions_API/blob/main/docs/changefile.md' target='_blank' rel='noopener noreferrer'>changefile.</a>"
+						}
+					];
 
-			<script>
-				const faqData = [ 
-					{ question: "What are these chemicals?",
-						answer: "NO<sub>x</sub> is nitrogen oxides, BC is black carbon or soot, and Cl<sub>y</sub> is a family of chlorine compounds. AlO<sub>x</sub> is a family of oxidised aluminium compounds produced as metal objects re-enter the Earth's atmosphere. The current scientific understanding is that this may be a mixture of aluminium oxide (alumina, Al<sub>2</sub>O<sub>3</sub>) and aluminium hydroxide (Al(OH)<sub>3</sub>). NO<sub>x</sub> and Cl<sub>y</sub> are gases. BC and Al<sub>2</sub>O<sub>3</sub> are particles."
-					},
-					{ question: "How do these chemicals affect the atmosphere?",
-						answer: "Re-entries release air pollutant emissions into the upper layers of the atmosphere, where they can have an outsized impact on our atmosphere and climate. NO<sub>x</sub> and Cl<sub>y</sub> are the largest contributors to destruction of the ozone layer from rocket emissions, with smaller destruction occuring from emissions of BC and AlO<sub>x</sub>. The largest climate impacts come from BC emissions, which warm the upper layers of the atmosphere while cooling the lower layers."
-					},
-					{ question: "What does each filter represent?",
-						answer: "Re-entry point allows users to filter for re-entering objects that are known and that we have had to approximate, as exact location data is not available. Known re-entries are further separated into Falcon and non-Falcon rocket and fairing re-entries.  Object Type distinguishes individual re-entering objects as Payload (P), C=Component (C1), Booster (B1-B4), and rocket stage (S1-S4). Megaconstellation allows users to select re-entries that are or are not associated with megaconstellation missions."
-					},
-					{ question: "How is this data calculated?",
-						answer: "Our calculations are based on the current best scientific knowledge available for emissions from object re-entries. We use object-specific ablation profiles to calculate AlO<sub>x</sub> emissions from object re-entries, including all objects with an apogee above 50 km. Emissions from failed launches before 2020 are not included."
-					},
-					{ question: "Where can I find the original methodology and data?",
-					answer: "You can find further details on the methodology in our study published in Nature Scientific Data: Global 3D rocket launch and re-entry air pollutant and carbon dioxide emissions for 2020-2022</strong>. C. R. Barker, E. A. Marais (2024). doi:10.5522/04/26325382. [<a href='https://doi.org/10.5522/04/26325382' target='_blank' rel='noopener noreferrer'>Data</a>]. [<a href='https://www.nature.com/articles/s41597-024-03910-z' target='_blank' rel='noopener noreferrer'>Publication</a>]. For details of changes since the publication, please visit the <a href='https://github.com/cbarker211/Emissions_API/blob/main/docs/changefile.md' target='_blank' rel='noopener noreferrer'>changefile.</a>"
-					}
-				];
+					const faqsContainer = document.getElementById('faqs-container');
 
-				const faqsContainer = document.getElementById('faqs-container');
+					faqData.map(function(item) {
 
-				faqData.map(function(item) {
+						let article = document.createElement('article');
+						article.classList.add('faq-item');
 
-					let article = document.createElement('article');
-					article.classList.add('faq-item');
-
-					const markup = `
-							<div class="filter">
-								<label>${item.question}</label>
-							</div>
-							<div class="item-answer">
-								<span>${item.answer}</span>
-							</div>
-					`;
-					
-					article.innerHTML = markup;
-					faqsContainer.append(article);
-				});
-
-				const faqQuestions = document.querySelectorAll('.filter');
-					
-				faqQuestions.forEach(question => {
-					question.addEventListener('click', function(e) {
-						const faqItem = question.parentElement;
-						faqItem.classList.toggle("show-answer");
+						const markup = `
+								<div class="filter">
+									<label>${item.question}</label>
+								</div>
+								<div class="item-answer">
+									<span>${item.answer}</span>
+								</div>
+						`;
+						
+						article.innerHTML = markup;
+						faqsContainer.append(article);
 					});
-				});
 
-			</script>
+					const faqQuestions = document.querySelectorAll('.filter');
+						
+					faqQuestions.forEach(question => {
+						question.addEventListener('click', function(e) {
+							const faqItem = question.parentElement;
+							faqItem.classList.toggle("show-answer");
+						});
+					});
+
+				</script>
+
+				<h2>Citing the Emissions Tracker</h2>
+				<div style="text-align: left;">
+					Barker, C. R., Marais, E. A., & McDowell J. C. (2026).<br>
+					Space Industry Emissions Tracker, v2.5.0, <a href="https://cbarker211.github.io/" target="_blank" rel="noopener noreferrer">https://cbarker211.github.io/</a>.<br>
+					
+					<a href="https://doi.org/10.5281/zenodo.18173797" target="_blank" rel="noopener noreferrer">https://doi.org/10.5281/zenodo.18173797</a>.
+				</div>
+			</div>
 		</div>
 		
 		<div class="center-column">
