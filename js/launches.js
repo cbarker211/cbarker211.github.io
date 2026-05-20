@@ -26,7 +26,6 @@ const strongColors = {
 };
 
 //Variables
-let globe;
 let siteDataMap = {};
 let startDate, endDate;
 let timeAggregation = "annual";
@@ -48,13 +47,13 @@ function indexToDate(index) {
 
 function updateSiteTable(site) {
     const table = document.getElementById('site-table');
-    table.innerHTML = `<tr><th>Property</th><th>Value</th></tr>`;
+    table.innerHTML = `<tr><th>Property</th><th>Value [click on launch site to load]</th></tr>`;
 
     const cleanedLaunches = site.labels.map(label => label.replace(/^Launch\s+/, ''));
 
     const launchesHTML = `
         <div style="
-            max-height: 150px; 
+            max-height: 40vh; 
             overflow-y: auto; 
             padding: 4px; 
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -114,7 +113,7 @@ function toMonthIndex(year, month) {
 // Main functions
 
 noUiSlider.create(slider, {
-    start: [0, 851],
+    start: [24, 851],
     connect: true,
     step: 1,
     range: {
@@ -212,6 +211,29 @@ yearSelect1.addEventListener('change', updateSliderFromSelects);
 monthSelect1.addEventListener('change', updateSliderFromSelects);
 yearSelect2.addEventListener('change', updateSliderFromSelects);
 monthSelect2.addEventListener('change', updateSliderFromSelects);
+
+
+function resetFilters(all_launches) {
+
+    function resetCheckboxes(filterId, defaultCheckedValue = null) {
+        const filter = document.getElementById(filterId);
+        const checkboxes = filter.querySelectorAll('input[type="checkbox"]');
+
+        checkboxes.forEach(cb => {
+            // Check only the default value (if provided), otherwise uncheck all
+            cb.checked = (defaultCheckedValue !== null && cb.value === defaultCheckedValue);
+        });
+    }
+
+    // Reset each filter
+    resetCheckboxes('locationFilter');
+    resetCheckboxes('rocketFilter');
+    resetCheckboxes('smcFilter');
+    resetCheckboxes('altitudeFilter', '0-80 km'); // restore default
+
+    // Re-run filtering or show all data
+    filterlaunches(all_launches);
+}
 
 function populateFilters(launches) {
     // Get unique values from filtered_launches for each filter
@@ -400,11 +422,117 @@ async function fetchEventsData() {
 function updateVisualizations(filtered_launches) {
     updateTables(filtered_launches);
     updateGraph(filtered_launches);
-    updateGlobe(filtered_launches);
+    updateMap(filtered_launches);
     updateStack(filtered_launches);
 }
 
-async function updateGlobe(filtered_launches) {
+async function fetchAllDataForKeyMetrics() {
+    try {
+        const response = await fetch(
+            `https://cbarker.pythonanywhere.com/api/launches?start_date=1957-01-01&end_date=2025-12-31`
+        );
+
+        const launchData = await response.json();
+
+        console.log("Dates returned:", Object.keys(launchData).length);
+        console.log("Total launches raw:", Object.values(launchData).reduce((sum, d) => sum + d.launches.length, 0));
+
+        const all = {
+            date: [],
+            rocket: [],
+            smc: [],
+            BC: [],
+        };
+
+        Object.keys(launchData).forEach(date => {
+            launchData[date].launches.forEach(launch => {
+                all.date.push(launch.date);
+
+                all.rocket.push(
+                    launch.variant === "-" 
+                        ? launch.rocket 
+                        : launch.rocket + " " + launch.variant
+                );
+
+                all.smc.push(launch.smc.toString());
+
+                const includeLow = true;   // default matches UI
+                const includeHigh = false;
+                
+                const BC =
+                    (includeLow ? parseFloat(launch.emissions.BC) : 0) +
+                    (includeHigh ? parseFloat(launch.emissions_above.BC) : 0);
+                
+
+                all.BC.push(BC);
+            });
+        });
+
+        console.log(new Set(all.date).size, all.date.length);
+
+        updateKeyMetrics(all);
+
+    } catch (error) {
+        console.error("Error loading full dataset:", error);
+    }
+}
+
+function updateKeyMetrics(data) {
+
+    const totalLaunches = data.date.length;
+
+    // --- Total BC (kt) ---
+    const totalBC = data.BC.reduce((a, b) => a + b, 0) / 1000;
+
+    // --- % from megaconstellations (SMC) in 2025 ---
+    let totalBC_2025 = 0;
+    let smcBC_2025 = 0;
+
+    data.date.forEach((date, i) => {
+        if (date.startsWith("2025")) {
+            const val = data.BC[i];
+            totalBC_2025 += val;
+
+            if (data.smc[i] === true || data.smc[i] === "true") {
+                smcBC_2025 += val;
+            }
+        }
+    });
+
+    const smcPercent = totalBC_2025 > 0
+        ? (smcBC_2025 / totalBC_2025) * 100
+        : 0;
+
+
+    const yearlyLaunches = {};
+
+    data.date.forEach((date) => {
+        const year = date.slice(0, 4);
+        if (!yearlyLaunches[year]) yearlyLaunches[year] = 0;
+        yearlyLaunches[year] += 1;
+    });
+    
+    // --- Growth from 2024 to 2025 ---
+    const launches2024 = yearlyLaunches["2024"] || 0;
+    const launches2025 = yearlyLaunches["2025"] || 0;
+    
+    const avgIncrease = launches2025 - launches2024;    
+
+    document.getElementById("kv-launches").textContent =
+        `🚀 ${totalLaunches.toLocaleString()}`;
+    
+    document.getElementById("kv-growth").textContent =
+        `📈 +${Math.round(avgIncrease)} yr⁻¹`;
+    
+    document.getElementById("kv-bc").textContent =
+        `⚫ ${totalBC.toFixed(1)} kt`;
+    
+    document.getElementById("kv-smc").textContent =
+        `🛰️ ${smcPercent.toFixed(1)}%`;
+    
+}
+
+async function updateMap(filtered_launches) {
 
     // Step 1: Group launches by site (lat/lon + site name as key)
     const siteMap = {};
@@ -413,10 +541,9 @@ async function updateGlobe(filtered_launches) {
         const site = filtered_launches.text[i];  // launch site name
         const id = filtered_launches.id[i];
         const vehicle = filtered_launches.rocket[i];
-        const key = `${site}`;
 
-        if (!siteMap[key]) {
-            siteMap[key] = {
+        if (!siteMap[site]) {
+            siteMap[site] = {
             lat: lat,
             lon,
             name: site,
@@ -424,50 +551,91 @@ async function updateGlobe(filtered_launches) {
             };
         }
 
-        siteMap[key].labels.push(`Launch ${id} - ${vehicle}`);
+        siteMap[site].labels.push(`Launch ${id} - ${vehicle}`);
     });
 
+    
     // Step 2: Convert to array
-    const labelSites = Object.values(siteMap).sort((a, b) => a.lat - b.lat);
-    const OPACITYPATH  = 0.3;
-    const minimalSites = labelSites.map(s => ({
-        lat: s.lat,
-        lon: s.lon,
-        name: s.name,
-        altitude: 0.05 + 0.0005 * s.labels.length
-    }));
+    const sites = Object.values(siteMap);
 
+    // Step 3: Extract data for Plotly
+    const lats = sites.map(s => s.lat);
+    const lons = sites.map(s => s.lon);
+    const counts = sites.map(s => s.labels.length);
+
+    // ✅ Bubble size scaling (important!)
+    const sizes = counts.map(c => 6 + Math.sqrt(c) * 6);
+
+    const text = sites.map(s => 
+        `${s.name}<br>Launches: ${s.labels.length}`
+    );
+
+    // Store for click interaction
     siteDataMap = {};
-    labelSites.forEach(s => siteDataMap[s.name] = s);
+    sites.forEach(s => siteDataMap[s.name] = s);
+  
+   // Step 4: Plotly trace
+    const trace = {
+        type: "scattergeo",
+        mode: "markers",
+        lat: lats,
+        lon: lons,
+        text: text,
+        hoverinfo: "text",
+        marker: {
+            size: 6,
+            color: counts,
+            colorscale: [
+                [0.0, "white"],
+                [1.0, "red"]
+            ],
+            showscale: true,
+            opacity: 0.7,
+            line: {
+                width: 0.5,
+                color: "white"
+            }
+        }
+    };
 
-    if (!globe) {
-        globe = new Globe(document.getElementById('globe'))
-            .globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg')
-            .showGraticules(true)
-            .showAtmosphere(false)
-            .backgroundColor('rgba(0,0,0,0)')
-            .pointLat(d => d.lat)
-            .pointLng(d => d.lon)
-            .pointColor(() => `rgba(0, 255, 0, ${OPACITYPATH})`)
-            .pointRadius(0.4)
-            .pointAltitude(d => d.altitude) 
-            .labelLat(d => d.lat)
-            .labelLng(d => d.lon)
-            .labelText(d => d.name)
-            .labelResolution(2)
-            .labelsTransitionDuration(0)
-            .labelSize(1)
-            .labelDotRadius(0)
-            .onPointClick(site => {
-                updateSiteTable(siteDataMap[site.name]);
-                globe.labelsData([site]);
-            })
-        
-        setTimeout(() => {
-            globe.pointOfView({ lat: 35, lng: -95, altitude: 1.5 }, 1000);
-        }, 0);};
+    // Step 5: Layout
+    const layout = {
+        margin: { t: 0, b: 0, l: 0, r: 0 },
+        geo: {
+            scope: "world",
+            projection: { type: "natural earth" },
+            showland: true,
+            landcolor: "#1e1e1e",
+            showocean: true,
+            oceancolor: "#143d59",
+            showcountries: true,
+            countrycolor: "#444",
+            bgcolor: "rgba(0,0,0,0)"
+        }
+    };
 
-    globe.pointsData(minimalSites);
+    // Step 6: Render
+    Plotly.react("map", [trace], layout, { responsive: true });
+
+    const mapEl = document.getElementById("map");
+
+    // Change cursor to pointer when hovering over points
+    mapEl.on('plotly_hover', function() {
+        mapEl.style.cursor = 'pointer';
+    });
+
+    // Revert cursor when not hovering
+    mapEl.on('plotly_unhover', function() {
+        mapEl.style.cursor = 'default';
+    });
+
+    document.getElementById("map").on('plotly_click', function(data) {
+        const pointIndex = data.points[0].pointIndex;
+        const siteName = sites[pointIndex].name;
+        const site = siteDataMap[siteName];
+        updateSiteTable(site);
+    });
+
 }
 
 function updateTables(filtered_launches) {
@@ -535,68 +703,58 @@ function updateTables(filtered_launches) {
 function updateGraph(filtered_launches) {
 
     const totals = {
-        BC: 0,
+        NOx: 0,
+        Cly: 0,
+        Al2O3: 0, 
+        H2O: 0,
         CO: 0,
         CO2: 0,
-        H2O: 0,
-        Al2O3: 0,
-        Cly: 0,
-        NOx: 0
+        BC: 0,
     };
     filtered_launches.id.forEach((location, index) => {
+        totals.NOx   += filtered_launches.NOx[index];
         totals.BC    += filtered_launches.BC[index];
         totals.CO    += filtered_launches.CO[index];
         totals.CO2   += filtered_launches.CO2[index];
         totals.H2O   += filtered_launches.H2O[index];
         totals.Al2O3 += filtered_launches.Al2O3[index];
         totals.Cly   += filtered_launches.Cly[index];
-        totals.NOx   += filtered_launches.NOx[index];
+        
     });
     
-    // Prepare the data for Plotly
-    const maxYValue = Object.values(totals).reduce((sum, val) => sum + val, 0);
-    
-    const trace = Object.keys(totals).map(key => ({
-        x: ['Total'],
-        y: [totals[key] / 1000],
-        name: prettyNames[key],
-        type: 'bar',
-        marker: {color: strongColors[key]}
-    }));
+    const trace = [{
+        type: 'pie',
+        labels: Object.keys(totals).map(key => prettyNames[key]),
+        values: Object.keys(totals).map(key => Number((totals[key] / 1000).toFixed(2))),
+        marker: {
+            colors: Object.keys(totals).map(key => strongColors[key])
+        },
+        textinfo: 'label+percent',
+        hoverinfo: 'label+value+percent',
+        textposition: 'auto',
+        hole: 0.4,
+        automargin: true,
+        sort: false,
+    }];
 
     const bodyStyles = window.getComputedStyle(document.body);
     const chartFontSize = parseFloat(bodyStyles.fontSize);
+    const totalSum = Object.values(totals).reduce((sum, val) => sum + val, 0);
 
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         autosize: true,
         font: { color: 'black', family: 'Space Grotesk, sans-serif', size: chartFontSize}, // general font
-        legend: { 
-            orientation: 'v',
-            x: 1.05, 
-            y: 1, 
-            itemwidth: 3, 
-            font: { 
-            color: 'black', 
-            size: 13, 
-            family: 'Space Grotesk, sans-serif'
-            }
-        },
-        title: {
-            text: 'Total Emissions [kt]',
-            xref: 'paper',
-            xanchor: 'center',
-            yref:'paper',
-            y: 1,
-            pad: { t: -30 }},
-        barmode: 'stack',
+        annotations: [{
+            text: 'Total<br>' + Math.round(totalSum/1000) + ' kt',
+            showarrow: false,
+            font: { size: 14 }
+        }],
         hovermode: 'closest',
         dragmode: false,
-        yaxis: {
-            range: [0,maxYValue / 1000]
-        },
-        margin: { t: 70, r: 40, b: 20, l: 40 } 
+        margin: { t: 70, r: 40, b: 20, l: 40 },
+        showlegend: false
     };
 
     // Plot the chart inside the 'emissionsChart' div
@@ -705,7 +863,7 @@ function updateStack(filtered_launches) {
         font: { color: 'black', family: 'Space Grotesk, sans-serif', size: chartFontSize},
         legend: { 
             orientation: 'v',
-            x: 1, 
+            x: 0, 
             y: 1, 
             font: { 
                 color: 'black', 
@@ -713,14 +871,25 @@ function updateStack(filtered_launches) {
                 family: 'Space Grotesk, sans-serif'
             }
         },
-        title: {
-            text: timeAggregation === "annual"
-                ? 'Annual Emissions (click legend to show/hide species)'
-                : 'Monthly Emissions (click legend to show/hide species)',
-            xref: 'paper',
-            xanchor: 'center',
+        annotations: [
+            {
+            text: "Click legend<br>to show/hide<br>species ←",
+            x: 0.,
             y: 1,
-            pad: { t: chartFontSize * 3 }},
+            xref: "paper",
+            yref: "paper",
+            yshift: -4,
+            xshift: 80,
+            xanchor: "left",
+            yanchor: "top",
+            showarrow: false,
+            align: "left",
+            font: {
+                size: chartFontSize * 0.95,
+                color: "rgba(0,0,0,0.6)"
+            }
+            }
+        ],
         yaxis: {
             title: {text: 'Mass [kilotonnes]'},
             showgrid: false,
@@ -732,12 +901,12 @@ function updateStack(filtered_launches) {
         },
         hovermode: 'closest',
         margin: {
-            t: chartFontSize * 5,
+            t: chartFontSize * 2,
             r: chartFontSize * 2,
             b: chartFontSize * 2,
             l: chartFontSize * 4
         },
-        barmode: 'stack',
+        barmode: 'stack',  
     };
     Plotly.react('stack', traces , layout, {
         responsive: true, 
@@ -792,11 +961,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const daterange = slider.noUiSlider.get();
     startDate = intToDateString(Number(daterange[0]));
     endDate = intToDateString(Number(daterange[1]),true);
-    console.log(startDate, endDate,'DOM');
+
     fetchEventsData(); // Fetch data for the default date
+    fetchAllDataForKeyMetrics();
 
     document.getElementById('applyFilters').addEventListener('click', () => {
         filterlaunches(all_launches);
+    });
+
+    document.getElementById('resetFilters').addEventListener('click', () => {
+        resetFilters(all_launches);
     });
 
     const toggle = document.getElementById("timeToggle");
@@ -815,28 +989,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 Plotly.Plots.resize(document.getElementById('stack'));
                 Plotly.Plots.resize(document.getElementById('bar'));
             }
-            if (activatedTabId === 'globe-tab') {
-                resizeGlobe();
+            if (activatedTabId === 'map-tab') {
+                Plotly.Plots.resize(document.getElementById('map'));
             }
         });
     });
 });
-
-// Function to resize the globe
-function resizeGlobe() {
-    const globeContainer = document.getElementById('globe');
-    console.log(globeContainer.offsetWidth,globeContainer.offsetHeight)
-    const globeWidth = globeContainer.offsetWidth;
-    const globeHeight = globeContainer.offsetHeight;
-
-    // Update the globe's dimensions
-    if (globe) {
-        globe.width(globeWidth).height(globeHeight);
-    }
-}
-
-// Attach the resize function to the window resize event
-window.onresize = resizeGlobe;
 
 toggleButton.addEventListener('click', () => {
     const isHidden = tableBody.style.display === 'none';
@@ -876,8 +1034,7 @@ sidebarToggle.addEventListener('click', () => {
         if (typeof Plotly !== 'undefined') {
             Plotly.Plots.resize(document.getElementById('stack'));
             Plotly.Plots.resize(document.getElementById('bar'));
+            Plotly.Plots.resize(document.getElementById('map'));
         }
-
-        resizeGlobe();
     }, 300);
 });

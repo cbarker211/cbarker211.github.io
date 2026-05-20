@@ -21,8 +21,7 @@
 	<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
 	<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,281;1,281&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
 
-	<script defer src="https://cdn.plot.ly/plotly-basic-latest.min.js"></script>
-	<script defer src="https://cdn.jsdelivr.net/npm/globe.gl"></script>
+	<script src="https://cdn.plot.ly/plotly-3.5.0.min.js"></script>
 	<script defer src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
 	<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
@@ -65,20 +64,44 @@
 
 		<div class="left-column">
 			<div class="sidebar-rail">
-				<button id="toggleSidebar" class="sidebar-toggle">☰</button>
-				<a href="index.html">
-					<img src="assets/images/home.png" alt="Home" class="home-link">
+				
+				<a href="index.html" class="sidebar-nav-item home-item">
+					<img src="assets/images/home1.png" alt="Home" class="home-link">
+					<span>Home</span>
 				</a>
-				<h1 class="sidebar-title">
-					Rocket Launch Emissions
-				</h1>
+
+				<a href="launches.html" class="sidebar-nav-item launch-item">
+					<img src="assets/images/favicon_rocket.ico" alt="Home" class="launch-link">
+					<span>Launch Emissions</span>
+					<!-- class="launch-link-label" style="font-weight: bold; color: #74b9e7" -->
+				</a>
+
+				<a href="reentries.html" class="sidebar-nav-item satellite-item">
+					<img src="assets/images/favicon_satellite.ico" alt="Home" class="satellite-link">
+					<span>Re-entry Emissions</span>
+				</a>
+
+				<div id="faqButton" class="sidebar-nav-item faq-box">
+					<img src="assets/images/question-sign.svg" alt="FAQ" class="faq-link">
+					<span>Further Information</span>
+				</div>
+
+				<div id="toggleSidebar" class="sidebar-nav-item filter-item">
+					<img src="assets/images/setting.png"  alt="Filter" class="filter-img">
+					<span>Filters
+						<span style="font-size: 0.8em; padding: 0;">
+							(click to open/collapse sidebar)
+						</span>
+					</span>
+				</div>
+
+				<button id="toggleSidebar" class="filter-toggle"></button>
+
 			</div>
 
 			<div class="sidebar-content">
-				<p style="text-align: left;">Welcome to our tracker of pollutant and greenhouse gas emissions from rocket launches! Select a time window of interest to visualise pollution on interactive plots or a 3D globe. For more information, see the FAQs at the bottom of this section.</p>
 		
-				<h2>Filters </h2>
-				<div style="text-align: left;">Updating the date range will clear any selected filters.</div>
+				<div style="text-align: left;">Explore emissions by launch site, vehicle, mission type, and altitude. Updating the date range will clear any selected filters.</div>
 				<div class="filter-container">
 
 					<div class="filter">
@@ -109,83 +132,33 @@
 						</div>
 					</div>
 
-					<button class="apply-filters" type="submit" id="applyFilters">Apply Filters</button>
+					<div class="filter-buttons">
+						<button class="filter-button" type="submit" id="applyFilters">Apply</button>
+						<button class="filter-button" type="submit" id="resetFilters">Reset</button>
+					</div>
 						
-				</div>
-				<h2>Frequently Asked Questions</h2>
-				<div id="faqs-container"></div>
-
-				<script>
-					const faqData = [ 
-						{ question: "What are these chemicals?",
-							answer: "NO<sub>x</sub> is nitrogen oxides, H<sub>2</sub>O is water vapour, CO<sub>2</sub> is carbon dioxide, BC is black carbon or soot, Al<sub>2</sub>O<sub>3</sub> is aluminium oxide or alumina, and Cl<sub>y</sub> is a family of chlorine compounds. NO<sub>x</sub>, H<sub>2</sub>O, CO<sub>2</sub>, and Cl<sub>y</sub> are released as gases, BC and Al<sub>2</sub>O<sub>3</sub> as particles."
-						},
-						{ question: "How do these chemicals affect the atmosphere?",
-							answer: "Unlike man-made emissions from the surface of the Earth, rocket launches release air pollutant and CO<sub>2</sub> emissions throughout the atmosphere, where they can have an outsized impact on our atmosphere and climate. NO<sub>x</sub> and Cl<sub>y</sub> are the largest contributors to destruction of the ozone layer from rocket emissions, with smaller destruction occuring from emissions of BC and Al<sub>2</sub>O<sub>3</sub> particles. The largest climate impacts come from BC emissions, which warm the upper layers of the atmosphere while cooling the lower layers."
-						},
-						{ question: "What does each filter represent?",
-							answer: "Launch site refers to the location of the rocket launch. Launch vehicle refers to the type of rocket used for the launch. Megaconstellation refers to whether the launch contains megaconstellation payloads."
-						},
-						{ question: "How is this data calculated?",
-							answer: "Our calculations are based on the current best scientific knowledge available for emissions from rocket launches. We include the effects of a changing chemical environment with altitude in our launch emissions, and calculate geolocated emissions globally up to a maximum altitude of 80 km. Paths shown in the Globe view are fixed at the launch site and do not represent real rocket trajectories. Emissions from failed launches before 2020 are not included."
-						},
-						{ question: "Where can I find the original methodology and data?",
-						answer: "You can find further details on the methodology in our study published in Nature Scientific Data: Global 3D rocket launch and re-entry air pollutant and carbon dioxide emissions for 2020-2022</strong>. C. R. Barker, E. A. Marais (2024). doi:10.5522/04/26325382. [<a href='https://doi.org/10.5522/04/26325382' target='_blank' rel='noopener noreferrer'>Data</a>]. [<a href='https://www.nature.com/articles/s41597-024-03910-z' target='_blank' rel='noopener noreferrer'>Publication</a>]. For details of changes since the publication, please visit the <a href='https://github.com/cbarker211/Emissions_API/blob/main/docs/changefile.md' target='_blank' rel='noopener noreferrer'>changefile.</a>"
-						}
-					];
-
-					const faqsContainer = document.getElementById('faqs-container');
-
-					faqData.map(function(item) {
-
-						let article = document.createElement('article');
-						article.classList.add('faq-item');
-
-						const markup = `
-								<div class="filter">
-									<label>${item.question}</label>
-								</div>
-								<div class="item-answer">
-									<span>${item.answer}</span>
-								</div>
-						`;
-						
-						article.innerHTML = markup;
-						faqsContainer.append(article);
-					});
-
-					const faqQuestions = document.querySelectorAll('.filter');
-						
-					faqQuestions.forEach(question => {
-						question.addEventListener('click', function(e) {
-							const faqItem = question.parentElement;
-							faqItem.classList.toggle("show-answer");
-						});
-					});
-
-				</script>
-
-				<h2>Citing the Emissions Tracker</h2>
-				<div style="text-align: left;">
-					Barker, C. R., Marais, E. A., & McDowell J. C. (2026).<br>
-					Space Industry Emissions Tracker, v2.5.0, <a href="https://cbarker211.github.io/" target="_blank" rel="noopener noreferrer">https://cbarker211.github.io/</a>.<br>
-					
-					<a href="https://doi.org/10.5281/zenodo.18173797" target="_blank" rel="noopener noreferrer">https://doi.org/10.5281/zenodo.18173797</a>.
 				</div>
 			</div>
 		</div>
 		
 		<div class="center-column">
-			<!-- Tabs for charts and globe -->
-			<div class="nav-tabs-container d-flex justify-content-between align-items-center">
+			<!-- Tabs for charts, map and table -->
+			<div class="nav-tabs-container d-flex align-items-center">
 				<ul class="nav nav-tabs" id="myTab" role="tablist">
 					<li class="nav-item" role="presentation">
-					<button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-tabpane" type="button" role="tab" aria-controls="chart" aria-selected="true">Emissions Data</button>
+					<button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-tabpane" type="button" role="tab" aria-controls="chart" aria-selected="true">Emissions Dashboard</button>
 					</li>
 					<li class="nav-item" role="presentation">
-					<button class="nav-link"        id="globe-tab" data-bs-toggle="tab" data-bs-target="#globe-tabpane" type="button" role="tab" aria-controls="globe" aria-selected="false">Launch Sites</button>
+					<button class="nav-link"        id="map-tab" data-bs-toggle="tab" data-bs-target="#map-tabpane" type="button" role="tab" aria-controls="map" aria-selected="false">Launch Sites</button>
+					</li>
+					<li class="nav-item" role="presentation">
+					<button class="nav-link"        id="details-tab" data-bs-toggle="tab" data-bs-target="#details-tabpane" type="button" role="tab"aria-controls="details" aria-selected="false">Launch Details</button>
 					</li>
 				</ul>
+				<div class="tracker-header">
+					<div class="tracker-title">Rocket Launch Emissions Explorer</div>
+					<div class="tracker-subtitle">Explore emissions by time, vehicle, and launch site</div>
+				</div>
 			</div>
 
 			<div class="filter-container">
@@ -215,75 +188,128 @@
 
 			<div class="tab-content" id="myTabContent">
 				<div class="tab-pane fade show active" id="chart-tabpane"   role="tabpanel" aria-labelledby="chart-tab">
-					<div class="row">
-						<div class="col-9" style="padding:0;"> <!-- 75% -->
-							<div id="stack" class="chart"></div>
-						</div>
-						<div class="col-3" style="padding:0;"> <!-- 25% -->
-							<div id="bar" class="chart"></div>
-						</div>
+
+					<div class="dashboard">
+
+						<div id="stack" class="chart stack"></div>
+
+
+						<div id="key-values" class="panel">
+							<div class="kv-card">
+								<div class="kv-title">Total Launches</div>
+								<div id="kv-launches" class="kv-value">–</div>
+								<div class="kv-sub">1957–2025</div>
+							</div>
+							
+							<div class="kv-card">
+								<div class="kv-title">Launch Growth</div>
+								<div id="kv-growth" class="kv-value">–</div>
+								<div class="kv-sub">2024-2025</div>
+							</div>
+							
+							<div class="kv-card">
+								<div class="kv-title">BC emissions</div>
+								<div id="kv-bc" class="kv-value">–</div>
+								<div class="kv-sub">1957-2025 (0-80 km)</div>
+							</div>
+							
+							<div class="kv-card">
+								<div class="kv-title">Megaconstellations</div>
+								<div id="kv-smc" class="kv-value">–</div>
+								<div class="kv-sub">% of BC (0-80 km) in 2025</div>
+							</div> 
+						  </div>
+						  
+
+						<div id="bar" class="chart pie"></div>
+
 					</div>
+
 				</div>
-				<div class="tab-pane fade" id="globe-tabpane" role="tabpanel" aria-labelledby="globe-tab">
-					<div class="globe-row">
-						<div id="globe" class="globe"></div>
+				<div class="tab-pane fade" id="map-tabpane" role="tabpanel" aria-labelledby="map-tab">
+
+					<div class="dashboard-map">
+
+						<div id="map" class="map"></div>
+
 						<div id="site-details" style="color: #000000;">
-							<h3 style="padding-top:0; margin: 0; color: #000;">Launch Site Details</h3>
-							<p style="text-align: left;">[click on site path for more information]</p>
-							<table id="site-table" border="1">
+							<table id="site-table">
 								<tr>
 									<th>Property</th>
-									<th>Value</th>
+									<th>Value [click on launch site to load]</th>
 								</tr>
 							</table>
 						</div>
+
 					</div>
 				</div>
-			</div>
-
-			<!-- Table for Launch Locations -->
-			<div class="table-container">
-				<div>
-					<h3 style="margin: 0;">Launch Details (Click arrow to expand)</h3>
-					<p style="text-align: left;">[Emissions in tonnes, time in UTC. SMC=Satellite Megaconstellation]</p>
-					<table id="launchTable">
-						<thead>
-							<tr>
-								<th>Date</th>
-								<th>ID</th>
-								<th>Time</th>
-								<th>Launch Site</th>
-								<th>Rocket</th>
-								<th>SMC</th>
-								<th>BC</th>
-								<th>CO</th>
-								<th>CO<sub>2</sub></th>
-								<th>H<sub>2</sub>O</th>
-								<th>Al<sub>2</sub>O<sub>3</sub></th>
-								<th>Cl<sub>y</sub></th>
-								<th>NO<sub>x</sub></th>
-							</tr>
-						</thead>
-						<tbody id="launchTableBody" style="display: none;">
-							<!-- Dynamic rows for launch locations will be inserted here -->
-						</tbody>
-						<tfoot id="launchTableFoot">
-							<!-- Totals for launches -->
-						</tfoot>
-						<button id="toggleTableButton" class="arrow-button">&#9650;</button>
-					</table>
+				<div class="tab-pane fade" id="details-tabpane" role="tabpanel" aria-labelledby="details-tab" style="padding-left: 2em;">
+					<!-- Table for Launch Locations -->
+					<div class="table-container">
+						<p style="text-align: left;">[Emissions in tonnes, time in UTC. SMC=Satellite Megaconstellation. Click arrow to expand]</p>
+						<table id="launchTable">
+							<thead>
+								<tr>
+									<th>Date</th>
+									<th>ID</th>
+									<th>Time</th>
+									<th>Launch Site</th>
+									<th>Rocket</th>
+									<th>SMC</th>
+									<th>BC</th>
+									<th>CO</th>
+									<th>CO<sub>2</sub></th>
+									<th>H<sub>2</sub>O</th>
+									<th>Al<sub>2</sub>O<sub>3</sub></th>
+									<th>Cl<sub>y</sub></th>
+									<th>NO<sub>x</sub></th>
+								</tr>
+							</thead>
+							<tbody id="launchTableBody" style="display: none;">
+								<!-- Dynamic rows for launch locations will be inserted here -->
+							</tbody>
+							<tfoot id="launchTableFoot">
+								<!-- Totals for launches -->
+							</tfoot>
+							<button id="toggleTableButton" class="arrow-button">&#9650;</button>
+						</table>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
 	<script defer src="js/launches.js"></script>
+	<script defer src="js/main.js"></script>
 	
 	<div class="bottom-row">
-		<p style="text-align: left; margin: 0;">
-			Developed by <a href="https://profiles.ucl.ac.uk/93616-connor-barker" target="_blank" rel="noopener noreferrer">Connor Barker</a> (UCL postdoc) and <a href="https://profiles.ucl.ac.uk/77783-eloise-marais" target="_blank" rel="noopener noreferrer">Eloise Marais</a> (UCL PI), in collaboration with <a href="https://www.cfa.harvard.edu/people/jonathan-mcdowell" target="_blank" rel="noopener noreferrer">Jonathan McDowell</a> (Harvard-Smithsonian Center for Astrophysics). Interested in using the data or spot any room for improvements? Please reach out to Connor Barker at <a href= "mailto:connor.barker@ucl.ac.uk">connor.barker@ucl.ac.uk. </a>
-			<strong>Funding Disclaimer:</strong> This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No. 851854). <a href="https://cordis.europa.eu/project/id/851854" target="_blank" rel="noopener noreferrer">European Commission project page</a>.<a href="https://www.flaticon.com/free-icons/home-button" title="home button icons"> Home button icons created by Freepik - Flaticon.</a>
-		</p>
+		<p style="text-align: left; margin: 0;"> Interested in using this data? Please cite using: Barker, C. R., Marais, E. A., & McDowell J. C. (2026). Space Industry Emissions Tracker, v2.5.0, <a href="https://cbarker211.github.io/" target="_blank" rel="noopener noreferrer">https://cbarker211.github.io/</a><a href="https://doi.org/10.5281/zenodo.18173797" target="_blank" rel="noopener noreferrer">https://doi.org/10.5281/zenodo.18173797</a>. Spot any room for improvements? Please reach out to Connor Barker at <a href= "mailto:connor.barker@ucl.ac.uk">connor.barker@ucl.ac.uk.</a>.
+		</div>
+		
   	</div>
+
+	<div id="faqModal" class="modal">
+		<div class="modal-content">
+			<button id="closeModal" class="close-modal">✕</button>
+
+			<h1>About the Space Industry Emissions Tracker</h1>
+
+			<p>Welcome to this global dataset and visualization platform for tracking rocket launch emissions. As launch rates surge, understanding their environmental impact is more important than ever.</p>
+										
+			<p>Select a time window to visualise pollution on interactive plots or a 2D map.</p>
+
+			<h2>Frequently Asked Questions</h2>
+			<div id="faqs-container"></div>
+
+			<h3>Acknowledgements</h3>
+			<p>Developed by <a href="https://profiles.ucl.ac.uk/93616-connor-barker" target="_blank" rel="noopener noreferrer">Connor Barker</a> (UCL postdoc) and <a href="https://profiles.ucl.ac.uk/77783-eloise-marais" target="_blank" rel="noopener noreferrer">Eloise Marais</a> (UCL PI), in collaboration with <a href="https://www.cfa.harvard.edu/people/jonathan-mcdowell" target="_blank" rel="noopener noreferrer">Jonathan McDowell</a> (Harvard-Smithsonian Center for Astrophysics).</p>
+			<h3>Funding Information</h3>
+			<p>This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No. 851854). <a href="https://cordis.europa.eu/project/id/851854" target="_blank" rel="noopener noreferrer">European Commission project page</a>.</p>
+			<h3>Attribution</h3>
+			<p>Icons created by <a href="https://www.flaticon.com/" title="icons">Freepik - Flaticon.</a></p>
+		</p>
+		</div>
+	</div>
+
 </body>
 </html>
