@@ -70,10 +70,11 @@
 					<span>Home</span>
 				</a>
 
-				<a href="launches.html" class="sidebar-nav-item launch-item">
-					<img src="assets/images/favicon_rocket.ico" alt="Home" class="launch-link">
+				<a href="launches.html" class="sidebar-nav-item launch-item" style="background: rgba(255,255,255,0.08);
+																					border-radius: 6px;
+																					color: white;">
+					<img src="assets/images/favicon_rocket.ico" alt="Home" class="launch-link" style="filter: brightness(1);">
 					<span>Launch Emissions</span>
-					<!-- class="launch-link-label" style="font-weight: bold; color: #74b9e7" -->
 				</a>
 
 				<a href="reentries.html" class="sidebar-nav-item satellite-item">
@@ -106,28 +107,28 @@
 
 					<div class="filter">
 						<label>Launch Site</label>
-						<div class="dropdown" id="locationFilter">
+						<div class="dropdown" id="LocationFilter">
 							<ul></ul>
 						</div>
 					</div>
 				
 					<div class="filter">
 						<label>Launch Vehicle</label>
-						<div class="dropdown" id="rocketFilter">
+						<div class="dropdown" id="VehicleFilter">
 							<ul></ul>
 						</div>
 					</div>
 				
 					<div class="filter">
 						<label>Megaconstellation</label>
-						<div class="dropdown" id="smcFilter">
+						<div class="dropdown" id="MegaconstellationFilter">
 							<ul></ul>
 						</div>
 					</div>
 
 					<div class="filter">
 						<label>Altitude Range</label>
-						<div class="dropdown" id="altitudeFilter">
+						<div class="dropdown" id="AltitudeFilter">
 							<ul></ul>
 						</div>
 					</div>
@@ -136,6 +137,8 @@
 						<button class="filter-button" type="submit" id="applyFilters">Apply</button>
 						<button class="filter-button" type="submit" id="resetFilters">Reset</button>
 					</div>
+
+					<div id="active-filters" class="filter-chips"></div>
 						
 				</div>
 			</div>

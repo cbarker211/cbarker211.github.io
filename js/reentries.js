@@ -161,7 +161,6 @@ monthSelect2.appendChild(option2);
 });
 
 function updateSliderFromSelects() {
-    console.log(yearSelect1.value,yearSelect2.value,monthSelect1.value,monthSelect2.value)
     // Convert month/year to an index (months since startYear)
     let startMonthIndex =
         (yearSelect1.value - startYear) * 12 + (monthSelect1.value - 1);
@@ -183,7 +182,6 @@ function updateSliderFromSelects() {
 
     startDate = intToDateString(startMonthIndex);
     endDate = intToDateString(endMonthIndex, true);
-    console.log(startDate, endDate,'Update');
     fetchEventsData();
 }
 
@@ -206,9 +204,9 @@ function resetFilters(all_reentries) {
     }
 
     // Reset each filter
-    resetCheckboxes('locationFilter');
-    resetCheckboxes('categoryFilter');
-    resetCheckboxes('smcFilter');
+    resetCheckboxes('LocationFilter');
+    resetCheckboxes('CategoryFilter');
+    resetCheckboxes('MegaconstellationFilter');
 
     // Re-run filtering or show all data
     filterreentries(all_reentries);
@@ -235,9 +233,53 @@ function populateFilters(reentries) {
     }
 
     // Populate each filter
-    populateCheckboxes('locationFilter', locations, true);
-    populateCheckboxes('categoryFilter', categories.sort());
-    populateCheckboxes('smcFilter', smcValues);
+    populateCheckboxes('LocationFilter', locations, true);
+    populateCheckboxes('CategoryFilter', categories.sort());
+    populateCheckboxes('MegaconstellationFilter', smcValues);
+}
+
+function renderFilterChips(filters) {
+    const container = document.getElementById("active-filters");
+    container.innerHTML = ""; // clear existing
+
+
+    Object.entries(filters).forEach(([filterType, values]) => {
+
+        if (!values.length) return; // skip empty groups
+
+        // ✅ Create group container
+        const group = document.createElement("div");
+        group.className = "filter-group";
+
+        // ✅ Create header
+        const header = document.createElement("div");
+        header.className = "filter-group-title";
+        header.textContent = filterType.replace("Filter", "");
+
+        group.appendChild(header);
+
+        // ✅ Create items
+        values.forEach(value => {
+            const item = document.createElement("div");
+            item.className = "filter-item";
+
+            item.innerHTML = `
+                <button class="remove-chip"
+                        data-filter="${filterType}"
+                        data-value="${value}">
+                    ×
+                </button>
+                <span>${value}</span>
+            `;
+
+            group.appendChild(item);
+        });
+
+        container.appendChild(group);
+    });
+
+    // Optional: hide container if empty
+    container.style.display = container.children.length ? "block" : "none";
 }
 
 function filterreentries(all_reentries) {
@@ -249,9 +291,9 @@ function filterreentries(all_reentries) {
     }
 
     // Get selected values from each filter
-    const selectedReusabilities = getSelectedfilters('locationFilter');
-    const selectedCategories    = getSelectedfilters('categoryFilter');
-    const selectedSmc           = getSelectedfilters('smcFilter');
+    const selectedReusabilities = getSelectedfilters('LocationFilter');
+    const selectedCategories    = getSelectedfilters('CategoryFilter');
+    const selectedSmc           = getSelectedfilters('MegaconstellationFilter');
 
     // Find indices to keep based on selected filters
     let indicesToKeep = [...Array(all_reentries.date.length).keys()];  // All indices initially
@@ -290,6 +332,13 @@ function filterreentries(all_reentries) {
 
     // Update the visualizations with the filtered data
     updateVisualizations(filteredData);
+
+    renderFilterChips({
+        LocationFilter: selectedReusabilities,
+        CategoryFilter: selectedCategories,
+        MegaconstellationFilter: selectedSmc,
+    });
+
 }
 
 async function fetchEventsData() {
@@ -354,7 +403,6 @@ async function fetchAllDataForKeyMetrics() {
 
         const reentryData = await response.json();
 
-
         const all = {
             date: [],
             rocket: [],
@@ -385,8 +433,6 @@ async function fetchAllDataForKeyMetrics() {
                 all.NOx.push(NOx);
             });
         });
-
-        console.log(new Set(all.date).size, all.date.length);
 
         updateKeyMetrics(all);
 
@@ -775,6 +821,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('applyFilters').addEventListener('click', () => {
         filterreentries(all_reentries);
     });
+
     document.getElementById('resetFilters').addEventListener('click', () => {
         resetFilters(all_reentries);
     });
@@ -796,6 +843,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 Plotly.Plots.resize(document.getElementById('bar'));
             }
         });
+    });
+
+    document.getElementById("active-filters").addEventListener("click", (e) => {
+        const btn = e.target.closest(".remove-chip");
+        if (!btn) return;
+    
+        const filterType = btn.dataset.filter;
+        const value = btn.dataset.value;
+    
+        const filterEl = document.getElementById(filterType);
+        const checkboxes = filterEl.querySelectorAll('input[type="checkbox"]');
+    
+        checkboxes.forEach(cb => {
+            if (cb.value === value) {
+                cb.checked = false;
+            }
+        });
+    
+        filterreentries(all_reentries);
     });
 
     // FAQ generation

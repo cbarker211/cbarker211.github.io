@@ -249,6 +249,43 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
 	font-weight: bold;
 }
 
+#active-filters {
+    margin-top: var(--space-sm);
+}
+
+/* Group container */
+.filter-group {
+    margin-bottom: var(--space-sm);
+}
+
+/* Header */
+.filter-group-title {
+    font-weight: bold;
+    margin-bottom: var(--space-xs);
+	text-align: left;
+}
+
+/* Each filter row */
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+/* The X button on the left */
+.remove-chip {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1.5em;
+    color: #888;
+    padding: 0;
+}
+
+.remove-chip:hover {
+    color: red;
+}
+
 .main-row {
 	display: flex;
 	flex: 1 1 auto; /* take up remaining space, but allow footer room */
@@ -403,6 +440,7 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
 	box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 	color:rgb(0, 0, 0);
 	text-align: left;
+	gap: var(--space-sm);
   }
 
 .panel h2 {
@@ -410,6 +448,7 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
 	text-align: center;
 	font-size: 1.3rem;
 	font-weight: bold;
+	margin-bottom: var(--space-sm);
 }
   
 /* Top-right box */
@@ -423,29 +462,32 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
 #key-values {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
-	gap: 0;
   }
   
-  .kv-card {
-	background: rgba(255,255,255,0.1);
-	padding: 0.5rem;
-	border-radius: 10px;
-  }
-  
-  .kv-title {
-	font-size: 0.8rem;
-	opacity: 0.7;
-  }
-  
-  .kv-value {
-	font-size: 1.3rem;
-	font-weight: bold;
-  }
-  
-  .kv-sub {
-	font-size: 0.8rem;
-	opacity: 0.6;
-  }
+.kv-card {
+background: rgba(0, 0, 0, 0.04);
+padding: 0.5rem;
+border-radius: 10px;
+}
+
+.kv-card:hover {
+background: rgba(0, 0, 0, 0.1);
+}
+
+.kv-title {
+font-size: 0.8rem;
+opacity: 0.7;
+}
+
+.kv-value {
+font-size: 1.3rem;
+font-weight: bold;
+}
+
+.kv-sub {
+font-size: 0.8rem;
+opacity: 0.6;
+}
   
 
 /* Bottom-right chart */
@@ -593,7 +635,6 @@ p {
 }
 
 .dropdown label {
-	font-size: 1.2em;
 	display: flex;
 	align-items: center;
 	text-align: left;

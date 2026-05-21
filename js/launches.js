@@ -181,7 +181,6 @@ monthSelect2.appendChild(option2);
 });
 
 function updateSliderFromSelects() {
-    console.log(yearSelect1.value,yearSelect2.value,monthSelect1.value,monthSelect2.value)
     // Convert month/year to an index (months since startYear)
     let startMonthIndex =
         (yearSelect1.value - startYear) * 12 + (monthSelect1.value - 1);
@@ -203,7 +202,6 @@ function updateSliderFromSelects() {
 
     startDate = intToDateString(startMonthIndex);
     endDate = intToDateString(endMonthIndex, true);
-    console.log(startDate, endDate,'Update');
     fetchEventsData();
 }
 
@@ -226,10 +224,10 @@ function resetFilters(all_launches) {
     }
 
     // Reset each filter
-    resetCheckboxes('locationFilter');
-    resetCheckboxes('rocketFilter');
-    resetCheckboxes('smcFilter');
-    resetCheckboxes('altitudeFilter', '0-80 km'); // restore default
+    resetCheckboxes('LocationFilter');
+    resetCheckboxes('VehicleFilter');
+    resetCheckboxes('MegaconstellationFilter');
+    resetCheckboxes('AltitudeFilter', '0-80 km'); // restore default
 
     // Re-run filtering or show all data
     filterlaunches(all_launches);
@@ -257,10 +255,54 @@ function populateFilters(launches) {
     }
 
     // Populate each filter
-    populateCheckboxes('locationFilter', locations.sort());
-    populateCheckboxes('rocketFilter',   rockets.sort());
-    populateCheckboxes('smcFilter', smcValues);
-    populateCheckboxes('altitudeFilter', ['0-80 km', '>80 km'], '0-80 km');
+    populateCheckboxes('LocationFilter', locations.sort());
+    populateCheckboxes('VehicleFilter',   rockets.sort());
+    populateCheckboxes('MegaconstellationFilter', smcValues);
+    populateCheckboxes('AltitudeFilter', ['0-80 km', '>80 km'], '0-80 km');
+}
+
+function renderFilterChips(filters) {
+    const container = document.getElementById("active-filters");
+    container.innerHTML = ""; // clear existing
+
+
+    Object.entries(filters).forEach(([filterType, values]) => {
+
+        if (!values.length) return; // skip empty groups
+
+        // ✅ Create group container
+        const group = document.createElement("div");
+        group.className = "filter-group";
+
+        // ✅ Create header
+        const header = document.createElement("div");
+        header.className = "filter-group-title";
+        header.textContent = filterType.replace("Filter", "");
+
+        group.appendChild(header);
+
+        // ✅ Create items
+        values.forEach(value => {
+            const item = document.createElement("div");
+            item.className = "filter-item";
+
+            item.innerHTML = `
+                <button class="remove-chip"
+                        data-filter="${filterType}"
+                        data-value="${value}">
+                    ×
+                </button>
+                <span>${value}</span>
+            `;
+
+            group.appendChild(item);
+        });
+
+        container.appendChild(group);
+    });
+
+    // Optional: hide container if empty
+    container.style.display = container.children.length ? "block" : "none";
 }
 
 function filterlaunches(all_launches) {
@@ -272,10 +314,10 @@ function filterlaunches(all_launches) {
     }
 
     // Get selected values from each filter
-    const selectedLocations = getSelectedfilters('locationFilter');
-    const selectedRockets   = getSelectedfilters('rocketFilter');
-    const selectedSmc       = getSelectedfilters('smcFilter');
-    const selectedAltitudes = getSelectedfilters('altitudeFilter');
+    const selectedLocations = getSelectedfilters('LocationFilter');
+    const selectedRockets   = getSelectedfilters('VehicleFilter');
+    const selectedSmc       = getSelectedfilters('MegaconstellationFilter');
+    const selectedAltitudes = getSelectedfilters('AltitudeFilter');
 
     // Find indices to keep based on selected filters
     let indicesToKeep = [...Array(all_launches.date.length).keys()];  // All indices initially
@@ -292,7 +334,7 @@ function filterlaunches(all_launches) {
 
     // Filter by SMC
     if (selectedSmc.length > 0) {
-        indicesToKeep = indicesToKeep.filter(i => selectedSmc.includes(all_launches.smc[i]));
+        indicesToKeep = indicesToKeep.filter(i => selectedSmc.includes(String(all_launches.smc[i])));
     }
 
     // Filter the column arrays using the indicesToKeep
@@ -348,6 +390,14 @@ function filterlaunches(all_launches) {
 
     // Update the visualizations with the filtered data
     updateVisualizations(filteredData);
+
+    renderFilterChips({
+        LocationFilter: selectedLocations,
+        VehicleFilter: selectedRockets,
+        MegaconstellationFilter: selectedSmc,
+        AltitudeFilter: selectedAltitudes
+    });
+
 }
 
 async function fetchEventsData() {
@@ -393,7 +443,7 @@ async function fetchEventsData() {
                 all_launches.rocket.push(
                     launch.variant === "-" ? launch.rocket : launch.rocket + " " + launch.variant
                   );
-                all_launches.smc.push(launch.smc.toString());
+                all_launches.smc.push(launch.smc);
                 all_launches.BC.push(parseFloat(launch.emissions.BC));
                 all_launches.CO.push(parseFloat(launch.emissions.CO));
                 all_launches.CO2.push(parseFloat(launch.emissions.CO2));
@@ -412,6 +462,14 @@ async function fetchEventsData() {
         });
         
         populateFilters(all_launches);
+
+        renderFilterChips({
+            LocationFilter: [],
+            VehicleFilter: [],
+            MegaconstellationFilter: [],
+            AltitudeFilter: ['0-80 km']
+        });
+
         updateVisualizations(all_launches);
 
     } catch (error) {
@@ -433,9 +491,6 @@ async function fetchAllDataForKeyMetrics() {
         );
 
         const launchData = await response.json();
-
-        console.log("Dates returned:", Object.keys(launchData).length);
-        console.log("Total launches raw:", Object.values(launchData).reduce((sum, d) => sum + d.launches.length, 0));
 
         const all = {
             date: [],
@@ -467,8 +522,6 @@ async function fetchAllDataForKeyMetrics() {
                 all.BC.push(BC);
             });
         });
-
-        console.log(new Set(all.date).size, all.date.length);
 
         updateKeyMetrics(all);
 
@@ -563,9 +616,6 @@ async function updateMap(filtered_launches) {
     const lons = sites.map(s => s.lon);
     const counts = sites.map(s => s.labels.length);
 
-    // ✅ Bubble size scaling (important!)
-    const sizes = counts.map(c => 6 + Math.sqrt(c) * 6);
-
     const text = sites.map(s => 
         `${s.name}<br>Launches: ${s.labels.length}`
     );
@@ -594,6 +644,12 @@ async function updateMap(filtered_launches) {
             line: {
                 width: 0.5,
                 color: "white"
+            },
+            colorbar: {
+                title: {
+                    text: "Number of Launches",
+                    side: "right" // optional (top, right, etc.)
+                }
             }
         }
     };
@@ -618,6 +674,7 @@ async function updateMap(filtered_launches) {
     Plotly.react("map", [trace], layout, { responsive: true });
 
     const mapEl = document.getElementById("map");
+    mapEl.removeAllListeners?.(); // remove previous listeners to speed it up
 
     // Change cursor to pointer when hovering over points
     mapEl.on('plotly_hover', function() {
@@ -952,7 +1009,6 @@ slider.noUiSlider.on('end', (values) => {
 
     startDate = intToDateString(startIndex);
     endDate = intToDateString(endIndex, true);
-    console.log(startDate, endDate,'End');
     fetchEventsData();
 });
 
@@ -993,6 +1049,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 Plotly.Plots.resize(document.getElementById('map'));
             }
         });
+    });
+
+    document.getElementById("active-filters").addEventListener("click", (e) => {
+        const btn = e.target.closest(".remove-chip");
+        if (!btn) return;
+    
+        const filterType = btn.dataset.filter;
+        const value = btn.dataset.value;
+    
+        const filterEl = document.getElementById(filterType);
+        const checkboxes = filterEl.querySelectorAll('input[type="checkbox"]');
+    
+        checkboxes.forEach(cb => {
+            if (cb.value === value) {
+                cb.checked = false;
+            }
+        });
+    
+        filterlaunches(all_launches);
     });
 
     // FAQ generation
