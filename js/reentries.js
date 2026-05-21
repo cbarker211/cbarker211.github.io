@@ -402,7 +402,6 @@ function updateKeyMetrics(data) {
     // --- Total NOx (kt) ---
     const totalNOx = data.NOx.reduce((a, b) => a + b, 0) / 1000;
 
-    
     // --- % from megaconstellations (SMC) in 2025 ---
     let totalNOx_2025 = 0;
     let smcNOx_2025 = 0;
@@ -422,6 +421,7 @@ function updateKeyMetrics(data) {
         ? (smcNOx_2025 / totalNOx_2025) * 100
         : 0;
 
+
     const yearlyReentries = {};
 
     data.date.forEach((date) => {
@@ -437,16 +437,16 @@ function updateKeyMetrics(data) {
     const avgIncrease = reentries2025 - reentries2024;    
 
     document.getElementById("kv-reentries").textContent =
-        `🔥 ${totalReentries.toLocaleString()}`;
+        `${totalReentries.toLocaleString()}`;
     
     document.getElementById("kv-growth").textContent =
-        `📈 +${Math.round(avgIncrease)} yr⁻¹`;
+        `+${Math.round(avgIncrease)} yr⁻¹`;
     
     document.getElementById("kv-bc").textContent =
-        `⚫ ${totalNOx.toFixed(1)} kt`;
+        `${totalNOx.toFixed(1)} kt`;
     
     document.getElementById("kv-smc").textContent =
-        `🛰️ ${smcPercent.toFixed(1)}%`;
+        `${smcPercent.toFixed(1)}% of NOₓ`;
     
 }
 
@@ -797,6 +797,75 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     });
+
+    // FAQ generation
+    const faqData = [ 
+        { question: "What are these chemicals?",
+            answer: "NO<sub>x</sub> is nitrogen oxides, BC is black carbon or soot, and Cl<sub>y</sub> is a family of chlorine compounds. AlO<sub>x</sub> is a family of oxidised aluminium compounds produced as metal objects re-enter the Earth's atmosphere. The current scientific understanding is that this may be a mixture of aluminium oxide (alumina, Al<sub>2</sub>O<sub>3</sub>) and aluminium hydroxide (Al(OH)<sub>3</sub>). NO<sub>x</sub> and Cl<sub>y</sub> are gases. BC and Al<sub>2</sub>O<sub>3</sub> are particles."
+        },
+        { question: "How do these chemicals affect the atmosphere?",
+            answer: "Re-entries release air pollutant emissions into the upper layers of the atmosphere, where they can have an outsized impact on our atmosphere and climate. NO<sub>x</sub> and Cl<sub>y</sub> are the largest contributors to destruction of the ozone layer from rocket emissions, with smaller destruction occuring from emissions of BC and AlO<sub>x</sub>. The largest climate impacts come from BC emissions, which absorb sunlight in the upper layers of the atmosphere, stopping it reaching the lower layers."
+        },
+        { question: "What does each filter represent?",
+            answer: "Re-entry point allows users to filter for re-entering objects that are known and that we have had to approximate, as exact location data is not available. Known re-entries are further separated into Falcon and non-Falcon rocket and fairing re-entries.  Object Type distinguishes individual re-entering objects as Payload (P), C=Component (C1), Booster (B1-B4), and rocket stage (S1-S5). Megaconstellation allows users to select re-entries that are or are not associated with megaconstellation missions."
+        },
+        { question: "How is this data calculated?",
+            answer: "Our calculations are based on the current best scientific knowledge available for emissions from object re-entries. We use object-specific ablation profiles to calculate AlO<sub>x</sub> emissions from object re-entries, including all objects with an apogee above 50 km. Emissions from failed launches before 2020 are not included."
+        },
+        { question: "Where can I find the original methodology and data?",
+        answer: "You can find further details on the methodology in our study published in Nature Scientific Data: Global 3D rocket launch and re-entry air pollutant and carbon dioxide emissions for 2020-2022</strong>. C. R. Barker, E. A. Marais (2024). doi:10.5522/04/26325382. [<a href='https://doi.org/10.5522/04/26325382' target='_blank' rel='noopener noreferrer'>Data</a>]. [<a href='https://www.nature.com/articles/s41597-024-03910-z' target='_blank' rel='noopener noreferrer'>Publication</a>]. For details of changes since the publication, please visit the <a href='https://github.com/cbarker211/Emissions_API/blob/main/docs/changefile.md' target='_blank' rel='noopener noreferrer'>changefile.</a>"
+        }
+    ];
+    const faqsContainer = document.getElementById('faqs-container');
+
+    if (faqsContainer) {
+        faqData.forEach(item => {
+            let article = document.createElement('article');
+            article.classList.add('faq-item');
+
+            article.innerHTML = `
+                <div class="filter">
+                    <label>${item.question}</label>
+                </div>
+                <div class="item-answer">
+                    <span>${item.answer}</span>
+                </div>
+            `;
+
+            faqsContainer.append(article);
+        });
+
+        document.querySelectorAll('.filter').forEach(q => {
+            q.addEventListener('click', () => {
+                q.parentElement.classList.toggle("show-answer");
+            });
+        });
+    }
+
+    // Modal logic
+    const modal = document.getElementById("faqModal");
+    const faqButton = document.getElementById("faqButton");
+    const closeBtn = document.getElementById("closeModal");
+
+    //modal.classList.add("active")
+
+    // open via button
+    faqButton.onclick = () => {
+        modal.classList.add("active");
+    };
+
+    // close
+    closeBtn.onclick = () => {
+        modal.classList.remove("active");
+    };
+
+    // click outside
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.classList.remove("active");
+        }
+    };
+
 });
 
 toggleButton.addEventListener('click', () => {

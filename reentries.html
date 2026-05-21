@@ -162,35 +162,42 @@
 
 						<div id="stack" class="chart stack"></div>
 
+						<div id="key-values-box" class="panel">
 
-						<div id="key-values" class="panel">
-							<div class="kv-card">
-								<div class="kv-title">Total Re-entries</div>
-								<div id="kv-reentries" class="kv-value">–</div>
-								<div class="kv-sub">1957–2025</div>
+							<h2>Key Metrics</h2>
+
+							<div id="key-values" class="panel">
+
+								<div class="kv-card">
+									<div class="kv-title">Total Re-entries</div>
+									<div id="kv-reentries" class="kv-value">–</div>
+									<div class="kv-sub">1957-2025</div>
+								</div>
+								
+								<div class="kv-card">
+									<div class="kv-title">Re-entry Growth</div>
+									<div id="kv-growth" class="kv-value">–</div>
+									<div class="kv-sub">2024-2025</div>
+								</div>
+								
+								<div class="kv-card">
+									<div class="kv-title">NOx emissions</div>
+									<div id="kv-bc" class="kv-value">–</div>
+									<div class="kv-sub">1957-2025</div>
+								</div>
+								
+								<div class="kv-card">
+									<div class="kv-title">Megaconstellations</div>
+									<div id="kv-smc" class="kv-value">–</div>
+									<div class="kv-sub">2025</div>
+								</div>
 							</div>
-							
-							<div class="kv-card">
-								<div class="kv-title">Re-entry Growth</div>
-								<div id="kv-growth" class="kv-value">–</div>
-								<div class="kv-sub">2024-2025</div>
-							</div>
-							
-							<div class="kv-card">
-								<div class="kv-title">NOx emissions</div>
-								<div id="kv-bc" class="kv-value">–</div>
-								<div class="kv-sub">1957-2025</div>
-							</div>
-							
-							<div class="kv-card">
-								<div class="kv-title">Megaconstellations</div>
-								<div id="kv-smc" class="kv-value">–</div>
-								<div class="kv-sub">% of NOx in 2025</div>
-							</div> 
-						  </div>
+						</div>
 						  
-
-						<div id="bar" class="chart pie"></div>
+						<div id="pie-box" class="panel">
+							<h2>Total Emissions</h2>
+							<div id="bar" class="pie"></div>
+						</div>	
 
 					</div>
 
@@ -231,15 +238,7 @@
 		</div>
 	</div>
 
-	<script defer src="js/reentries.js"></script>
-	<script defer src="js/main.js"></script>
-	
-	<div class="bottom-row">
-		<p style="text-align: left; margin: 0;"> Interested in using this data? Please cite using: Barker, C. R., Marais, E. A., & McDowell J. C. (2026). Space Industry Emissions Tracker, v2.5.0, <a href="https://cbarker211.github.io/" target="_blank" rel="noopener noreferrer">https://cbarker211.github.io/</a><a href="https://doi.org/10.5281/zenodo.18173797" target="_blank" rel="noopener noreferrer">https://doi.org/10.5281/zenodo.18173797</a>. Spot any room for improvements? Please reach out to Connor Barker at <a href= "mailto:connor.barker@ucl.ac.uk">connor.barker@ucl.ac.uk.</a>.
-		</div>
-		
-  	</div>
-
+	<script defer src="js/reentries.js"></script>	
 	<div id="faqModal" class="modal">
 		<div class="modal-content">
 			<button id="closeModal" class="close-modal">✕</button>
@@ -254,11 +253,13 @@
 			<div id="faqs-container"></div>
 
 			<h3>Acknowledgements</h3>
-			<p>Developed by <a href="https://profiles.ucl.ac.uk/93616-connor-barker" target="_blank" rel="noopener noreferrer">Connor Barker</a> (UCL postdoc) and <a href="https://profiles.ucl.ac.uk/77783-eloise-marais" target="_blank" rel="noopener noreferrer">Eloise Marais</a> (UCL PI), in collaboration with <a href="https://www.cfa.harvard.edu/people/jonathan-mcdowell" target="_blank" rel="noopener noreferrer">Jonathan McDowell</a> (Harvard-Smithsonian Center for Astrophysics).</p>
+			<p>Developed by <a href="https://profiles.ucl.ac.uk/93616-connor-barker" target="_blank" rel="noopener noreferrer">Connor Barker</a> (UCL postdoc) and <a href="https://profiles.ucl.ac.uk/77783-eloise-marais" target="_blank" rel="noopener noreferrer">Eloise Marais</a> (UCL PI), in collaboration with <a href="https://www.cfa.harvard.edu/people/jonathan-mcdowell" target="_blank" rel="noopener noreferrer">Jonathan McDowell</a> (Harvard-Smithsonian Center for Astrophysics). Spot any room for improvements? Please reach out to Connor Barker at <a href= "mailto:connor.barker@ucl.ac.uk">connor.barker@ucl.ac.uk.</a>.</p>
 			<h3>Funding Information</h3>
 			<p>This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (grant agreement No. 851854). <a href="https://cordis.europa.eu/project/id/851854" target="_blank" rel="noopener noreferrer">European Commission project page</a>.</p>
 			<h3>Attribution</h3>
 			<p>Icons created by <a href="https://www.flaticon.com/" title="icons">Freepik - Flaticon.</a></p>
+			<h3>Citation</h3>
+			<p style="text-align: left; margin: 0;">Barker, C. R., Marais, E. A., & McDowell J. C. (2026). Space Industry Emissions Tracker, v2.5.0, <a href="https://cbarker211.github.io/" target="_blank" rel="noopener noreferrer">https://cbarker211.github.io/</a>. <a href="https://doi.org/10.5281/zenodo.18173797" target="_blank" rel="noopener noreferrer">https://doi.org/10.5281/zenodo.18173797</a>. </p>
 		</p>
 		</div>
 	</div>
