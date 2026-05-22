@@ -340,7 +340,6 @@ function filterlaunches(all_launches) {
     // Filter the column arrays using the indicesToKeep
     const filteredData = {
         date: indicesToKeep.map(i => all_launches.date[i]),
-        time: indicesToKeep.map(i => all_launches.time[i]),
         lat: indicesToKeep.map(i => all_launches.lat[i]),
         lon: indicesToKeep.map(i => all_launches.lon[i]),
         text: indicesToKeep.map(i => all_launches.text[i]),
@@ -409,7 +408,6 @@ async function fetchEventsData() {
         
         all_launches = {
             date: [],
-            time: [],
             lat: [],
             lon: [],
             text: [],
@@ -435,7 +433,6 @@ async function fetchEventsData() {
         Object.keys(launchData).forEach(date => {
             launchData[date].launches.forEach(launch => {
                 all_launches.date.push(launch.date);
-                all_launches.time.push(launch.time);
                 all_launches.lat.push(parseFloat(launch.lat));
                 all_launches.lon.push(parseFloat(launch.lon));
                 all_launches.text.push(launch.location);
@@ -703,7 +700,7 @@ function updateTables(filtered_launches) {
     table1Foot.innerHTML = '';
     let totalBC = 0, totalCO = 0, totalCO2 = 0, totalH2O = 0;
     let totalAl2O3 = 0, totalCly = 0, totalNOx = 0;
-    filtered_launches.id.forEach((location, index) => {
+    filtered_launches.id.forEach((id, index) => {
         const row = document.createElement('tr');
         const CO = filtered_launches.CO[index];
         const CO2 = filtered_launches.CO2[index];
@@ -721,9 +718,8 @@ function updateTables(filtered_launches) {
         totalCly   += Cly;
         
         row.innerHTML = `
-            <td>${filtered_launches.date[index]}</td>
-            <td>${location}</td>
-            <td>${filtered_launches.time[index].toFixed(2)}</td>
+            <td>${filtered_launches.date[index].replace("T", " ").replace("Z", " ")}</td>
+            <td>${id}</td>
             <td class="wrap-text">${filtered_launches.text[index]}</td>
             <td class="wrap-text">${filtered_launches.rocket[index]}</td>
             <td>${filtered_launches.smc[index]}</td>
@@ -741,7 +737,6 @@ function updateTables(filtered_launches) {
     const totalRow1 = document.createElement('tr');
     totalRow1.innerHTML = `
         <td>Total</td>
-        <td>-</td>
         <td>-</td>
         <td>-</td>
         <td>-</td>

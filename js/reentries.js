@@ -316,7 +316,6 @@ function filterreentries(all_reentries) {
     // Return the filtered group (keeping the structure)
     const filteredData = {
         date: indicesToKeep.map(i => all_reentries.date[i]),
-        time: indicesToKeep.map(i => all_reentries.time[i]),
         location: indicesToKeep.map(i => all_reentries.location[i]),
         id: indicesToKeep.map(i => all_reentries.id[i]),
         category: indicesToKeep.map(i => all_reentries.category[i]),
@@ -350,7 +349,6 @@ async function fetchEventsData() {
         all_reentries = {
             date: [],
             id: [],
-            time: [],
             location: [],
             objname: [],
             smc: [],
@@ -366,7 +364,6 @@ async function fetchEventsData() {
         Object.keys(reentryData).forEach(date => {
             reentryData[date].reentries.forEach(reentry => {
                 all_reentries.date.push(reentry.date);
-                all_reentries.time.push(reentry.time);
                 all_reentries.location.push(reentry.location);
                 all_reentries.id.push(reentry.id);
                 all_reentries.category.push(reentry.category);
@@ -520,9 +517,8 @@ function updateTables(filtered_reentries) {
         totalmass  += unab_mass;
         
         row.innerHTML = `
-            <td>${filtered_reentries.date[index]}</td>
+            <td>${filtered_reentries.date[index].replace("T", " ").replace("Z", " ")}</td>
             <td>${filtered_reentries.id[index]}</td>
-            <td>${filtered_reentries.time[index].toFixed(2)}</td>
             <td class="wrap-text">${getLocationLabel(filtered_reentries.location[index])}</td>
             <td class="wrap-text">${filtered_reentries.objname[index]}</td>
             <td>${filtered_reentries.category[index]}</td>
@@ -540,7 +536,6 @@ function updateTables(filtered_reentries) {
     const totalRow1 = document.createElement('tr');
     totalRow1.innerHTML = `
         <td>Total</td>
-        <td>-</td>
         <td>-</td>
         <td>-</td>
         <td>-</td>
