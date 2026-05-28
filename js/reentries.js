@@ -717,7 +717,8 @@ function updateStack(filtered_reentries) {
                 color: 'black', 
                 size: chartFontSize * 0.95, 
                 family: 'Space Grotesk, sans-serif'
-            }
+            },
+            bgcolor: 'rgba(255,255,255,1)',
         },
         annotations: [
             {
@@ -735,13 +736,17 @@ function updateStack(filtered_reentries) {
             font: {
                 size: chartFontSize * 0.95,
                 color: "rgba(0,0,0,0.6)"
-            }
+            },
+            bgcolor: 'rgba(255,255,255,1)',
             }
         ],
         yaxis: {
             title: {text: 'Mass [kilotonnes]'},
-            showgrid: false,
-            zeroline: false
+            showgrid: true,
+            zeroline: true,
+            gridcolor: '#bdbdbd',
+            gridwidth: 1,
+            griddash: 'dot'
         },
         xaxis: {
             showgrid: false,
