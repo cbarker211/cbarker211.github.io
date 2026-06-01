@@ -213,13 +213,12 @@ monthSelect2.addEventListener('change', updateSliderFromSelects);
 
 function resetFilters(all_launches) {
 
-    function resetCheckboxes(filterId, defaultCheckedValue = null) {
+    function resetCheckboxes(filterId, defaultCheckedValues = []) {
         const filter = document.getElementById(filterId);
         const checkboxes = filter.querySelectorAll('input[type="checkbox"]');
 
         checkboxes.forEach(cb => {
-            // Check only the default value (if provided), otherwise uncheck all
-            cb.checked = (defaultCheckedValue !== null && cb.value === defaultCheckedValue);
+            cb.checked = defaultCheckedValues.includes(cb.value);
         });
     }
 
@@ -227,7 +226,7 @@ function resetFilters(all_launches) {
     resetCheckboxes('LocationFilter');
     resetCheckboxes('VehicleFilter');
     resetCheckboxes('MegaconstellationFilter');
-    resetCheckboxes('AltitudeFilter', '0-80 km'); // restore default
+    resetCheckboxes('AltitudeFilter', ['0-15 km', '15-50 km', '50-80 km']); // restore default
 
     // Re-run filtering or show all data
     filterlaunches(all_launches);
@@ -240,14 +239,14 @@ function populateFilters(launches) {
     const smcValues = [...new Set(launches.smc)];
 
     // Function to populate checkboxes inside a given filter dropdown
-    function populateCheckboxes(filterId, values, defaultCheckedValue = null) {
+    function populateCheckboxes(filterId, values, defaultCheckedValues = []) {
         const dropdown = document.getElementById(filterId);
         const ul = dropdown.querySelector('ul');
         ul.innerHTML = ''; // Clear any previous entries
 
         values.forEach(value => {
             // Only check the box if it matches the defaultCheckedValue
-            const checked = value === defaultCheckedValue ? 'checked' : '';
+            const checked = defaultCheckedValues.includes(value) ? 'checked' : '';
             const li = document.createElement('li');
             li.innerHTML = `<label><input type="checkbox" value="${value}" ${checked} /> ${value}</label>`;
             ul.appendChild(li);
@@ -258,7 +257,7 @@ function populateFilters(launches) {
     populateCheckboxes('LocationFilter', locations.sort());
     populateCheckboxes('VehicleFilter',   rockets.sort());
     populateCheckboxes('MegaconstellationFilter', smcValues);
-    populateCheckboxes('AltitudeFilter', ['0-80 km', '>80 km'], '0-80 km');
+    populateCheckboxes('AltitudeFilter', ['0-15 km', '15-50 km', '50-80 km', '>80 km'], ['0-15 km', '15-50 km', '50-80 km']);
 }
 
 function renderFilterChips(filters) {
@@ -349,10 +348,15 @@ function filterlaunches(all_launches) {
     };
 
     // Include emissions based on selected altitude ranges
-    const includeLow = selectedAltitudes.includes('0-80 km');
-    const includeHigh = selectedAltitudes.includes('>80 km');
-    const includeAllAltitudes = selectedAltitudes.length === 0;  // If no filter selected
 
+    const includeLayers = {
+        "0-15 km": selectedAltitudes.includes("0-15 km"),
+        "15-50 km": selectedAltitudes.includes("15-50 km"),
+        "50-80 km": selectedAltitudes.includes("50-80 km"),
+        ">80 km": selectedAltitudes.includes(">80 km")
+    };
+    const includeAll = selectedAltitudes.length === 0;
+    
     filteredData.BC = [];
     filteredData.CO = [];
     filteredData.CO2 = [];
@@ -363,20 +367,48 @@ function filterlaunches(all_launches) {
 
     indicesToKeep.forEach(i => {
         // Sum emissions per launch
-        const BC   = ((includeAllAltitudes || includeLow) ? all_launches.BC[i] : 0)
-                   + ((includeAllAltitudes || includeHigh) ? all_launches.BCabove[i] : 0);
-        const CO   = ((includeAllAltitudes || includeLow) ? all_launches.CO[i] : 0)
-                   + ((includeAllAltitudes || includeHigh) ? all_launches.COabove[i] : 0);
-        const CO2  = ((includeAllAltitudes || includeLow) ? all_launches.CO2[i] : 0)
-                   + ((includeAllAltitudes || includeHigh) ? all_launches.CO2above[i] : 0);
-        const H2O  = ((includeAllAltitudes || includeLow) ? all_launches.H2O[i] : 0)
-                   + ((includeAllAltitudes || includeHigh) ? all_launches.H2Oabove[i] : 0);
-        const Al2O3 = ((includeAllAltitudes || includeLow) ? all_launches.Al2O3[i] : 0)
-                    + ((includeAllAltitudes || includeHigh) ? all_launches.Al2O3above[i] : 0);
-        const Cly  = ((includeAllAltitudes || includeLow) ? all_launches.Cly[i] : 0)
-                   + ((includeAllAltitudes || includeHigh) ? all_launches.Clyabove[i] : 0);
-        const NOx  = ((includeAllAltitudes || includeLow) ? all_launches.NOx[i] : 0)
-                   + ((includeAllAltitudes || includeHigh) ? all_launches.NOxabove[i] : 0);
+
+        const BC =
+            (includeAll || includeLayers["0-15 km"] ? all_launches.BC_0_15[i] : 0) +
+            (includeAll || includeLayers["15-50 km"] ? all_launches.BC_15_50[i] : 0) +
+            (includeAll || includeLayers["50-80 km"] ? all_launches.BC_50_80[i] : 0) +
+            (includeAll || includeLayers[">80 km"] ? all_launches.BC_80_plus[i] : 0);
+
+        const CO =
+            (includeAll || includeLayers["0-15 km"] ? all_launches.CO_0_15[i] : 0) +
+            (includeAll || includeLayers["15-50 km"] ? all_launches.CO_15_50[i] : 0) +
+            (includeAll || includeLayers["50-80 km"] ? all_launches.CO_50_80[i] : 0) +
+            (includeAll || includeLayers[">80 km"] ? all_launches.CO_80_plus[i] : 0);
+
+        const CO2 =
+            (includeAll || includeLayers["0-15 km"] ? all_launches.CO2_0_15[i] : 0) +
+            (includeAll || includeLayers["15-50 km"] ? all_launches.CO2_15_50[i] : 0) +
+            (includeAll || includeLayers["50-80 km"] ? all_launches.CO2_50_80[i] : 0) +
+            (includeAll || includeLayers[">80 km"] ? all_launches.CO2_80_plus[i] : 0);
+
+        const H2O =
+            (includeAll || includeLayers["0-15 km"] ? all_launches.H2O_0_15[i] : 0) +
+            (includeAll || includeLayers["15-50 km"] ? all_launches.H2O_15_50[i] : 0) +
+            (includeAll || includeLayers["50-80 km"] ? all_launches.H2O_50_80[i] : 0) +
+            (includeAll || includeLayers[">80 km"] ? all_launches.H2O_80_plus[i] : 0);
+
+        const Al2O3 =
+            (includeAll || includeLayers["0-15 km"] ? all_launches.Al2O3_0_15[i] : 0) +
+            (includeAll || includeLayers["15-50 km"] ? all_launches.Al2O3_15_50[i] : 0) +
+            (includeAll || includeLayers["50-80 km"] ? all_launches.Al2O3_50_80[i] : 0) +
+            (includeAll || includeLayers[">80 km"] ? all_launches.Al2O3_80_plus[i] : 0);
+
+        const Cly =
+            (includeAll || includeLayers["0-15 km"] ? all_launches.Cly_0_15[i] : 0) +
+            (includeAll || includeLayers["15-50 km"] ? all_launches.Cly_15_50[i] : 0) +
+            (includeAll || includeLayers["50-80 km"] ? all_launches.Cly_50_80[i] : 0) +
+            (includeAll || includeLayers[">80 km"] ? all_launches.Cly_80_plus[i] : 0);
+
+        const NOx =
+            (includeAll || includeLayers["0-15 km"] ? all_launches.NOx_0_15[i] : 0) +
+            (includeAll || includeLayers["15-50 km"] ? all_launches.NOx_15_50[i] : 0) +
+            (includeAll || includeLayers["50-80 km"] ? all_launches.NOx_50_80[i] : 0) +
+            (includeAll || includeLayers[">80 km"] ? all_launches.NOx_80_plus[i] : 0);
 
         filteredData.BC.push(BC);
         filteredData.CO.push(CO);
@@ -414,21 +446,22 @@ async function fetchEventsData() {
             id: [],
             rocket: [],
             smc: [],
-            BC: [],
-            CO: [],
-            CO2: [],
-            H2O: [],
-            Al2O3: [],
-            Cly: [],
-            NOx: [],
-            BCabove: [],
-            COabove: [],
-            CO2above: [],
-            H2Oabove: [],
-            Al2O3above: [],
-            Clyabove: [],
-            NOxabove: []
+            BC_0_15: [],    BC_15_50: [],    BC_50_80: [],    BC_80_plus: [],
+            CO_0_15: [],    CO_15_50: [],    CO_50_80: [],    CO_80_plus: [],
+            CO2_0_15: [],   CO2_15_50: [],   CO2_50_80: [],   CO2_80_plus: [],
+            H2O_0_15: [],   H2O_15_50: [],   H2O_50_80: [],   H2O_80_plus: [],
+            Al2O3_0_15: [], Al2O3_15_50: [], Al2O3_50_80: [], Al2O3_80_plus: [],
+            Cly_0_15: [],   Cly_15_50: [],   Cly_50_80: [],   Cly_80_plus: [],
+            NOx_0_15: [],   NOx_15_50: [],   NOx_50_80: [],   NOx_80_plus: [],
+
         };
+        function val(arr, i) {
+            return parseFloat(arr?.[i]) || 0;
+        }
+
+        function cly(e, i) {
+            return val(e.Cl, i) + val(e.HCl, i) + val(e.Cl2, i);
+        }
 
         Object.keys(launchData).forEach(date => {
             launchData[date].launches.forEach(launch => {
@@ -441,20 +474,51 @@ async function fetchEventsData() {
                     launch.variant === "-" ? launch.rocket : launch.rocket + " " + launch.variant
                   );
                 all_launches.smc.push(launch.smc);
-                all_launches.BC.push(parseFloat(launch.emissions.BC));
-                all_launches.CO.push(parseFloat(launch.emissions.CO));
-                all_launches.CO2.push(parseFloat(launch.emissions.CO2));
-                all_launches.H2O.push(parseFloat(launch.emissions.H2O));
-                all_launches.Al2O3.push(parseFloat(launch.emissions.Al2O3));
-                all_launches.Cly.push(parseFloat(launch.emissions.Cly));
-                all_launches.NOx.push(parseFloat(launch.emissions.NOx));
-                all_launches.BCabove.push(parseFloat(launch.emissions_above.BC));
-                all_launches.COabove.push(parseFloat(launch.emissions_above.CO));
-                all_launches.CO2above.push(parseFloat(launch.emissions_above.CO2));
-                all_launches.H2Oabove.push(parseFloat(launch.emissions_above.H2O));
-                all_launches.Al2O3above.push(parseFloat(launch.emissions_above.Al2O3));
-                all_launches.Clyabove.push(parseFloat(launch.emissions_above.Cly));
-                all_launches.NOxabove.push(parseFloat(launch.emissions_above.NOx));
+
+                const e = launch.emissions;
+                
+                // BC
+                all_launches.BC_0_15.push(val(e.BC, 0));
+                all_launches.BC_15_50.push(val(e.BC, 1));
+                all_launches.BC_50_80.push(val(e.BC, 2));
+                all_launches.BC_80_plus.push(val(e.BC, 3));
+
+                // CO
+                all_launches.CO_0_15.push(val(e.CO, 0));
+                all_launches.CO_15_50.push(val(e.CO, 1));
+                all_launches.CO_50_80.push(val(e.CO, 2));
+                all_launches.CO_80_plus.push(val(e.CO, 3));
+
+                // CO2
+                all_launches.CO2_0_15.push(val(e.CO2, 0));
+                all_launches.CO2_15_50.push(val(e.CO2, 1));
+                all_launches.CO2_50_80.push(val(e.CO2, 2));
+                all_launches.CO2_80_plus.push(val(e.CO2, 3));
+
+                // H2O
+                all_launches.H2O_0_15.push(val(e.H2O, 0));
+                all_launches.H2O_15_50.push(val(e.H2O, 1));
+                all_launches.H2O_50_80.push(val(e.H2O, 2));
+                all_launches.H2O_80_plus.push(val(e.H2O, 3));
+
+                // Al2O3
+                all_launches.Al2O3_0_15.push(val(e.Al2O3, 0));
+                all_launches.Al2O3_15_50.push(val(e.Al2O3, 1));
+                all_launches.Al2O3_50_80.push(val(e.Al2O3, 2));
+                all_launches.Al2O3_80_plus.push(val(e.Al2O3, 3));
+
+                // NOx
+                all_launches.NOx_0_15.push(val(e.NOx, 0));
+                all_launches.NOx_15_50.push(val(e.NOx, 1));
+                all_launches.NOx_50_80.push(val(e.NOx, 2));
+                all_launches.NOx_80_plus.push(val(e.NOx, 3));
+
+                // Cly
+                all_launches.Cly_0_15.push(cly(e, 0));
+                all_launches.Cly_15_50.push(cly(e, 1));
+                all_launches.Cly_50_80.push(cly(e, 2));
+                all_launches.Cly_80_plus.push(cly(e, 3));
+
             });
         });
         
@@ -464,10 +528,10 @@ async function fetchEventsData() {
             LocationFilter: [],
             VehicleFilter: [],
             MegaconstellationFilter: [],
-            AltitudeFilter: ['0-80 km']
+            AltitudeFilter: ['0-15 km', '15-50 km', '50-80 km']
         });
 
-        updateVisualizations(all_launches);
+        filterlaunches(all_launches);
 
     } catch (error) {
         console.error('Error fetching or processing the events data:', error);
@@ -511,9 +575,16 @@ async function fetchAllDataForKeyMetrics() {
                 const includeLow = true;   // default matches UI
                 const includeHigh = false;
                 
+                function sum(arr, idxs) {
+                    return idxs.reduce((s, i) => s + (parseFloat(arr?.[i]) || 0), 0);
+                }
+
+                const BC_low  = sum(launch.emissions.BC, [0,1,2]);
+                const BC_high = sum(launch.emissions.BC, [3]);
+
                 const BC =
-                    (includeLow ? parseFloat(launch.emissions.BC) : 0) +
-                    (includeHigh ? parseFloat(launch.emissions_above.BC) : 0);
+                    (includeLow ? BC_low : 0) +
+                    (includeHigh ? BC_high : 0);
                 
 
                 all.BC.push(BC);
@@ -881,7 +952,6 @@ function updateStack(filtered_launches) {
     }
 
     const xVals = Object.keys(sums).sort();
-    const maxYValue = Math.max(...xVals);
 
     const traces = species.map(sp => {
         if (timeAggregation === "annual") {
@@ -1032,8 +1102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const toggle = document.getElementById("timeToggle");
     toggle.addEventListener("change", () => {
         timeAggregation = toggle.checked ? "annual" : "monthly";
-        const filteredLaunches = filterlaunches(all_launches);
-        updateStack(filteredLaunches);
+        filterlaunches(all_launches);
     });
 
     const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
