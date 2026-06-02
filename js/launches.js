@@ -825,6 +825,8 @@ function updateTables(filtered_launches) {
 
 function updateGraph(filtered_launches) {
 
+    window.lastFilteredData = filtered_launches;
+
     const totals = {
         NOx: 0,
         Cly: 0,
@@ -842,8 +844,13 @@ function updateGraph(filtered_launches) {
         totals.H2O   += filtered_launches.H2O[index];
         totals.Al2O3 += filtered_launches.Al2O3[index];
         totals.Cly   += filtered_launches.Cly[index];
-        
     });
+ 
+    const pieContainer = document.getElementById('piechart');
+    const height = pieContainer.clientHeight;
+
+    // Set a threshold (tune this)
+    const showLabels = height > 220;
     
     const trace = [{
         type: 'pie',
@@ -852,7 +859,7 @@ function updateGraph(filtered_launches) {
         marker: {
             colors: Object.keys(totals).map(key => strongColors[key])
         },
-        textinfo: 'label+percent',
+        textinfo: showLabels ? 'label+value+percent' : 'none',
         hoverinfo: 'label+value+percent',
         textposition: 'auto',
         hole: 0.4,
@@ -867,21 +874,26 @@ function updateGraph(filtered_launches) {
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
-        autosize: true,
+        height: height,
         font: { color: 'black', family: 'Space Grotesk, sans-serif', size: chartFontSize}, // general font
         annotations: [{
-            text: 'Total<br>' + Math.round(totalSum/1000) + ' kt',
+            text: showLabels ? 'Total<br>' + Math.round(totalSum/1000) + ' kt' : '',
             showarrow: false,
-            font: { size: 14 }
+            font: { size: chartFontSize * 0.95 }
         }],
         hovermode: 'closest',
         dragmode: false,
-        margin: { t: 70, r: 40, b: 20, l: 40 },
+        margin: {
+            t: 0,
+            r: chartFontSize,
+            b: chartFontSize,
+            l: chartFontSize,
+        },
         showlegend: false
     };
 
     // Plot the chart inside the 'emissionsChart' div
-    Plotly.react('bar', trace, layout, {responsive: true, displayModeBar: false, scrollZoom: false });
+    Plotly.react('piechart', trace, layout, {responsive: true, displayModeBar: false, scrollZoom: false });
 
 }
 
@@ -1035,7 +1047,7 @@ function updateStack(filtered_launches) {
         },
         barmode: 'stack',  
     };
-    Plotly.react('stack', traces , layout, {
+    Plotly.react('stackchart', traces , layout, {
         responsive: true, 
         displayModeBar: true 
     });
@@ -1088,7 +1100,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     startDate = intToDateString(Number(daterange[0]));
     endDate = intToDateString(Number(daterange[1]),true);
 
-    fetchEventsData(); // Fetch data for the default date
     fetchAllDataForKeyMetrics();
 
     document.getElementById('applyFilters').addEventListener('click', () => {
@@ -1111,8 +1122,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const activatedTabId = event.target.id;
             if (activatedTabId === 'chart-tab') {
                 // Resize your Plotly charts
-                Plotly.Plots.resize(document.getElementById('stack'));
-                Plotly.Plots.resize(document.getElementById('bar'));
+                Plotly.Plots.resize(document.getElementById('stackchart'));
+                Plotly.Plots.resize(document.getElementById('piechart'));
+                
+                if (window.lastFilteredData) {
+                    updateGraph(window.lastFilteredData);
+                }
+
             }
             if (activatedTabId === 'map-tab') {
                 Plotly.Plots.resize(document.getElementById('map'));
@@ -1209,6 +1225,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 });
 
+window.addEventListener('load', () => {
+    fetchEventsData();
+});
+
 toggleButton.addEventListener('click', () => {
     const isHidden = tableBody.style.display === 'none';
     tableBody.style.display = isHidden ? 'table-row-group' : 'none';
@@ -1245,9 +1265,18 @@ sidebarToggle.addEventListener('click', () => {
 
     setTimeout(() => {
         if (typeof Plotly !== 'undefined') {
-            Plotly.Plots.resize(document.getElementById('stack'));
-            Plotly.Plots.resize(document.getElementById('bar'));
+            Plotly.Plots.resize(document.getElementById('stackchart'));
+            Plotly.Plots.resize(document.getElementById('piechart'));
+            if (window.lastFilteredData) {
+                updateGraph(window.lastFilteredData);
+            }
             Plotly.Plots.resize(document.getElementById('map'));
         }
     }, 300);
+});
+
+window.addEventListener('resize', () => {
+    if (window.lastFilteredData) {
+        updateGraph(window.lastFilteredData);
+    }
 });

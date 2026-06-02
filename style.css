@@ -197,7 +197,6 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
 	height: 2rem;
 	padding: 0;
 	filter: brightness(0) invert(1);
-	margin: auto;
 }
 
 .sidebar-nav-item {
@@ -263,13 +262,6 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
     font-weight: bold;
     margin-bottom: var(--space-xs);
 	text-align: left;
-}
-
-/* Each filter row */
-.filter-item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
 }
 
 /* The X button on the left */
@@ -428,19 +420,33 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
 	padding: 0;
 }
 
-/* Left chart spans both rows */
-.stack {
+#stack-panel {
     grid-row: 1 / 3;
     grid-column: 1;
 }
 
-.panel, .stack {
+#pie-panel {
+    grid-row: 2;
+    grid-column: 2;
+}
+
+.stack, .pie {
+    min-height: 0;
+	height: 100%;
+	padding: 0;
+	flex: 1;
+}
+
+.panel {
 	background: white;
 	border-radius: 0.6rem;
 	box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 	color:rgb(0, 0, 0);
 	text-align: left;
 	gap: var(--space-sm);
+	min-height: 0;
+	display: flex;
+    flex-direction: column;
   }
 
 .panel h2 {
@@ -448,7 +454,6 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
 	text-align: center;
 	font-size: 1.3rem;
 	font-weight: bold;
-	margin-bottom: var(--space-sm);
 }
   
 /* Top-right box */
@@ -457,17 +462,14 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
     grid-column: 2; 
 	padding: var(--space-sm);
 	padding-top: 0;
-}
-
-#key-values {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
-  }
+}
   
 .kv-card {
-background: rgba(0, 0, 0, 0.04);
-padding: 0.5rem;
-border-radius: 10px;
+	background: rgba(0, 0, 0, 0.04);
+	padding: 0.5rem;
+	border-radius: 10px;
 }
 
 .kv-card:hover {
@@ -487,14 +489,6 @@ font-weight: bold;
 .kv-sub {
 font-size: 0.8rem;
 opacity: 0.6;
-}
-  
-
-/* Bottom-right chart */
-.pie {
-    grid-row: 2;
-    grid-column: 2;
-	padding: 0;
 }
 
 .toggle-container {
@@ -556,11 +550,6 @@ body {
 
 #slider, #slider * {
 	box-sizing: border-box !important;
-}
-
-.chart {
-	height: 100% !important;
-	width: 100% !important;
 }
 
 p {
@@ -662,7 +651,6 @@ p {
 	padding: var(--space-sm);
 	overflow: hidden;
 	flex-grow: 1;
-	height: 100%;  
 }
 
 .tab-pane h1 {
@@ -709,12 +697,12 @@ p {
     padding: 8px 16px;
 }
 
-
 #myTabContent {
 	margin: 1em 0 1em 0;
 	flex: 1;	
 	display: flex; /* Optional: Ensures children align properly */
 	flex-direction: column; /* Optional: Aligns children vertically */
+	min-height: 0;
 }
 
 #map, #site-details {

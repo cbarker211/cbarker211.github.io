@@ -198,8 +198,7 @@ function resetFilters(all_reentries) {
         const checkboxes = filter.querySelectorAll('input[type="checkbox"]');
 
         checkboxes.forEach(cb => {
-            // Check only the default value (if provided), otherwise uncheck all
-            cb.checked = (defaultCheckedValue !== null && cb.value === defaultCheckedValue);
+            cb.checked = defaultCheckedValues.includes(cb.value);
         });
     }
 
@@ -377,9 +376,15 @@ async function fetchEventsData() {
                 all_reentries.unab_mass.push(reentry.emissions.Unablated_Mass);
             });
         });
-
+        
         populateFilters(all_reentries);
-        updateVisualizations(all_reentries);
+        renderFilterChips({
+            LocationFilter: [],
+            CategoryFilter: [],
+            MegaconstellationFilter: [],
+        });
+
+        filterreentries(all_reentries);
 
     } catch (error) {
         console.error('Error fetching or processing the events data:', error);
@@ -553,6 +558,8 @@ function updateTables(filtered_reentries) {
 
 function updateGraph(filtered_reentries) {
 
+    window.lastFilteredData = filtered_reentries;
+
     const totals = {
         BC: 0,
         Al2O3: 0,
@@ -569,6 +576,12 @@ function updateGraph(filtered_reentries) {
         totals.Cl        += filtered_reentries.Cl[index];
         totals.NOx       += filtered_reentries.NOx[index];
     });
+ 
+    const pieContainer = document.getElementById('piechart');
+    const height = pieContainer.clientHeight;
+
+    // Set a threshold (tune this)
+    const showLabels = height > 220;
 
     const trace = [{
         type: 'pie',
@@ -577,7 +590,7 @@ function updateGraph(filtered_reentries) {
         marker: {
             colors: Object.keys(totals).map(key => strongColors[key])
         },
-        textinfo: 'label+percent',
+        textinfo: showLabels ? 'label+value+percent' : 'none',
         hoverinfo: 'label+value+percent',
         textposition: 'auto',
         hole: 0.4,
@@ -592,21 +605,26 @@ function updateGraph(filtered_reentries) {
     const layout = {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
-        autosize: true,
+        height: height,
         font: { color: 'black', family: 'Space Grotesk, sans-serif', size: chartFontSize}, // general font
         annotations: [{
-            text: 'Total<br>' + Math.round(totalSum/1000) + ' kt',
+            text: showLabels ? 'Total<br>' + Math.round(totalSum/1000) + ' kt' : '',
             showarrow: false,
-            font: { size: 14 }
+            font: { size: chartFontSize * 0.95 }
         }],
         hovermode: 'closest',
         dragmode: false,
-        margin: { t: 70, r: 40, b: 20, l: 40 },
+        margin: {
+            t: 0,
+            r: chartFontSize,
+            b: chartFontSize,
+            l: chartFontSize,
+        },
         showlegend: false
     };
 
     // Plot the chart inside the 'emissionsChart' div
-    Plotly.react('bar', trace, layout, {responsive: true, displayModeBar: false, scrollZoom: false });
+    Plotly.react('piechart', trace, layout, {responsive: true, displayModeBar: false, scrollZoom: false });
 
 }
 
@@ -677,7 +695,6 @@ function updateStack(filtered_reentries) {
     }
 
     const xVals = Object.keys(sums).sort();
-    const maxYValue = Math.max(...xVals);
 
     const traces = species.map(sp => {
         if (timeAggregation === "annual") {
@@ -761,7 +778,7 @@ function updateStack(filtered_reentries) {
         },
         barmode: 'stack',  
     };
-    Plotly.react('stack', traces , layout, {
+    Plotly.react('stackchart', traces , layout, {
         responsive: true, 
         displayModeBar: true 
     });
@@ -805,7 +822,6 @@ slider.noUiSlider.on('end', (values) => {
 
     startDate = intToDateString(startIndex);
     endDate = intToDateString(endIndex, true);
-    console.log(startDate, endDate,'End');
     fetchEventsData();
 });
 
@@ -815,7 +831,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     startDate = intToDateString(Number(daterange[0]));
     endDate = intToDateString(Number(daterange[1]),true);
 
-    fetchEventsData(); // Fetch data for the default date
     fetchAllDataForKeyMetrics();
 
     document.getElementById('applyFilters').addEventListener('click', () => {
@@ -830,7 +845,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     toggle.addEventListener("change", () => {
         timeAggregation = toggle.checked ? "annual" : "monthly";
         const filteredReentries = filterreentries(all_reentries);
-        updateStack(filteredReentries);
     });
 
     const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
@@ -839,8 +853,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             const activatedTabId = event.target.id;
             if (activatedTabId === 'chart-tab') {
                 // Resize your Plotly charts
-                Plotly.Plots.resize(document.getElementById('stack'));
-                Plotly.Plots.resize(document.getElementById('bar'));
+                Plotly.Plots.resize(document.getElementById('stackchart'));
+                Plotly.Plots.resize(document.getElementById('piechart'));
+                
+                if (window.lastFilteredData) {
+                    updateGraph(window.lastFilteredData);
+                }
             }
         });
     });
@@ -934,6 +952,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 });
 
+window.addEventListener('load', () => {
+    fetchEventsData();
+});
+
 toggleButton.addEventListener('click', () => {
     const isHidden = tableBody.style.display === 'none';
     tableBody.style.display = isHidden ? 'table-row-group' : 'none';
@@ -970,8 +992,17 @@ sidebarToggle.addEventListener('click', () => {
 
     setTimeout(() => {
         if (typeof Plotly !== 'undefined') {
-            Plotly.Plots.resize(document.getElementById('stack'));
-            Plotly.Plots.resize(document.getElementById('bar'));
+            Plotly.Plots.resize(document.getElementById('stackchart'));
+            Plotly.Plots.resize(document.getElementById('piechart'));
+            if (window.lastFilteredData) {
+                updateGraph(window.lastFilteredData);
+            }
         }
     }, 300);
+});
+
+window.addEventListener('resize', () => {
+    if (window.lastFilteredData) {
+        updateGraph(window.lastFilteredData);
+    }
 });

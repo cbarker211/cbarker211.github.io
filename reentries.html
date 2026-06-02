@@ -163,9 +163,11 @@
 
 					<div class="dashboard">
 
-						<div id="stack" class="chart stack"></div>
-
-						<div id="key-values-box" class="panel">
+						<div id="stack-panel" class="panel">
+							<div id="stackchart" class="stack"></div>
+						</div>
+						
+						<div id="key-values-panel" class="panel">
 
 							<h2>Key Metrics</h2>
 
@@ -197,9 +199,9 @@
 							</div>
 						</div>
 						  
-						<div id="pie-box" class="panel">
+						<div id="pie-panel" class="panel">
 							<h2>Total Emissions</h2>
-							<div id="bar" class="pie"></div>
+							<div id="piechart" class="pie"></div>
 						</div>	
 
 					</div>
@@ -240,7 +242,8 @@
 		</div>
 	</div>
 
-	<script defer src="js/reentries.js"></script>	
+	<script defer src="js/reentries.js"></script>
+		
 	<div id="faqModal" class="modal">
 		<div class="modal-content">
 			<button id="closeModal" class="close-modal">✕</button>
