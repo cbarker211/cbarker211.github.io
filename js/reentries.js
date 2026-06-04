@@ -193,7 +193,7 @@ monthSelect2.addEventListener('change', updateSliderFromSelects);
 
 function resetFilters(all_reentries) {
 
-    function resetCheckboxes(filterId, defaultCheckedValue = null) {
+    function resetCheckboxes(filterId, defaultCheckedValues = []) {
         const filter = document.getElementById(filterId);
         const checkboxes = filter.querySelectorAll('input[type="checkbox"]');
 
