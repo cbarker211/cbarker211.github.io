@@ -126,6 +126,7 @@
 					<div class="filter-buttons">
 						<button class="filter-button" type="submit" id="applyFilters">Apply</button>
 						<button class="filter-button" type="submit" id="resetFilters">Reset</button>
+						<button class="filter-button" type="submit" id="downloaddata">Download</button>
 					</div>
 
 					<div id="active-filters" class="filter-chips"></div>
@@ -249,31 +250,33 @@
 					<!-- Table for Launch Locations -->
 					<div class="table-container">
 						<p style="text-align: left;">[Emissions in tonnes. SMC=Satellite Megaconstellation. Click arrow to expand]</p>
-						<table id="launchTable">
-							<thead>
-								<tr>
-									<th>Date [UTC]</th>
-									<th>ID</th>
-									<th>Launch Site</th>
-									<th>Rocket</th>
-									<th>SMC</th>
-									<th>BC</th>
-									<th>CO</th>
-									<th>CO<sub>2</sub></th>
-									<th>H<sub>2</sub>O</th>
-									<th>Al<sub>2</sub>O<sub>3</sub></th>
-									<th>Cl<sub>y</sub></th>
-									<th>NO<sub>x</sub></th>
-								</tr>
-							</thead>
-							<tbody id="launchTableBody" style="display: none;">
-								<!-- Dynamic rows for launch locations will be inserted here -->
-							</tbody>
-							<tfoot id="launchTableFoot">
-								<!-- Totals for launches -->
-							</tfoot>
-							<button id="toggleTableButton" class="arrow-button">&#9650;</button>
-						</table>
+						<div class="table-scroll">
+							<table id="launchTable">
+								<thead>
+									<tr>
+										<th>Date [UTC]</th>
+										<th>ID</th>
+										<th>Launch Site</th>
+										<th>Rocket</th>
+										<th>SMC</th>
+										<th>BC</th>
+										<th>CO</th>
+										<th>CO<sub>2</sub></th>
+										<th>H<sub>2</sub>O</th>
+										<th>Al<sub>2</sub>O<sub>3</sub></th>
+										<th>Cl<sub>y</sub></th>
+										<th>NO<sub>x</sub></th>
+									</tr>
+								</thead>
+								<tbody id="launchTableBody" style="display: none;">
+									<!-- Dynamic rows for launch locations will be inserted here -->
+								</tbody>
+								<tfoot id="launchTableFoot">
+									<!-- Totals for launches -->
+								</tfoot>
+							</table>
+						</div>
+						<button id="toggleTableButton" class="arrow-button">&#9650;</button>
 					</div>
 				</div>
 			</div>

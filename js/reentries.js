@@ -785,6 +785,63 @@ function updateStack(filtered_reentries) {
 
 }
 
+function downloaddata(filtered_reentries) {
+    
+    const headers = Object.keys(filtered_reentries);
+    const length = filtered_reentries[headers[0]].length;
+
+    // Build rows
+    const rows = [];
+
+    function formatValue(value) {
+        if (value == null) return "";
+    
+        if (typeof value === "number") {
+        return value.toFixed(6); // or desired precision
+        }
+        
+        return String(value);
+    }
+
+    
+    function escapeCSV(value) {
+        const str = String(value);
+
+        if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+        }
+
+        return str;
+    }
+    
+    // Add header row
+    rows.push(headers.join(","));
+
+    for (let i = 0; i < length; i++) {
+        const row = headers.map(h => {
+            const v = formatValue(filtered_reentries[h][i]);
+            return escapeCSV(v);
+        });
+
+        rows.push(row.join(","));
+    }
+
+
+    const csv = rows.join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const filename = `reentries_${startDate.replaceAll("-","")}-${endDate.replaceAll("-","")}_v2_6_0.csv`;
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+}
+
 // Events
 
 slider.noUiSlider.on('update', (values, handle) => {
@@ -839,6 +896,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('resetFilters').addEventListener('click', () => {
         resetFilters(all_reentries);
+    });
+
+    
+    document.getElementById('downloaddata').addEventListener('click', () => {
+        downloaddata(window.lastFilteredData);
     });
 
     const toggle = document.getElementById("timeToggle");

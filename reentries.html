@@ -98,6 +98,7 @@
 					<div class="filter-buttons">
 						<button class="filter-button" type="submit" id="applyFilters">Apply</button>
 						<button class="filter-button" type="submit" id="resetFilters">Reset</button>
+						<button class="filter-button" type="submit" id="downloaddata">Download</button>
 					</div>
 
 					<div id="active-filters" class="filter-chips"></div>
@@ -201,31 +202,33 @@
 					<!-- Table for Re-entry Locations -->
 					<div class="table-container">
 						<p style="text-align: left;">[Emissions in tonnes. SMC=Satellite Megaconstellation, Cat=Category, P=Payload, C=Component, B=Booster, S=Stage. . Click arrow to expand]</p>
-						<table id="reentryTable">
-							<thead>
-								<tr>
-									<th>Date [UTC]</th>
-									<th>ID</th>
-									<th>Location</th>
-									<th>Name</th>
-									<th>Cat</th>
-									<th>SMC</th>
-									<th>AlO<sub>x</sub></th>
-									<th>NO<sub>x</sub></th>
-									<th>BC</th>
-									<th>HCl</th>
-									<th>Cl</th>
-									<th>Unablated Mass</th>
-								</tr>
-							</thead>
-							<tbody id="reentryTableBody" style="display: none;">
-								<!-- Dynamic rows for re-entry locations will be inserted here -->
-							</tbody>
-							<tfoot id="reentryTableFoot">
-								<!-- Totals for re-entries -->
-							</tfoot>
-							<button id="toggleTableButton" class="arrow-button">&#9650;</button>
-						</table>
+						<div class="table-scroll">
+							<table id="reentryTable">
+								<thead>
+									<tr>
+										<th>Date [UTC]</th>
+										<th>ID</th>
+										<th>Location</th>
+										<th>Name</th>
+										<th>Cat</th>
+										<th>SMC</th>
+										<th>AlO<sub>x</sub></th>
+										<th>NO<sub>x</sub></th>
+										<th>BC</th>
+										<th>HCl</th>
+										<th>Cl</th>
+										<th>Unablated Mass</th>
+									</tr>
+								</thead>
+								<tbody id="reentryTableBody" style="display: none;">
+									<!-- Dynamic rows for re-entry locations will be inserted here -->
+								</tbody>
+								<tfoot id="reentryTableFoot">
+									<!-- Totals for re-entries -->
+								</tfoot>
+							</table>
+						</div>
+						<button id="toggleTableButton" class="arrow-button">&#9650;</button>
 					</div>
 				</div>
 			</div>
