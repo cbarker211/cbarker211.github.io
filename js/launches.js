@@ -25,6 +25,15 @@ const strongColors = {
     NOx: '#c99b24'
 };
 
+maplibregl.accessToken = null; // not needed for MapLibre
+
+const map = new maplibregl.Map({
+    container: "map",
+    style: "https://tiles.versatiles.org/assets/styles/colorful/style.json",
+    center: [0, 20],
+    zoom: 1.5
+});
+
 //Variables
 let fullDataForMetrics = null;
 let siteDataMap = {};
@@ -646,88 +655,34 @@ async function updateMap(filtered_launches) {
     // Step 2: Convert to array
     const sites = Object.values(siteMap);
 
-    // Step 3: Extract data for Plotly
-    const lats = sites.map(s => s.lat);
-    const lons = sites.map(s => s.lon);
-    const counts = sites.map(s => s.labels.length);
-
-    const text = sites.map(s => 
-        `${s.name}<br>Launches: ${s.labels.length}`
-    );
-
     // Store for click interaction
     siteDataMap = {};
     sites.forEach(s => siteDataMap[s.name] = s);
-  
-   // Step 4: Plotly trace
-    const trace = {
-        type: "scattergeo",
-        mode: "markers",
-        lat: lats,
-        lon: lons,
-        text: text,
-        hoverinfo: "text",
-        marker: {
-            size: 6,
-            color: counts,
-            colorscale: [
-                [0.0, "white"],
-                [1.0, "red"]
-            ],
-            showscale: true,
-            opacity: 0.7,
-            line: {
-                width: 0.5,
-                color: "white"
+    window.siteDataMap = siteDataMap;
+
+    // ----------------------------
+    // Step 2: convert to GeoJSON
+    // ----------------------------
+    const geojson = {
+        type: "FeatureCollection",
+        features: sites.map(s => ({
+            type: "Feature",
+            geometry: {
+                type: "Point",
+                coordinates: [s.lon, s.lat]
             },
-            colorbar: {
-                title: {
-                    text: "Number of Launches",
-                    side: "right" // optional (top, right, etc.)
-                }
+            properties: {
+                name: s.name,
+                count: s.labels.length
             }
-        }
+        }))
     };
 
-    // Step 5: Layout
-    const layout = {
-        margin: { t: 0, b: 0, l: 0, r: 0 },
-        geo: {
-            scope: "world",
-            projection: { type: "natural earth" },
-            showland: true,
-            landcolor: "#1e1e1e",
-            showocean: true,
-            oceancolor: "#143d59",
-            showcountries: true,
-            countrycolor: "#444",
-            bgcolor: "rgba(0,0,0,0)"
-        }
-    };
+    const src = map.getSource("labels");
 
-    // Step 6: Render
-    Plotly.react("map", [trace], layout, { responsive: true });
-
-    const mapEl = document.getElementById("map");
-    mapEl.removeAllListeners?.(); // remove previous listeners to speed it up
-
-    // Change cursor to pointer when hovering over points
-    mapEl.on('plotly_hover', function() {
-        mapEl.style.cursor = 'pointer';
-    });
-
-    // Revert cursor when not hovering
-    mapEl.on('plotly_unhover', function() {
-        mapEl.style.cursor = 'default';
-    });
-
-    document.getElementById("map").on('plotly_click', function(data) {
-        const pointIndex = data.points[0].pointIndex;
-        const siteName = sites[pointIndex].name;
-        const site = siteDataMap[siteName];
-        updateSiteTable(site);
-    });
-
+    if (src) {
+        src.setData(geojson);
+    }
 }
 
 function updateTables(filtered_launches) {
@@ -1306,4 +1261,45 @@ window.addEventListener('resize', () => {
     if (window.lastFilteredData) {
         updateGraph(window.lastFilteredData);
     }
+});
+
+map.on("load", () => {
+
+    map.addSource("labels", {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] }
+    });
+
+    map.addLayer({
+        id: "launch-points",
+        type: "circle",
+        source: "labels",
+        paint: {
+            "circle-radius": 6,
+            "circle-color": [
+                "interpolate",
+                ["linear"],
+                ["get", "count"],
+                1, "#ffffff",
+                10, "#ff4d4d",
+                50, "#b30000"
+            ],
+            "circle-opacity": 0.75,
+            "circle-stroke-width": 0.5,
+            "circle-stroke-color": "#ffffff"
+        }
+    });
+
+    map.on("mouseenter", "launch-points", () => {
+        map.getCanvas().style.cursor = "pointer";
+    });
+
+    map.on("mouseleave", "launch-points", () => {
+        map.getCanvas().style.cursor = "";
+    });
+
+    map.on("click", "launch-points", (e) => {
+        const siteName = e.features[0].properties.name;
+        updateSiteTable(window.siteDataMap[siteName]);
+    });
 });
