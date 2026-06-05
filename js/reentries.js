@@ -32,6 +32,7 @@ const strongColors = {
 };
 
 //Variables
+let fullDataForMetrics = null;
 let startDate, endDate;
 let timeAggregation = "annual";
 var slider = document.getElementById('slider');
@@ -376,6 +377,11 @@ async function fetchEventsData() {
                 all_reentries.unab_mass.push(reentry.emissions.Unablated_Mass);
             });
         });
+
+        if (!fullDataForMetrics) {
+            fullDataForMetrics = deriveKeyMetricsData(all_reentries);
+            updateKeyMetrics(fullDataForMetrics);
+        }
         
         populateFilters(all_reentries);
         renderFilterChips({
@@ -397,50 +403,12 @@ function updateVisualizations(filtered_reentries) {
     updateStack(filtered_reentries);
 }
 
-async function fetchAllDataForKeyMetrics() {
-    try {
-        const response = await fetch(
-            `https://cbarker.pythonanywhere.com/api/reentries?start_date=1957-01-01&end_date=2025-12-31`
-        );
-
-        const reentryData = await response.json();
-
-        const all = {
-            date: [],
-            rocket: [],
-            smc: [],
-            NOx: [],
-        };
-
-        Object.keys(reentryData).forEach(date => {
-            reentryData[date].reentries.forEach(reentry => {
-                all.date.push(reentry.date);
-
-                all.rocket.push(
-                    reentry.variant === "-" 
-                        ? reentry.rocket 
-                        : reentry.rocket + " " + reentry.variant
-                );
-
-                all.smc.push(reentry.smc.toString());
-
-                const includeLow = true;   // default matches UI
-                const includeHigh = false;
-                
-                const NOx =
-                    (includeLow ? parseFloat(reentry.emissions.NOx) : 0) +
-                    (includeHigh ? parseFloat(reentry.emissions_above.NOx) : 0);
-                
-
-                all.NOx.push(NOx);
-            });
-        });
-
-        updateKeyMetrics(all);
-
-    } catch (error) {
-        console.error("Error loading full dataset:", error);
-    }
+function deriveKeyMetricsData(all_reentries) {
+    return {
+        date: all_reentries.date,
+        smc: all_reentries.smc,
+        NOx: all_reentries.NOx
+    };
 }
 
 function updateKeyMetrics(data) {
@@ -887,8 +855,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const daterange = slider.noUiSlider.get();
     startDate = intToDateString(Number(daterange[0]));
     endDate = intToDateString(Number(daterange[1]),true);
-
-    fetchAllDataForKeyMetrics();
 
     document.getElementById('applyFilters').addEventListener('click', () => {
         filterreentries(all_reentries);

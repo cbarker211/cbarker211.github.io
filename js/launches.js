@@ -26,6 +26,7 @@ const strongColors = {
 };
 
 //Variables
+let fullDataForMetrics = null;
 let siteDataMap = {};
 let startDate, endDate;
 let timeAggregation = "annual";
@@ -521,6 +522,11 @@ async function fetchEventsData() {
 
             });
         });
+
+        if (!fullDataForMetrics) {
+            fullDataForMetrics = deriveKeyMetricsData(all_launches);
+            updateKeyMetrics(fullDataForMetrics);
+        }
         
         populateFilters(all_launches);
 
@@ -545,57 +551,18 @@ function updateVisualizations(filtered_launches) {
     updateStack(filtered_launches);
 }
 
-async function fetchAllDataForKeyMetrics() {
-    try {
-        const response = await fetch(
-            `https://cbarker.pythonanywhere.com/api/launches?start_date=1957-01-01&end_date=2025-12-31`
-        );
-
-        const launchData = await response.json();
-
-        const all = {
-            date: [],
-            rocket: [],
-            smc: [],
-            BC: [],
-        };
-
-        Object.keys(launchData).forEach(date => {
-            launchData[date].launches.forEach(launch => {
-                all.date.push(launch.date);
-
-                all.rocket.push(
-                    launch.variant === "-" 
-                        ? launch.rocket 
-                        : launch.rocket + " " + launch.variant
-                );
-
-                all.smc.push(launch.smc.toString());
-
-                const includeLow = true;   // default matches UI
-                const includeHigh = false;
-                
-                function sum(arr, idxs) {
-                    return idxs.reduce((s, i) => s + (parseFloat(arr?.[i]) || 0), 0);
-                }
-
-                const BC_low  = sum(launch.emissions.BC, [0,1,2]);
-                const BC_high = sum(launch.emissions.BC, [3]);
-
-                const BC =
-                    (includeLow ? BC_low : 0) +
-                    (includeHigh ? BC_high : 0);
-                
-
-                all.BC.push(BC);
-            });
-        });
-
-        updateKeyMetrics(all);
-
-    } catch (error) {
-        console.error("Error loading full dataset:", error);
-    }
+function deriveKeyMetricsData(all_launches) {
+    return {
+        date: all_launches.date,
+        rocket: all_launches.rocket,
+        smc: all_launches.smc,
+        BC: all_launches.date.map((_, i) =>
+            all_launches.BC_0_15[i] +
+            all_launches.BC_15_50[i] +
+            all_launches.BC_50_80[i]
+            // exclude BC_80_plus to match your existing default
+        )
+    };
 }
 
 function updateKeyMetrics(data) {
@@ -1157,8 +1124,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const daterange = slider.noUiSlider.get();
     startDate = intToDateString(Number(daterange[0]));
     endDate = intToDateString(Number(daterange[1]),true);
-
-    fetchAllDataForKeyMetrics();
 
     document.getElementById('applyFilters').addEventListener('click', () => {
         filterlaunches(all_launches);
