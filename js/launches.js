@@ -36,7 +36,6 @@ const map = new maplibregl.Map({
 
 //Variables
 let tableExpanded = false;
-let lastFilteredData = null;
 let fullDataForMetrics = null;
 let siteDataMap = {};
 let startDate, endDate;
@@ -223,7 +222,7 @@ yearSelect2.addEventListener('change', updateSliderFromSelects);
 monthSelect2.addEventListener('change', updateSliderFromSelects);
 
 
-function resetFilters(all_launches) {
+function resetFilters(launches) {
 
     function resetCheckboxes(filterId, defaultCheckedValues = []) {
         const filter = document.getElementById(filterId);
@@ -241,7 +240,7 @@ function resetFilters(all_launches) {
     resetCheckboxes('AltitudeFilter', ['0-15 km', '15-50 km', '50-80 km']); // restore default
 
     // Re-run filtering or show all data
-    filterlaunches(all_launches);
+    filterlaunches(launches);
 }
 
 function populateFilters(launches) {
@@ -431,6 +430,8 @@ function filterlaunches(all_launches) {
         filteredData.NOx.push(NOx);
     });
 
+    window.lastFilteredData = filteredData;
+
     // Update the visualizations with the filtered data
     updateVisualizations(filteredData);
 
@@ -540,14 +541,6 @@ async function fetchEventsData() {
         }
         
         populateFilters(all_launches);
-
-        renderFilterChips({
-            LocationFilter: [],
-            VehicleFilter: [],
-            MegaconstellationFilter: [],
-            AltitudeFilter: ['0-15 km', '15-50 km', '50-80 km']
-        });
-
         filterlaunches(all_launches);
 
     } catch (error) {
@@ -688,8 +681,6 @@ async function updateMap(filtered_launches) {
 }
 
 function updateTables(filtered_launches) {
-    
-    lastFilteredData = filtered_launches;
 
     const table1Foot = document.getElementById('launchTableFoot');
     table1Foot.innerHTML = '';
@@ -756,8 +747,6 @@ function buildTableRows(filtered_launches) {
 }
 
 function updateGraph(filtered_launches) {
-
-    window.lastFilteredData = filtered_launches;
 
     const totals = {
         NOx: 0,
@@ -1105,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const toggle = document.getElementById("timeToggle");
     toggle.addEventListener("change", () => {
         timeAggregation = toggle.checked ? "annual" : "monthly";
-        filterlaunches(all_launches);
+        updateVisualizations(window.lastFilteredData);
     });
 
     const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
@@ -1223,7 +1212,7 @@ toggleButton.addEventListener('click', () => {
     tableExpanded = !tableExpanded;
     if (tableExpanded) {
         tableBody.style.display = 'table-row-group';
-        if (lastFilteredData) {buildTableRows(lastFilteredData);}
+        if (window.lastFilteredData) {buildTableRows(lastFilteredData);}
         toggleButton.innerHTML = '&#9660;';
     } else {
         tableBody.style.display = 'none';

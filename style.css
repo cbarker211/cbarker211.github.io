@@ -155,6 +155,9 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
     transition: transform 0.3s ease, opacity 2s ease 0.3s;
 }
 
+.filter-item {
+	text-align: left;
+}
 .filter-toggle {
 	background: none;
     border: none;
