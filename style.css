@@ -278,7 +278,7 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
     color: red;
 }
 
-.main-row {
+.main {
 	display: flex;
 	flex: 1 1 auto; /* take up remaining space, but allow footer room */
 	min-height: 0;
@@ -939,7 +939,7 @@ tfoot {
 }
 
 select {
-	width: 130px;
+	width: auto;
 	}
 
 	/* space-grotesk-300 - latin */

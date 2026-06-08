@@ -46,43 +46,41 @@
 
 	</style>
 
-	<div class="main-row">
+	<div class="main">
 
 		<div class="left-column">
 			<div class="sidebar-rail">
 				
 				<a href="index.html" class="sidebar-nav-item home-item">
-					<img src="assets/images/home1.png" alt="Home" class="home-link">
+					<img src="assets/images/home1.png" class="home-link">
 					<span>Home</span>
 				</a>
 
 				<a href="launches.html" class="sidebar-nav-item launch-item" style="background: rgba(255,255,255,0.08);
 																					border-radius: 6px;
 																					color: white;">
-					<img src="assets/images/favicon_rocket.ico" alt="Home" class="launch-link" style="filter: brightness(1);">
+					<img src="assets/images/favicon_rocket.ico" class="launch-link" style="filter: brightness(1);">
 					<span>Launch Emissions</span>
 				</a>
 
 				<a href="reentries.html" class="sidebar-nav-item satellite-item">
-					<img src="assets/images/favicon_satellite.ico" alt="Home" class="satellite-link">
+					<img src="assets/images/favicon_satellite.ico" class="satellite-link">
 					<span>Re-entry Emissions</span>
 				</a>
 
 				<div id="faqButton" class="sidebar-nav-item faq-box">
-					<img src="assets/images/question-sign.svg" alt="FAQ" class="faq-link">
+					<img src="assets/images/question-sign.svg" class="faq-link">
 					<span>Further Information</span>
 				</div>
 
 				<div id="toggleSidebar" class="sidebar-nav-item filter-item">
-					<img src="assets/images/setting.png"  alt="Filter" class="filter-img">
+					<img src="assets/images/setting.png" class="filter-img">
 					<span>Filters
 						<span style="font-size: 0.8em; padding: 0;">
 							(click to open/collapse sidebar)
 						</span>
 					</span>
 				</div>
-
-				<button id="toggleSidebar" class="filter-toggle"></button>
 
 			</div>
 
@@ -136,13 +134,43 @@
 			<div class="nav-tabs-container d-flex align-items-center">
 				<ul class="nav nav-tabs" id="myTab" role="tablist">
 					<li class="nav-item" role="presentation">
-					<button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-tabpane" type="button" role="tab" aria-controls="chart" aria-selected="true">Emissions Dashboard</button>
+					<button 
+						class="nav-link active" 
+						id="chart-tab" 
+						data-bs-toggle="tab" 
+						data-bs-target="#chart-tabpane" 
+						type="button" 
+						role="tab" 
+						aria-controls="chart-tabpane" 
+						aria-selected="true">
+						Emissions Dashboard
+					</button>
 					</li>
 					<li class="nav-item" role="presentation">
-					<button class="nav-link"        id="map-tab" data-bs-toggle="tab" data-bs-target="#map-tabpane" type="button" role="tab" aria-controls="map" aria-selected="false">Launch Sites</button>
+					<button 
+						class="nav-link"        
+						id="map-tab" 
+						data-bs-toggle="tab" 
+						data-bs-target="#map-tabpane" 
+						type="button" 
+						role="tab" 
+						aria-controls="map-tabpane" 
+						aria-selected="false">
+						Launch Sites
+					</button>
 					</li>
 					<li class="nav-item" role="presentation">
-					<button class="nav-link"        id="details-tab" data-bs-toggle="tab" data-bs-target="#details-tabpane" type="button" role="tab"aria-controls="details" aria-selected="false">Launch Details</button>
+					<button 
+						class="nav-link"        
+						id="details-tab" 
+						data-bs-toggle="tab" 
+						data-bs-target="#details-tabpane" 
+						type="button" 
+						role="tab"
+						aria-controls="details-tabpane" 
+						aria-selected="false">
+						Launch Details
+					</button>
 					</li>
 				</ul>
 				<div class="tracker-header">
@@ -157,6 +185,7 @@
 
 			<div style="display:flex; justify-content:space-between; align-items:center; margin-top:1em;">
 				<div>
+					Start Date:  
 					<select id="month-select1"></select>
 					<select id="year-select1"></select>
 				</div>
@@ -164,13 +193,14 @@
 					<span id="label-monthly">Monthly</span>
 
 					<label class="switch">
-					  <input type="checkbox" id="timeToggle" checked>
+					  <input type="checkbox" id="timeToggle" checked aria-label="Toggle between monthly and annual emissions"checked>
 					  <span class="slider"></span>
 					</label>
 				  
 					<span id="label-annual">Annual</span>
 				</div>
 				<div>
+					End Date:
 					<select id="month-select2"></select>
 					<select id="year-select2"></select>
 				</div>
