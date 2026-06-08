@@ -32,6 +32,8 @@ const strongColors = {
 };
 
 //Variables
+let tableExpanded = false;
+let lastFilteredData = null;
 let fullDataForMetrics = null;
 let startDate, endDate;
 let timeAggregation = "annual";
@@ -467,43 +469,20 @@ function updateKeyMetrics(data) {
 }
 
 function updateTables(filtered_reentries) {
+
+    lastFilteredData = filtered_reentries;
     
-    const table1Body = document.getElementById('reentryTableBody');
     const table1Foot = document.getElementById('reentryTableFoot');
-    table1Body.innerHTML = '';
     table1Foot.innerHTML = '';
     let totalBC = 0, totalmass = 0, totalHCl = 0;
     let totalAl2O3 = 0, totalCl = 0; totalNOx = 0;
     filtered_reentries.id.forEach((location, index) => {
-        const row = document.createElement('tr');
-        const BC = filtered_reentries.BC[index];
-        const Al2O3 = filtered_reentries.Al2O3[index];
-        const HCl = filtered_reentries.HCl[index];
-        const Cl = filtered_reentries.Cl[index];
-        const NOx = filtered_reentries.NOx[index];
-        const unab_mass = filtered_reentries.unab_mass[index];
-        totalBC    += BC;
-        totalAl2O3 += Al2O3;
-        totalNOx   += NOx;
-        totalHCl   += HCl;
-        totalCl    += Cl;
-        totalmass  += unab_mass;
-        
-        row.innerHTML = `
-            <td>${filtered_reentries.date[index].replace("T", " ").replace("Z", " ")}</td>
-            <td>${filtered_reentries.id[index]}</td>
-            <td class="wrap-text">${getLocationLabel(filtered_reentries.location[index])}</td>
-            <td class="wrap-text">${filtered_reentries.objname[index]}</td>
-            <td>${filtered_reentries.category[index]}</td>
-            <td>${filtered_reentries.smc[index]}</td>
-            <td>${filtered_reentries.Al2O3[index].toFixed(1)}</td>
-            <td>${filtered_reentries.NOx[index].toFixed(1)}</td>
-            <td>${filtered_reentries.BC[index].toFixed(1)}</td>
-            <td>${filtered_reentries.HCl[index].toFixed(1)}</td>
-            <td>${filtered_reentries.Cl[index].toFixed(1)}</td>
-            <td>${filtered_reentries.unab_mass[index].toFixed(1)}</td>
-        `;
-        table1Body.appendChild(row);
+        totalBC    += filtered_reentries.BC[index];
+        totalAl2O3 += filtered_reentries.Al2O3[index];
+        totalNOx   += filtered_reentries.NOx[index];
+        totalHCl   += filtered_reentries.HCl[index];
+        totalCl    += filtered_reentries.Cl[index];
+        totalmass  += filtered_reentries.unab_mass[index];
     });
     // Add Totals to Re-entry Table
     const totalRow1 = document.createElement('tr');
@@ -522,6 +501,38 @@ function updateTables(filtered_reentries) {
         <td>${totalmass.toFixed(2)}</td>
     `;
     table1Foot.appendChild(totalRow1);
+}
+
+function buildTableRows(filtered_reentries) {
+
+    const table1Body = document.getElementById('reentryTableBody');
+
+    const fragment = document.createDocumentFragment();
+
+    filtered_reentries.id.forEach((id, index) => {
+
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+            <td>${filtered_reentries.date[index].replace("T", " ").replace("Z", " ")}</td>
+            <td>${id}</td>
+            <td class="wrap-text">${getLocationLabel(filtered_reentries.location[index])}</td>
+            <td class="wrap-text">${filtered_reentries.objname[index]}</td>
+            <td>${filtered_reentries.category[index]}</td>
+            <td>${filtered_reentries.smc[index]}</td>
+            <td>${filtered_reentries.Al2O3[index].toFixed(1)}</td>
+            <td>${filtered_reentries.NOx[index].toFixed(1)}</td>
+            <td>${filtered_reentries.BC[index].toFixed(1)}</td>
+            <td>${filtered_reentries.HCl[index].toFixed(1)}</td>
+            <td>${filtered_reentries.Cl[index].toFixed(1)}</td>
+            <td>${filtered_reentries.unab_mass[index].toFixed(1)}</td>
+        `;
+
+        fragment.appendChild(row);
+
+    });
+
+    table1Body.replaceChildren(fragment);
 }
 
 function updateGraph(filtered_reentries) {
@@ -959,8 +970,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const faqButton = document.getElementById("faqButton");
     const closeBtn = document.getElementById("closeModal");
 
-    //modal.classList.add("active")
-
     // open via button
     faqButton.onclick = () => {
         modal.classList.add("active");
@@ -985,9 +994,17 @@ window.addEventListener('load', () => {
 });
 
 toggleButton.addEventListener('click', () => {
-    const isHidden = tableBody.style.display === 'none';
-    tableBody.style.display = isHidden ? 'table-row-group' : 'none';
-    toggleButton.innerHTML = isHidden ? '&#9660;' : '&#9650;'; // Down arrow when shown, up arrow when hidden
+    tableExpanded = !tableExpanded;
+    if (tableExpanded) {
+        tableBody.style.display = 'table-row-group';
+        if (lastFilteredData) {buildTableRows(lastFilteredData);}
+        toggleButton.innerHTML = '&#9660;';
+    } else {
+        tableBody.style.display = 'none';
+        tableBody.innerHTML = ''; // Free up memory
+        toggleButton.innerHTML = '&#9650;';
+    }
+
 });
 
 document.querySelectorAll('.filter').forEach(filter => {

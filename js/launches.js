@@ -35,6 +35,8 @@ const map = new maplibregl.Map({
 });
 
 //Variables
+let tableExpanded = false;
+let lastFilteredData = null;
 let fullDataForMetrics = null;
 let siteDataMap = {};
 let startDate, endDate;
@@ -687,44 +689,21 @@ async function updateMap(filtered_launches) {
 
 function updateTables(filtered_launches) {
     
-    const table1Body = document.getElementById('launchTableBody');
+    lastFilteredData = filtered_launches;
+
     const table1Foot = document.getElementById('launchTableFoot');
-    table1Body.innerHTML = '';
     table1Foot.innerHTML = '';
     let totalBC = 0, totalCO = 0, totalCO2 = 0, totalH2O = 0;
     let totalAl2O3 = 0, totalCly = 0, totalNOx = 0;
+
     filtered_launches.id.forEach((id, index) => {
-        const row = document.createElement('tr');
-        const CO = filtered_launches.CO[index];
-        const CO2 = filtered_launches.CO2[index];
-        const H2O = filtered_launches.H2O[index];
-        const BC = filtered_launches.BC[index];
-        const Al2O3 = filtered_launches.Al2O3[index];
-        const Cly = filtered_launches.Cly[index];
-        const NOx = filtered_launches.NOx[index];
-        totalCO    += CO;
-        totalCO2   += CO2;
-        totalH2O   += H2O;
-        totalBC    += BC;
-        totalAl2O3 += Al2O3;
-        totalNOx   += NOx;
-        totalCly   += Cly;
-        
-        row.innerHTML = `
-            <td>${filtered_launches.date[index].replace("T", " ").replace("Z", " ")}</td>
-            <td>${id}</td>
-            <td class="wrap-text">${filtered_launches.text[index]}</td>
-            <td class="wrap-text">${filtered_launches.rocket[index]}</td>
-            <td>${filtered_launches.smc[index]}</td>
-            <td>${filtered_launches.BC[index].toFixed(1)}</td>
-            <td>${filtered_launches.CO[index].toFixed(1)}</td>
-            <td>${filtered_launches.CO2[index].toFixed(1)}</td>
-            <td>${filtered_launches.H2O[index].toFixed(1)}</td>
-            <td>${filtered_launches.Al2O3[index].toFixed(1)}</td>
-            <td>${filtered_launches.Cly[index].toFixed(1)}</td>
-            <td>${filtered_launches.NOx[index].toFixed(1)}</td>
-        `;
-        table1Body.appendChild(row);
+        totalCO    += filtered_launches.CO[index];
+        totalCO2   += filtered_launches.CO2[index];
+        totalH2O   += filtered_launches.H2O[index];
+        totalBC    += filtered_launches.BC[index];
+        totalAl2O3 += filtered_launches.Al2O3[index];
+        totalNOx   += filtered_launches.NOx[index];
+        totalCly   += filtered_launches.Cly[index];
     });
     // Add Totals to Launch Table
     const totalRow1 = document.createElement('tr');
@@ -743,6 +722,37 @@ function updateTables(filtered_launches) {
         <td>${totalNOx.toFixed(1)}</td>
     `;
     table1Foot.appendChild(totalRow1);
+}
+
+function buildTableRows(filtered_launches) {
+
+    const table1Body = document.getElementById('launchTableBody');
+
+    const fragment = document.createDocumentFragment();
+
+    filtered_launches.id.forEach((id, index) => {
+
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+            <td>${filtered_launches.date[index].replace("T", " ").replace("Z", " ")}</td>
+            <td>${id}</td>
+            <td class="wrap-text">${filtered_launches.text[index]}</td>
+            <td class="wrap-text">${filtered_launches.rocket[index]}</td>
+            <td>${filtered_launches.smc[index]}</td>
+            <td>${filtered_launches.BC[index].toFixed(1)}</td>
+            <td>${filtered_launches.CO[index].toFixed(1)}</td>
+            <td>${filtered_launches.CO2[index].toFixed(1)}</td>
+            <td>${filtered_launches.H2O[index].toFixed(1)}</td>
+            <td>${filtered_launches.Al2O3[index].toFixed(1)}</td>
+            <td>${filtered_launches.Cly[index].toFixed(1)}</td>
+            <td>${filtered_launches.NOx[index].toFixed(1)}</td>
+        `;
+
+        fragment.appendChild(row);
+    });
+
+    table1Body.replaceChildren(fragment);
 }
 
 function updateGraph(filtered_launches) {
@@ -1186,8 +1196,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const faqButton = document.getElementById("faqButton");
     const closeBtn = document.getElementById("closeModal");
 
-    //modal.classList.add("active")
-
     // open via button
     faqButton.onclick = () => {
         modal.classList.add("active");
@@ -1212,9 +1220,17 @@ window.addEventListener('load', () => {
 });
 
 toggleButton.addEventListener('click', () => {
-    const isHidden = tableBody.style.display === 'none';
-    tableBody.style.display = isHidden ? 'table-row-group' : 'none';
-    toggleButton.innerHTML = isHidden ? '&#9660;' : '&#9650;'; // Down arrow when shown, up arrow when hidden
+    tableExpanded = !tableExpanded;
+    if (tableExpanded) {
+        tableBody.style.display = 'table-row-group';
+        if (lastFilteredData) {buildTableRows(lastFilteredData);}
+        toggleButton.innerHTML = '&#9660;';
+    } else {
+        tableBody.style.display = 'none';
+        tableBody.innerHTML = ''; // Free up memory
+        toggleButton.innerHTML = '&#9650;';
+    }
+
 });
 
 document.querySelectorAll('.filter').forEach(filter => {
