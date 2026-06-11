@@ -40,6 +40,8 @@ let fullDataForMetrics = null;
 let siteDataMap = {};
 let startDate, endDate;
 let timeAggregation = "annual";
+let all_launches = null;
+let latestMapGeojson = { type: "FeatureCollection", features: [] };
 var slider = document.getElementById('slider');
 var yearSelect1 = document.getElementById('year-select1');
 var yearSelect2 = document.getElementById('year-select2');
@@ -673,11 +675,10 @@ async function updateMap(filtered_launches) {
         }))
     };
 
+    latestMapGeojson = geojson;
     const src = map.getSource("labels");
+    if (src) src.setData(geojson);
 
-    if (src) {
-        src.setData(geojson);
-    }
 }
 
 function updateTables(filtered_launches) {
@@ -1080,14 +1081,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     endDate = intToDateString(Number(daterange[1]),true);
 
     document.getElementById('applyFilters').addEventListener('click', () => {
+        if (!all_launches) return;
         filterlaunches(all_launches);
     });
 
     document.getElementById('resetFilters').addEventListener('click', () => {
+        if (!all_launches) return;
         resetFilters(all_launches);
     });
 
     document.getElementById('downloaddata').addEventListener('click', () => {
+        if (!all_launches) return;
         downloaddata(window.lastFilteredData);
     });
 
@@ -1118,6 +1122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     document.getElementById("active-filters").addEventListener("click", (e) => {
+        if (!all_launches) return;
         const btn = e.target.closest(".remove-chip");
         if (!btn) return;
     
@@ -1212,7 +1217,7 @@ toggleButton.addEventListener('click', () => {
     tableExpanded = !tableExpanded;
     if (tableExpanded) {
         tableBody.style.display = 'table-row-group';
-        if (window.lastFilteredData) {buildTableRows(lastFilteredData);}
+        if (window.lastFilteredData) {buildTableRows(window.lastFilteredData);}
         toggleButton.innerHTML = '&#9660;';
     } else {
         tableBody.style.display = 'none';
@@ -1307,4 +1312,6 @@ map.on("load", () => {
         const siteName = e.features[0].properties.name;
         updateSiteTable(window.siteDataMap[siteName]);
     });
+
+    map.getSource("labels").setData(latestMapGeojson);
 });

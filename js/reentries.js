@@ -468,7 +468,7 @@ function updateTables(filtered_reentries) {
     const table1Foot = document.getElementById('reentryTableFoot');
     table1Foot.innerHTML = '';
     let totalBC = 0, totalmass = 0, totalHCl = 0;
-    let totalAl2O3 = 0, totalCl = 0; totalNOx = 0;
+    let totalAl2O3 = 0, totalCl = 0, totalNOx = 0;
     filtered_reentries.id.forEach((location, index) => {
         totalBC    += filtered_reentries.BC[index];
         totalAl2O3 += filtered_reentries.Al2O3[index];
@@ -988,7 +988,7 @@ toggleButton.addEventListener('click', () => {
     tableExpanded = !tableExpanded;
     if (tableExpanded) {
         tableBody.style.display = 'table-row-group';
-        if (window.lastFilteredData) {buildTableRows(lastFilteredData);}
+        if (window.lastFilteredData) {buildTableRows(window.lastFilteredData);}
         toggleButton.innerHTML = '&#9660;';
     } else {
         tableBody.style.display = 'none';
