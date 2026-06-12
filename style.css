@@ -364,12 +364,12 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
     flex-direction: column;
     overflow-y: auto;
     border: 0.1em solid rgba(255,255,255,0.2);
-	transform: translateY(10px);
     transition: transform 0.25s ease;
     width: min(90vw, 700px);   /* Replace fit-content */
 	height: 80vh;
     max-height: 80vh;
 	scrollbar-gutter: stable;
+	color: #ffffff;
 }
 
 .modal-content p {
