@@ -50,7 +50,7 @@ var monthSelect2 = document.getElementById('month-select2');
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-// Playback + URL-restore state
+// Playback
 let playState = { playing: false, token: 0 };
 let playYMax = null;
 let playxaxis = null;

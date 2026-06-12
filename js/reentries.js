@@ -13,6 +13,7 @@ const locationGroups = {
 };
 const toggleButton = document.getElementById('toggleTableButton');
 const tableBody = document.getElementById('reentryTableBody');
+
 const prettyNames = {
     BC: 'BC',
     unab_mass: 'Unablated Mass',
@@ -36,6 +37,7 @@ let tableExpanded = false;
 let fullDataForMetrics = null;
 let startDate, endDate;
 let timeAggregation = "annual";
+let all_reentries = null;
 var slider = document.getElementById('slider');
 var yearSelect1 = document.getElementById('year-select1');
 var yearSelect2 = document.getElementById('year-select2');
@@ -43,6 +45,38 @@ var monthSelect1 = document.getElementById('month-select1');
 var monthSelect2 = document.getElementById('month-select2');
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// ---- Loading skeleton ----
+function setLoading(isLoading) {
+    document.body.classList.toggle('loading', !!isLoading);
+}
+
+// ---- Count-up animation for the Key Metrics cards ----
+function animateCount(el, target, opts = {}) {
+    if (!el) return;
+    const { decimals = 0, prefix = '', suffix = '', duration = 900, useGrouping = true } = opts;
+    const fmt = (v) => {
+        const n = Number(v.toFixed(decimals));
+        const num = useGrouping
+            ? n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+            : n.toFixed(decimals);
+        return `${prefix}${num}${suffix}`;
+    };
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !Number.isFinite(target)) {
+        el.textContent = fmt(Number.isFinite(target) ? target : 0);
+        return;
+    }
+    const start = performance.now();
+    function frame(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+        el.textContent = fmt(target * eased);
+        if (t < 1) requestAnimationFrame(frame);
+        else el.textContent = fmt(target);
+    }
+    requestAnimationFrame(frame);
+}
               
 // Small helper functions
 
@@ -314,7 +348,14 @@ function filterreentries(all_reentries) {
         indicesToKeep = indicesToKeep.filter(i => selectedSmc.includes(all_reentries.smc[i]));
     }
 
-    // Return the filtered group (keeping the structure)
+    if (startDate && endDate) {
+        indicesToKeep = indicesToKeep.filter(i => {
+            const d = String(all_reentries.date[i]).slice(0, 10);
+            return d >= startDate && d <= endDate;
+        });
+    }
+
+    // Filter the column arrays using the indicesToKeep
     const filteredData = {
         date: indicesToKeep.map(i => all_reentries.date[i]),
         location: indicesToKeep.map(i => all_reentries.location[i]),
@@ -344,8 +385,10 @@ function filterreentries(all_reentries) {
 }
 
 async function fetchEventsData() {
+    setLoading(true);
     try {
         // Fetch the data from the API (replace with your actual API URL)
+        // Data is in tonnes in json files.
         const response = await fetch(`https://cbarker.pythonanywhere.com/api/reentries?start_date=${startDate}&end_date=${endDate}`); // Replace with your actual API URL
         const reentryData = await response.json();
         
@@ -391,6 +434,8 @@ async function fetchEventsData() {
 
     } catch (error) {
         console.error('Error fetching or processing the events data:', error);
+    } finally {
+        setLoading(false);
     }
 }
 
@@ -449,22 +494,31 @@ function updateKeyMetrics(data) {
     
     const avgIncrease = reentries2025 - reentries2024;    
 
-    document.getElementById("kv-reentries").textContent =
-        `${totalReentries.toLocaleString()}`;
-    
-    document.getElementById("kv-growth").textContent =
-        `+${Math.round(avgIncrease)} yr⁻¹`;
-    
-    document.getElementById("kv-bc").textContent =
-        `${totalNOx.toFixed(1)} kt`;
-    
-    document.getElementById("kv-smc").textContent =
-        `${smcPercent.toFixed(1)}% of NOₓ`;
+    animateCount(document.getElementById("kv-reentries"), totalReentries, { 
+        decimals: 0 
+    });
+
+    animateCount(document.getElementById("kv-growth"), Math.round(avgIncrease), {
+        decimals: 0,
+        prefix: avgIncrease < 0 ? '' : '+',
+        suffix: ' yr⁻¹'
+    });
+
+    animateCount(document.getElementById("kv-nox"), totalNOx, { 
+        decimals: 1, 
+        suffix: ' kt' 
+    });
+
+    animateCount(document.getElementById("kv-smc"), smcPercent, {
+        decimals: 1,
+        suffix: '% of NOₓ',
+        useGrouping: false
+    });
     
 }
 
 function updateTables(filtered_reentries) {
-    
+
     const table1Foot = document.getElementById('reentryTableFoot');
     table1Foot.innerHTML = '';
     let totalBC = 0, totalmass = 0, totalHCl = 0;
@@ -522,7 +576,6 @@ function buildTableRows(filtered_reentries) {
         `;
 
         fragment.appendChild(row);
-
     });
 
     table1Body.replaceChildren(fragment);
@@ -783,6 +836,7 @@ function downloaddata(filtered_reentries) {
 
         return str;
     }
+
     
     // Add header row
     rows.push(headers.join(","));
@@ -859,22 +913,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     endDate = intToDateString(Number(daterange[1]),true);
 
     document.getElementById('applyFilters').addEventListener('click', () => {
+        if (!all_reentries) return;
         filterreentries(all_reentries);
     });
 
     document.getElementById('resetFilters').addEventListener('click', () => {
+        if (!all_reentries) return;
         resetFilters(all_reentries);
     });
 
-    
     document.getElementById('downloaddata').addEventListener('click', () => {
+        if (!all_reentries) return;
         downloaddata(window.lastFilteredData);
     });
 
     const toggle = document.getElementById("timeToggle");
     toggle.addEventListener("change", () => {
         timeAggregation = toggle.checked ? "annual" : "monthly";
-        updateVisualizations(window.lastFilteredData);
+        updateStack(window.lastFilteredData);
     });
 
     const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
@@ -894,6 +950,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     document.getElementById("active-filters").addEventListener("click", (e) => {
+        if (!all_reentries) return;
         const btn = e.target.closest(".remove-chip");
         if (!btn) return;
     
