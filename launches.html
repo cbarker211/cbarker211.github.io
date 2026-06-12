@@ -183,7 +183,7 @@
 				<div id="slider" style="margin:3em;"></div>
 			</div>
 
-			<div style="display:flex; justify-content:space-between; align-items:center; margin-top:1em;">
+			<div style="display:flex; justify-content:space-between; align-items:center; margin-top:1em; gap: 0.5em;">
 				<div>
 					Start Date:  
 					<select id="month-select1" aria-label="Start date month"></select>
@@ -199,6 +199,9 @@
 				  
 					<span id="label-annual">Annual</span>
 				</div>
+				<div class="playback-bar">
+					<button id="playButton" class="play-button" type="button" aria-label="Play emissions through time">Start Timelapse</button>
+				</div>
 				<div>
 					End Date:
 					<select id="month-select2" aria-label="End date month"></select>
@@ -212,6 +215,7 @@
 					<div class="dashboard">
 
 						<div id="stack-panel" class="panel">
+							<div class="chart-skeleton" aria-hidden="true"></div>
 							<div id="stackchart" class="stack"></div>
 						</div>
 						
@@ -249,6 +253,7 @@
 						  
 						<div id="pie-panel" class="panel">
 							<h2>Total Emissions</h2>
+							<div class="chart-skeleton pie-skeleton" aria-hidden="true"></div>
 							<div id="piechart" class="pie"></div>
 						</div>	
 

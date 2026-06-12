@@ -50,6 +50,126 @@ var monthSelect2 = document.getElementById('month-select2');
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+// Playback + URL-restore state
+let playState = { playing: false, token: 0 };
+let playYMax = null;
+let playxaxis = null;
+let playProgress = null;
+let originalRange = null;
+
+// ---- Loading skeleton ----
+function setLoading(isLoading) {
+    document.body.classList.toggle('loading', !!isLoading);
+}
+
+// ---- Count-up animation for the Key Metrics cards ----
+function animateCount(el, target, opts = {}) {
+    if (!el) return;
+    const { decimals = 0, prefix = '', suffix = '', duration = 900, useGrouping = true } = opts;
+    const fmt = (v) => {
+        const n = Number(v.toFixed(decimals));
+        const num = useGrouping
+            ? n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+            : n.toFixed(decimals);
+        return `${prefix}${num}${suffix}`;
+    };
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !Number.isFinite(target)) {
+        el.textContent = fmt(Number.isFinite(target) ? target : 0);
+        return;
+    }
+    const start = performance.now();
+    function frame(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+        el.textContent = fmt(target * eased);
+        if (t < 1) requestAnimationFrame(frame);
+        else el.textContent = fmt(target);
+    }
+    requestAnimationFrame(frame);
+}
+
+// ---- Play through time ----
+function cancelPlay() {
+    if (!playState.playing) return;
+
+    playState.playing = false;
+    playState.token++;
+
+    const btn = document.getElementById('playButton');
+    if (btn) { btn.classList.remove('playing'); btn.innerHTML = 'Start Timelapse'; }
+
+
+    // Reset view
+    if (originalRange) {
+        slider.noUiSlider.set(originalRange);
+
+        startDate = intToDateString(originalRange[0]);
+        endDate = intToDateString(originalRange[1], true);
+    }
+    originalRange = null;
+    playYMax = null;
+    playxaxis = null;
+    filterlaunches(all_launches);
+}
+
+async function playThroughTime() {
+    if (!all_launches) return;
+
+    const toggle = document.getElementById("timeToggle");
+    toggle.checked = true;          // force annual on
+    timeAggregation = "annual";
+    updateStack(window.lastFilteredData);
+
+    const btn = document.getElementById('playButton');
+
+    if (playState.playing) { cancelPlay(); return; }
+
+    playState.playing = true;
+    const myToken = ++playState.token;
+
+   
+    if (btn) { btn.classList.add('playing'); btn.innerHTML = 'Stop Timelapse'; }
+
+    if (!originalRange) {
+        const handles = slider.noUiSlider.get().map(v => Math.round(Number(v)));
+        originalRange = [handles[0], handles[1]];
+    }
+
+    const lefthandle = originalRange[0];
+    const righthandle = originalRange[1];
+    const firstEnd = Math.min(lefthandle + 11, righthandle);
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    playxaxis = [Math.floor(lefthandle / 12 + 1955) - 0.5, Math.floor(righthandle / 12 + 1955) + 0.5];
+    playYMax = document.getElementById('stackchart').layout.yaxis.range[1];
+
+    for (let endIdx = firstEnd; endIdx <= righthandle; endIdx += 12) {
+        if (myToken !== playState.token) return; // paused / cancelled
+        const e = Math.min(endIdx, righthandle);
+        slider.noUiSlider.set([lefthandle, e]); // visual only; does not refetch
+        startDate = intToDateString(lefthandle);
+        endDate = intToDateString(e, true);
+        filterlaunches(all_launches, {
+            updateTable: false,
+            updatePie: false,
+            updateMapView: false,
+            updateStackChart: true,
+            updateChips: false
+        });
+        await sleep(25);
+    }
+
+    if (myToken === playState.token) {
+        originalRange = null;
+        playYMax = null;
+        playxaxis = null;
+        playState.playing = false;
+        filterlaunches(all_launches);
+        if (btn) { btn.classList.remove('playing'); btn.innerHTML = 'Start Timelapse'; }
+    }
+}
+
 function indexToDate(index) {
     const year = startYear + Math.floor(index / 12);
     const monthIndex = Math.floor(Number(index)) % 12; // 0–11
@@ -317,7 +437,16 @@ function renderFilterChips(filters) {
     container.style.display = container.children.length ? "block" : "none";
 }
 
-function filterlaunches(all_launches) {
+function filterlaunches(
+    all_launches,
+    {
+        updateTable = true,
+        updatePie = true,
+        updateMapView = true,
+        updateStackChart = true,
+        updateChips = true
+    } = {}
+) {
 
     function getSelectedfilters(filter) {
         const var_filter = document.getElementById(filter);
@@ -347,6 +476,13 @@ function filterlaunches(all_launches) {
     // Filter by SMC
     if (selectedSmc.length > 0) {
         indicesToKeep = indicesToKeep.filter(i => selectedSmc.includes(String(all_launches.smc[i])));
+    }
+
+    if (startDate && endDate) {
+        indicesToKeep = indicesToKeep.filter(i => {
+            const d = String(all_launches.date[i]).slice(0, 10);
+            return d >= startDate && d <= endDate;
+        });
     }
 
     // Filter the column arrays using the indicesToKeep
@@ -435,18 +571,24 @@ function filterlaunches(all_launches) {
     window.lastFilteredData = filteredData;
 
     // Update the visualizations with the filtered data
-    updateVisualizations(filteredData);
+    if (updateTable) updateTables(filteredData);
+    if (updatePie) updateGraph(filteredData);
+    if (updateMapView) updateMap(filteredData);
+    if (updateStackChart) updateStack(filteredData);
 
-    renderFilterChips({
-        LocationFilter: selectedLocations,
-        VehicleFilter: selectedRockets,
-        MegaconstellationFilter: selectedSmc,
-        AltitudeFilter: selectedAltitudes
-    });
+    if (updateChips) {
+        renderFilterChips({
+            LocationFilter: selectedLocations,
+            VehicleFilter: selectedRockets,
+            MegaconstellationFilter: selectedSmc,
+            AltitudeFilter: selectedAltitudes
+        });
+    }
 
 }
 
 async function fetchEventsData() {
+    setLoading(true);
     try {
         // Fetch the data from the API (replace with your actual API URL)
         // Data is in tonnes in json files.
@@ -547,14 +689,9 @@ async function fetchEventsData() {
 
     } catch (error) {
         console.error('Error fetching or processing the events data:', error);
+    } finally {
+        setLoading(false);
     }
-}
-
-function updateVisualizations(filtered_launches) {
-    updateTables(filtered_launches);
-    updateGraph(filtered_launches);
-    updateMap(filtered_launches);
-    updateStack(filtered_launches);
 }
 
 function deriveKeyMetricsData(all_launches) {
@@ -612,17 +749,26 @@ function updateKeyMetrics(data) {
     
     const avgIncrease = launches2025 - launches2024;    
 
-    document.getElementById("kv-launches").textContent =
-        `${totalLaunches.toLocaleString()}`;
-    
-    document.getElementById("kv-growth").textContent =
-        `+${Math.round(avgIncrease)} yr⁻¹`;
-    
-    document.getElementById("kv-bc").textContent =
-        `${totalBC.toFixed(1)} kt`;
-    
-    document.getElementById("kv-smc").textContent =
-        `${smcPercent.toFixed(1)}% of BC`;
+    animateCount(document.getElementById("kv-launches"), totalLaunches, { 
+        decimals: 0 
+    });
+
+    animateCount(document.getElementById("kv-growth"), Math.round(avgIncrease), {
+        decimals: 0,
+        prefix: avgIncrease < 0 ? '' : '+',
+        suffix: ' yr⁻¹'
+    });
+
+    animateCount(document.getElementById("kv-bc"), totalBC, { 
+        decimals: 1, 
+        suffix: ' kt' 
+    });
+
+    animateCount(document.getElementById("kv-smc"), smcPercent, {
+        decimals: 1,
+        suffix: '% of BC',
+        useGrouping: false
+    });
     
 }
 
@@ -954,11 +1100,13 @@ function updateStack(filtered_launches) {
             zeroline: true,
             gridcolor: '#bdbdbd',
             gridwidth: 1,
-            griddash: 'dot'
+            griddash: 'dot',
+            ...(playYMax != null ? { range: [0, playYMax], autorange: false } : {})
         },
         xaxis: {
             showgrid: false,
-            zeroline: false
+            zeroline: false,
+            ...(playxaxis != null ? { range: [playxaxis[0], playxaxis[1]], autorange: false } : {})
         },
         hovermode: 'closest',
         margin: {
@@ -1051,6 +1199,7 @@ slider.noUiSlider.on('update', (values, handle) => {
 });
 
 slider.noUiSlider.on('slide', (values, handle) => {
+    cancelPlay();
     const minSelectableIndex = (1957 - startYear) * 12; // January 1957
     const maxSelectableIndex = totalMonths;
 
@@ -1080,13 +1229,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     startDate = intToDateString(Number(daterange[0]));
     endDate = intToDateString(Number(daterange[1]),true);
 
+    document.getElementById('playButton').addEventListener('click', playThroughTime);
+
     document.getElementById('applyFilters').addEventListener('click', () => {
         if (!all_launches) return;
+        cancelPlay();
         filterlaunches(all_launches);
     });
 
     document.getElementById('resetFilters').addEventListener('click', () => {
         if (!all_launches) return;
+        cancelPlay();
         resetFilters(all_launches);
     });
 
@@ -1098,7 +1251,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const toggle = document.getElementById("timeToggle");
     toggle.addEventListener("change", () => {
         timeAggregation = toggle.checked ? "annual" : "monthly";
-        updateVisualizations(window.lastFilteredData);
+        updateStack(window.lastFilteredData);
     });
 
     const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
