@@ -21,6 +21,15 @@
 	<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 	<script defer src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
 
+	<link rel="canonical" href="https://orbitalemissions.org/launches.html">
+	<meta property="og:url" content="https://orbitalemissions.org/launches.html">
+	
+	<meta property="og:type" content="website">
+	<meta property="og:title" content="Rocket Launch Emissions Tracker">
+	<meta property="og:description" content="Explore global rocket launch emissions from 1957 to 2025. Filter by site, vehicle, megaconstellation, and altitude.">
+	<meta property="og:image" content="https://orbitalemissions.org/assets/images/og-launches.png">
+	<meta name="twitter:card" content="summary_large_image">
+
 	<style>
 
 		.site-table {
@@ -49,32 +58,30 @@
 	<div class="main">
 
 		<div class="left-column">
-			<div class="sidebar-rail">
+			<nav class="sidebar-rail"  aria-label="Primary">
 				
 				<a href="index.html" class="sidebar-nav-item home-item">
-					<img src="assets/images/home1.png" class="home-link">
+					<img src="assets/images/home1.png" alt="" class="home-link">
 					<span>Home</span>
 				</a>
 
-				<a href="launches.html" class="sidebar-nav-item launch-item" style="background: rgba(255,255,255,0.08);
-																					border-radius: 6px;
-																					color: white;">
-					<img src="assets/images/favicon_rocket.ico" class="launch-link" style="filter: brightness(1);">
+				<a href="launches.html" class="sidebar-nav-item launch-item active" aria-current="page">
+					<img src="assets/images/favicon_rocket.ico" alt="" class="launch-link" style="filter: brightness(1);">
 					<span>Launch Emissions</span>
 				</a>
 
 				<a href="reentries.html" class="sidebar-nav-item satellite-item">
-					<img src="assets/images/favicon_satellite.ico" class="satellite-link">
+					<img src="assets/images/favicon_satellite.ico" alt="" class="satellite-link">
 					<span>Re-entry Emissions</span>
 				</a>
 
 				<div id="faqButton" class="sidebar-nav-item faq-box">
-					<img src="assets/images/question-sign.svg" class="faq-link">
+					<img src="assets/images/question-sign.svg" alt="" class="faq-link">
 					<span>Further Information</span>
 				</div>
 
 				<div id="toggleSidebar" class="sidebar-nav-item filter-item">
-					<img src="assets/images/setting.png" class="filter-img">
+					<img src="assets/images/setting.png" alt="" class="filter-img">
 					<span>Filters
 						<span style="font-size: 0.8em; padding: 0;">
 							(click to open/collapse sidebar)
@@ -82,7 +89,7 @@
 					</span>
 				</div>
 
-			</div>
+			</nav>
 
 			<div class="sidebar-content">
 		

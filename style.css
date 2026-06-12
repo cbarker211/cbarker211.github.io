@@ -246,9 +246,12 @@ body:not(.sidebar-collapsed) .sidebar-rail .sidebar-nav-item span {
 	filter: brightness(0) invert(1);
 }
 
-.sidebar-nav-item.active span {
-	color: #74b9e7;
+.sidebar-nav-item.active {
+	background: rgba(255,255,255,0.08);
+	border-radius: 6px;
+	color: white;
 	font-weight: bold;
+	color: #74b9e7;
 }
 
 #active-filters {
