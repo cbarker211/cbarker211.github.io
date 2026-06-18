@@ -34,13 +34,6 @@
 
 	<style>
 
-		.site-table {
-			width: 100%;
-			border-collapse: collapse;
-			white-space: nowrap;
-			color: black;
-		}
-
 		#site-table th, 
 		#site-table td {
 			word-wrap: break-word;
@@ -226,6 +219,11 @@
 						<div id="stack-panel" class="panel">
 							<div class="chart-skeleton" aria-hidden="true"></div>
 							<div id="stackchart" class="stack"></div>
+							<div id="error-overlay" class="error-overlay" role="alert" aria-live="assertive">
+								<div class="error-card">
+									<p>📡 Error loading emissions data. Please try again later...</p>
+								</div>
+							</div>
 						</div>
 						
 						<div id="key-values-panel" class="panel">

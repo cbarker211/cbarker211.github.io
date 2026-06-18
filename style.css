@@ -1065,3 +1065,20 @@ body.loading .chart-skeleton {
 .play-button.playing {
 	background-color: #143d59;
 }
+
+.error-overlay {
+    display: none;            /* hidden by default */
+    position: absolute;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.85);
+    z-index: 50;
+}
+.error-card {
+    text-align: center;
+    padding: 1.5em 2em;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}

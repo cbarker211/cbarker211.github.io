@@ -1,5 +1,6 @@
 // Constants
 const startYear = 1955;
+const firstLaunchYear = 1957;
 const endYear = 2025;
 const totalMonths = (endYear - startYear + 1) * 12 - 1;
 const toggleButton = document.getElementById('toggleTableButton');
@@ -60,6 +61,11 @@ let originalRange = null;
 // ---- Loading skeleton ----
 function setLoading(isLoading) {
     document.body.classList.toggle('loading', !!isLoading);
+}
+
+function showError(isError) {
+    const el = document.getElementById('error-overlay');
+    if (el) el.style.display = isError ? 'flex' : 'none';
 }
 
 // ---- Count-up animation for the Key Metrics cards ----
@@ -244,9 +250,8 @@ function toMonthIndex(year, month) {
 }
 
 // Main functions
-
 noUiSlider.create(slider, {
-    start: [24, 851],
+    start: [(firstLaunchYear - startYear) * 12, totalMonths],
     connect: true,
     step: 1,
     range: {
@@ -286,7 +291,7 @@ noUiSlider.create(slider, {
 });
 
 // Append the option elements
-for (var i = 1957; i <= 2025; i++) {
+for (var i = firstLaunchYear; i <= endYear; i++) {
 
     var option1 = document.createElement("option");
     option1.text = i;
@@ -589,6 +594,7 @@ function filterlaunches(
 
 async function fetchEventsData() {
     setLoading(true);
+    showError(false);
     try {
         // Fetch the data from the API (replace with your actual API URL)
         // Data is in tonnes in json files.
@@ -689,6 +695,7 @@ async function fetchEventsData() {
 
     } catch (error) {
         console.error('Error fetching or processing the events data:', error);
+        showError(true);
     } finally {
         setLoading(false);
     }
@@ -715,23 +722,23 @@ function updateKeyMetrics(data) {
     // --- Total BC (kt) ---
     const totalBC = data.BC.reduce((a, b) => a + b, 0) / 1000;
 
-    // --- % from megaconstellations (SMC) in 2025 ---
-    let totalBC_2025 = 0;
-    let smcBC_2025 = 0;
+    // --- % from megaconstellations (SMC) in latest year ---
+    let totalBC_final = 0;
+    let smcBC_final = 0;
 
     data.date.forEach((date, i) => {
         if (date.startsWith("2025")) {
             const val = data.BC[i];
-            totalBC_2025 += val;
+            totalBC_final += val;
 
             if (data.smc[i] === true || data.smc[i] === "true") {
-                smcBC_2025 += val;
+                smcBC_final += val;
             }
         }
     });
 
-    const smcPercent = totalBC_2025 > 0
-        ? (smcBC_2025 / totalBC_2025) * 100
+    const smcPercent = totalBC_final > 0
+        ? (smcBC_final / totalBC_final) * 100
         : 0;
 
 
@@ -1026,6 +1033,11 @@ function updateStack(filtered_launches) {
             ? dateStr.slice(0, 4)   // YYYY
             : dateStr.slice(0, 7);  // YYYY-MM
 
+        if (!sums[bin]) {
+            console.warn(`updateStack: launch ${i} (${dateStr}) fell outside bins [${xVals?.[0]}…]`);
+            continue;   // bin outside generated range — skip
+        }
+
         species.forEach(sp => {
             sums[bin][sp] += Number(filtered_launches[sp][i]) || 0;
         });
@@ -1200,7 +1212,7 @@ slider.noUiSlider.on('update', (values, handle) => {
 
 slider.noUiSlider.on('slide', (values, handle) => {
     cancelPlay();
-    const minSelectableIndex = (1957 - startYear) * 12; // January 1957
+    const minSelectableIndex = (firstLaunchYear - startYear) * 12; // January 1957
     const maxSelectableIndex = totalMonths;
 
     let value = Math.round(values[handle]);
@@ -1414,9 +1426,7 @@ sidebarToggle.addEventListener('click', () => {
             Plotly.Plots.resize(document.getElementById('piechart'));
             if (window.lastFilteredData) {
                 updateGraph(window.lastFilteredData);
-            }
-            Plotly.Plots.resize(document.getElementById('map'));
-        }
+            }}
     }, 300);
 });
 
