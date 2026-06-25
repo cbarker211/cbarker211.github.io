@@ -7,20 +7,20 @@ const locationGroups = {
     "Known (Named Location)": [2],
     "Known (Political Region)": [3],
     "Known (Geographic Region)": [4],
-    "Known (Falcon Reusable)": [5], 
+    "Known (Falcon Reusable)": [5],
     "Approximate (Inclination Known)": [6],
     "Approximate (Inclination Unknown)": [7]
 };
-const toggleButton = document.getElementById('toggleTableButton');
+let tablePageSize = 15;
 const tableBody = document.getElementById('reentryTableBody');
 
 const prettyNames = {
     BC: 'BC',
     unab_mass: 'Unablated Mass',
     Cl: 'Cl',
-    Al2O3: 'AlO<sub>x</sub>',
+    Al2O3: 'AlOₓ',
     HCl: 'HCl',
-    NOx: 'NO<sub>x</sub>'
+    NOx: 'NOₓ'
 };
 
 const strongColors = {
@@ -33,11 +33,14 @@ const strongColors = {
 };
 
 //Variables
-let tableExpanded = false;
 let fullDataForMetrics = null;
 let startDate, endDate;
 let timeAggregation = "annual";
 let all_reentries = null;
+let tablePage = 0;
+let tableSort = { col: 'date', dir: -1 };
+let tableSearch = '';
+let stackHoverHandlerAttached = false;
 var slider = document.getElementById('slider');
 var yearSelect1 = document.getElementById('year-select1');
 var yearSelect2 = document.getElementById('year-select2');
@@ -243,6 +246,11 @@ function resetFilters(reentries) {
     resetCheckboxes('CategoryFilter');
     resetCheckboxes('MegaconstellationFilter');
 
+    // Clear table search
+    tableSearch = '';
+    const si = document.getElementById('tableSearch');
+    if (si) si.value = '';
+
     // Re-run filtering or show all data
     filterreentries(reentries);
 }
@@ -373,7 +381,10 @@ function filterreentries(all_reentries) {
 
     window.lastFilteredData = filteredData;
 
-    // Update the visualizations with the filtered data
+    const isEmpty = filteredData.date.length === 0;
+    const emptyEl = document.getElementById('empty-state');
+    if (emptyEl) emptyEl.classList.toggle('visible', isEmpty);
+
     updateVisualizations(filteredData);
 
     renderFilterChips({
@@ -431,6 +442,7 @@ async function fetchEventsData() {
         
         populateFilters(all_reentries);
         filterreentries(all_reentries);
+        requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
 
     } catch (error) {
         console.error('Error fetching or processing the events data:', error);
@@ -518,12 +530,12 @@ function updateKeyMetrics(data) {
 }
 
 function updateTables(filtered_reentries) {
-
-    const table1Foot = document.getElementById('reentryTableFoot');
-    table1Foot.innerHTML = '';
+    const tableFoot = document.getElementById('reentryTableFoot');
+    tableFoot.innerHTML = '';
     let totalBC = 0, totalmass = 0, totalHCl = 0;
     let totalAl2O3 = 0, totalCl = 0, totalNOx = 0;
-    filtered_reentries.id.forEach((location, index) => {
+
+    filtered_reentries.id.forEach((_, index) => {
         totalBC    += filtered_reentries.BC[index];
         totalAl2O3 += filtered_reentries.Al2O3[index];
         totalNOx   += filtered_reentries.NOx[index];
@@ -531,10 +543,10 @@ function updateTables(filtered_reentries) {
         totalCl    += filtered_reentries.Cl[index];
         totalmass  += filtered_reentries.unab_mass[index];
     });
-    // Add Totals to Re-entry Table
-    const totalRow1 = document.createElement('tr');
-    totalRow1.innerHTML = `
-        <td>Total</td>
+
+    const totalRow = document.createElement('tr');
+    totalRow.innerHTML = `
+        <td>Total (${filtered_reentries.id.length})</td>
         <td>-</td>
         <td>-</td>
         <td>-</td>
@@ -547,38 +559,105 @@ function updateTables(filtered_reentries) {
         <td>${totalCl.toFixed(2)}</td>
         <td>${totalmass.toFixed(2)}</td>
     `;
-    table1Foot.appendChild(totalRow1);
+    tableFoot.appendChild(totalRow);
+
+    tablePage = 0;
+    renderTable(filtered_reentries);
 }
 
-function buildTableRows(filtered_reentries) {
+function renderTable(filtered_reentries) {
+    // Build a derived array that includes the human-readable location label for sorting
+    let indices = [...Array(filtered_reentries.date.length).keys()];
 
-    const table1Body = document.getElementById('reentryTableBody');
+    // Search
+    if (tableSearch) {
+        const q = tableSearch.toLowerCase();
+        indices = indices.filter(i =>
+            filtered_reentries.date[i].toLowerCase().includes(q) ||
+            filtered_reentries.objname[i].toLowerCase().includes(q) ||
+            filtered_reentries.category[i].toLowerCase().includes(q) ||
+            getLocationLabel(filtered_reentries.location[i]).toLowerCase().includes(q) ||
+            String(filtered_reentries.id[i]).includes(q)
+        );
+    }
 
+    // Sort
+    if (tableSort.col) {
+        const col = tableSort.col;
+        indices.sort((a, b) => {
+            let va, vb;
+            if (col === 'locationLabel') {
+                va = getLocationLabel(filtered_reentries.location[a]);
+                vb = getLocationLabel(filtered_reentries.location[b]);
+            } else {
+                va = filtered_reentries[col]?.[a] ?? '';
+                vb = filtered_reentries[col]?.[b] ?? '';
+            }
+            if (va < vb) return -tableSort.dir;
+            if (va > vb) return tableSort.dir;
+            return 0;
+        });
+    }
+
+    // Pagination
+    const total = indices.length;
+    const totalPages = Math.max(1, Math.ceil(total / tablePageSize));
+    tablePage = Math.min(tablePage, totalPages - 1);
+    const pageIndices = indices.slice(tablePage * tablePageSize, (tablePage + 1) * tablePageSize);
+
+    // Render rows
     const fragment = document.createDocumentFragment();
 
-    filtered_reentries.id.forEach((id, index) => {
-
+    if (pageIndices.length === 0) {
         const row = document.createElement('tr');
-
-        row.innerHTML = `
-            <td>${filtered_reentries.date[index].replace("T", " ").replace("Z", " ")}</td>
-            <td>${id}</td>
-            <td class="wrap-text">${getLocationLabel(filtered_reentries.location[index])}</td>
-            <td class="wrap-text">${filtered_reentries.objname[index]}</td>
-            <td>${filtered_reentries.category[index]}</td>
-            <td>${filtered_reentries.smc[index]}</td>
-            <td>${filtered_reentries.Al2O3[index].toFixed(1)}</td>
-            <td>${filtered_reentries.NOx[index].toFixed(1)}</td>
-            <td>${filtered_reentries.BC[index].toFixed(1)}</td>
-            <td>${filtered_reentries.HCl[index].toFixed(1)}</td>
-            <td>${filtered_reentries.Cl[index].toFixed(1)}</td>
-            <td>${filtered_reentries.unab_mass[index].toFixed(1)}</td>
-        `;
-
+        row.innerHTML = `<td colspan="12" style="text-align:center; opacity:0.5; padding:1.5em;">No results</td>`;
         fragment.appendChild(row);
-    });
+    } else {
+        pageIndices.forEach(i => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${filtered_reentries.date[i].replace("T"," ").replace("Z","")}</td>
+                <td>${filtered_reentries.id[i]}</td>
+                <td class="wrap-text" title="${getLocationLabel(filtered_reentries.location[i])}">${getLocationLabel(filtered_reentries.location[i])}</td>
+                <td class="wrap-text" title="${filtered_reentries.objname[i]}">${filtered_reentries.objname[i]}</td>
+                <td>${filtered_reentries.category[i]}</td>
+                <td>${filtered_reentries.smc[i]}</td>
+                <td>${filtered_reentries.Al2O3[i].toFixed(1)}</td>
+                <td>${filtered_reentries.NOx[i].toFixed(1)}</td>
+                <td>${filtered_reentries.BC[i].toFixed(1)}</td>
+                <td>${filtered_reentries.HCl[i].toFixed(1)}</td>
+                <td>${filtered_reentries.Cl[i].toFixed(1)}</td>
+                <td>${filtered_reentries.unab_mass[i].toFixed(1)}</td>
+            `;
+            fragment.appendChild(row);
+        });
+    }
 
-    table1Body.replaceChildren(fragment);
+    tableBody.replaceChildren(fragment);
+
+    // Update pagination controls
+    const start = total === 0 ? 0 : tablePage * tablePageSize + 1;
+    const end = Math.min((tablePage + 1) * tablePageSize, total);
+    document.getElementById('tableInfo').textContent =
+        total === 0 ? 'No results' : `${start}–${end} of ${total}`;
+    document.getElementById('tablePageInfo').textContent =
+        `${tablePage + 1} / ${totalPages}`;
+    document.getElementById('tablePrevPage').disabled = tablePage === 0;
+    document.getElementById('tableNextPage').disabled = tablePage >= totalPages - 1;
+}
+
+function computeTablePageSize() {
+    const MIN_ROWS = 10;
+    const tableScroll = document.querySelector('.table-scroll');
+    if (!tableScroll || tableScroll.offsetHeight === 0) return tablePageSize;
+    const thead = tableScroll.querySelector('thead');
+    const tfoot = tableScroll.querySelector('tfoot');
+    const theadH = thead ? thead.offsetHeight : 36;
+    const tfootH = tfoot ? tfoot.offsetHeight : 0;
+    const available = tableScroll.offsetHeight - theadH - tfootH - 4;
+    const firstRow = tableScroll.querySelector('tbody tr');
+    const rowH = firstRow ? firstRow.offsetHeight : 33;
+    return Math.max(MIN_ROWS, Math.floor(available / rowH));
 }
 
 function updateGraph(filtered_reentries) {
@@ -629,11 +708,11 @@ function updateGraph(filtered_reentries) {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         height: height,
-        font: { color: 'black', family: 'Space Grotesk, sans-serif', size: chartFontSize}, // general font
+        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: chartFontSize },
         annotations: [{
             text: showLabels ? 'Total<br>' + Math.round(totalSum/1000) + ' kt' : '',
             showarrow: false,
-            font: { size: chartFontSize * 0.95 }
+            font: { size: chartFontSize * 0.95, color: 'white' }
         }],
         hovermode: 'closest',
         dragmode: false,
@@ -646,8 +725,7 @@ function updateGraph(filtered_reentries) {
         showlegend: false
     };
 
-    // Plot the chart inside the 'emissionsChart' div
-    Plotly.react('piechart', trace, layout, {responsive: true, displayModeBar: false, scrollZoom: false });
+    Plotly.react('piechart', trace, layout, { responsive: true, displayModeBar: false, scrollZoom: false });
 
 }
 
@@ -726,7 +804,8 @@ function updateStack(filtered_reentries) {
                 y: xVals.map(b => sums[b][sp] / 1000),
                 type: 'bar',
                 name: prettyNames[sp],
-                marker: { color: strongColors[sp] }
+                marker: { color: strongColors[sp] },
+                hoverinfo: 'none',
             };
         } else {
             return {
@@ -736,7 +815,8 @@ function updateStack(filtered_reentries) {
                 mode: 'none',
                 stackgroup: 'one',
                 name: prettyNames[sp],
-                fillcolor: strongColors[sp]
+                fillcolor: strongColors[sp],
+                hoverinfo: 'none',
             };
         }
     });
@@ -748,63 +828,110 @@ function updateStack(filtered_reentries) {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         autosize: true,
-        font: { color: 'black', family: 'Space Grotesk, sans-serif', size: chartFontSize},
-        legend: { 
+        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: chartFontSize },
+        legend: {
             orientation: 'v',
-            x: 0, 
-            y: 1, 
-            font: { 
-                color: 'black', 
-                size: chartFontSize * 0.95, 
+            x: 0.01,
+            xanchor: 'left',
+            y: 0.99,
+            yanchor: 'top',
+            title: {
+                text: 'Click to show/hide',
+                side: 'top center',
+                font: { color: 'rgba(255,255,255,0.55)', size: chartFontSize * 0.95, family: 'Space Grotesk, sans-serif' }
+            },
+            font: {
+                color: 'white',
+                size: chartFontSize * 0.95,
                 family: 'Space Grotesk, sans-serif'
             },
-            bgcolor: 'rgba(255,255,255,1)',
+            bgcolor: 'rgba(20,61,89,0.85)',
+            bordercolor: 'rgba(255,255,255,0.15)',
+            borderwidth: 1,
         },
-        annotations: [
-            {
-            text: "Click legend<br>to show/hide<br>species ←",
-            x: 0.,
-            y: 1,
-            xref: "paper",
-            yref: "paper",
-            yshift: -4,
-            xshift: 80,
-            xanchor: "left",
-            yanchor: "top",
-            showarrow: false,
-            align: "left",
-            font: {
-                size: chartFontSize * 0.95,
-                color: "rgba(0,0,0,0.6)"
-            },
-            bgcolor: 'rgba(255,255,255,1)',
-            }
-        ],
         yaxis: {
-            title: {text: 'Mass [kilotonnes]'},
+            title: { text: 'Mass [kilotonnes]', font: { color: 'white' } },
+            tickfont: { color: 'white' },
             showgrid: true,
             zeroline: true,
-            gridcolor: '#bdbdbd',
+            gridcolor: 'rgba(255,255,255,0.12)',
+            zerolinecolor: 'rgba(255,255,255,0.3)',
             gridwidth: 1,
-            griddash: 'dot'
+            griddash: 'dot',
         },
         xaxis: {
+            tickfont: { color: 'white' },
             showgrid: false,
-            zeroline: false
+            zeroline: false,
+            showspikes: false,
         },
-        hovermode: 'closest',
+        hovermode: 'x unified',
+        hoverlabel: {
+            align: 'center',
+            bgcolor: 'rgba(20,61,89,0.92)',
+            bordercolor: 'rgba(255,255,255,0.2)',
+            font: { color: 'white', family: 'Space Grotesk, sans-serif', size: chartFontSize * 1.1 },
+            namelength: -1,
+        },
         margin: {
             t: chartFontSize * 2,
             r: chartFontSize * 2,
             b: chartFontSize * 2,
             l: chartFontSize * 4
         },
-        barmode: 'stack',  
+        barmode: 'stack',
     };
-    Plotly.react('stackchart', traces , layout, {
-        responsive: true, 
-        displayModeBar: true 
+    Plotly.react('stackchart', traces, layout, {
+        responsive: true,
+        displayModeBar: true,
+        modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'],
+        displaylogo: false,
     });
+
+    if (!stackHoverHandlerAttached) {
+        stackHoverHandlerAttached = true;
+        const chartEl = document.getElementById('stackchart');
+        const tooltip = document.getElementById('stackHoverTooltip');
+        const panel = document.getElementById('stack-panel');
+
+        chartEl.on('plotly_hover', (data) => {
+            if (!data.points?.length || !tooltip || !panel) return;
+            const xLabel = data.points[0].x;
+            const panelRect = panel.getBoundingClientRect();
+            const mx = (data.event?.clientX ?? 0) - panelRect.left;
+            const my = (data.event?.clientY ?? 0) - panelRect.top;
+
+            const rows = [...data.points]
+                .reverse()
+                .map(pt => {
+                    if ((pt.y ?? 0) < 0.0005) return '';
+                    const color = pt.data.marker?.color ?? pt.data.fillcolor ?? 'white';
+                    return `<span class="sht-name"><span style="color:${color}">●</span> ${pt.data.name ?? ''}</span>` +
+                           `<span class="sht-value">${pt.y.toFixed(3)} kt</span>`;
+                }).filter(Boolean);
+
+            if (!rows.length) return;
+
+            tooltip.innerHTML =
+                `<div class="sht-year">${xLabel}</div>` +
+                `<div class="sht-rows">${rows.join('')}</div>`;
+            tooltip.style.display = 'block';
+
+            const tw = tooltip.offsetWidth;
+            const th = tooltip.offsetHeight;
+            let left = mx + 14;
+            let top = my - th - 8;
+            if (left + tw + 8 > panelRect.width)  left = mx - tw - 14;
+            if (top < 4)  top = 4;
+            if (left < 4) left = 4;
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top  = `${top}px`;
+        });
+
+        const hideTooltip = () => { if (tooltip) tooltip.style.display = 'none'; };
+        chartEl.on('plotly_unhover', hideTooltip);
+        chartEl.addEventListener('mouseleave', hideTooltip);
+    }
 
 }
 
@@ -946,8 +1073,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                     updateGraph(window.lastFilteredData);
                 }
             }
+            if (activatedTabId === 'details-tab') {
+                const newSize = computeTablePageSize();
+                if (newSize !== tablePageSize) {
+                    tablePageSize = newSize;
+                }
+                if (window.lastFilteredData) renderTable(window.lastFilteredData);
+            }
         });
     });
+
+    new ResizeObserver(() => {
+        if (!document.getElementById('details-tabpane')?.classList.contains('active')) return;
+        const newSize = computeTablePageSize();
+        if (newSize !== tablePageSize) {
+            tablePageSize = newSize;
+            if (window.lastFilteredData) renderTable(window.lastFilteredData);
+        }
+    }).observe(document.querySelector('.center-column') || document.body);
 
     document.getElementById("active-filters").addEventListener("click", (e) => {
         if (!all_reentries) return;
@@ -1018,22 +1161,66 @@ document.addEventListener('DOMContentLoaded', async () => {
     const faqButton = document.getElementById("faqButton");
     const closeBtn = document.getElementById("closeModal");
 
-    // open via button
-    faqButton.onclick = () => {
+    const openModal = () => {
         modal.classList.add("active");
+        closeBtn.focus();
     };
-
-    // close
-    closeBtn.onclick = () => {
+    const closeModal = () => {
         modal.classList.remove("active");
+        faqButton.focus();
     };
 
-    // click outside
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            modal.classList.remove("active");
-        }
-    };
+    faqButton.onclick = openModal;
+    closeBtn.onclick = closeModal;
+    modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+    });
+
+    // Table search
+    const searchInput = document.getElementById('tableSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            tableSearch = searchInput.value.trim();
+            tablePage = 0;
+            if (window.lastFilteredData) renderTable(window.lastFilteredData);
+        });
+    }
+
+    // Table pagination
+    document.getElementById('tablePrevPage')?.addEventListener('click', () => {
+        if (tablePage > 0) { tablePage--; renderTable(window.lastFilteredData); }
+    });
+    document.getElementById('tableNextPage')?.addEventListener('click', () => {
+        tablePage++;
+        renderTable(window.lastFilteredData);
+    });
+
+    // Table column sort
+    document.querySelectorAll('#reentryTable thead th[data-col]').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = th.dataset.col;
+            if (tableSort.col === col) {
+                tableSort.dir *= -1;
+            } else {
+                tableSort.col = col;
+                tableSort.dir = 1;
+            }
+            document.querySelectorAll('#reentryTable thead th').forEach(h => {
+                h.classList.remove('sort-asc', 'sort-desc');
+            });
+            th.classList.add(tableSort.dir === 1 ? 'sort-asc' : 'sort-desc');
+            tablePage = 0;
+            if (window.lastFilteredData) renderTable(window.lastFilteredData);
+        });
+    });
+
+    // Apply initial sort indicator
+    const initialSortTh = document.querySelector('#reentryTable thead th[data-col="date"]');
+    if (initialSortTh) initialSortTh.classList.add('sort-desc');
+
+    // Auto-collapse sidebar on narrow screens
+    if (window.innerWidth <= 768) document.body.classList.add('sidebar-collapsed');
 
 });
 
@@ -1041,19 +1228,6 @@ window.addEventListener('load', () => {
     fetchEventsData();
 });
 
-toggleButton.addEventListener('click', () => {
-    tableExpanded = !tableExpanded;
-    if (tableExpanded) {
-        tableBody.style.display = 'table-row-group';
-        if (window.lastFilteredData) {buildTableRows(window.lastFilteredData);}
-        toggleButton.innerHTML = '&#9660;';
-    } else {
-        tableBody.style.display = 'none';
-        tableBody.innerHTML = ''; // Free up memory
-        toggleButton.innerHTML = '&#9650;';
-    }
-
-});
 
 document.querySelectorAll('.filter').forEach(filter => {
     filter.addEventListener('click', e => {

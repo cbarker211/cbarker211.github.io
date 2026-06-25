@@ -3,17 +3,17 @@ const startYear = 1955;
 const firstLaunchYear = 1957;
 const endYear = 2025;
 const totalMonths = (endYear - startYear + 1) * 12 - 1;
-const toggleButton = document.getElementById('toggleTableButton');
+let tablePageSize = 15;
 const tableBody = document.getElementById('launchTableBody');
 
 const prettyNames = {
     BC: 'BC',
     CO: 'CO',
-    CO2: 'CO<sub>2</sub>',
-    H2O: 'H<sub>2</sub>O',
-    Al2O3: 'Al<sub>2</sub>O<sub>3</sub>',
-    Cly: 'Cl<sub>y</sub>',
-    NOx: 'NO<sub>x</sub>'
+    CO2: 'CO₂',
+    H2O: 'H₂O',
+    Al2O3: 'Al₂O₃',
+    Cly: 'Clᵧ',
+    NOx: 'NOₓ'
 };
 
 const strongColors = {
@@ -36,7 +36,9 @@ const map = new maplibregl.Map({
 });
 
 //Variables
-let tableExpanded = false;
+let tablePage = 0;
+let tableSort = { col: 'date', dir: -1 };
+let tableSearch = '';
 let fullDataForMetrics = null;
 let siteDataMap = {};
 let startDate, endDate;
@@ -55,8 +57,9 @@ var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
 let playState = { playing: false, token: 0 };
 let playYMax = null;
 let playxaxis = null;
-let playProgress = null;
+let currentPopup = null;
 let originalRange = null;
+let stackHoverHandlerAttached = false;
 
 // ---- Loading skeleton ----
 function setLoading(isLoading) {
@@ -184,38 +187,26 @@ function indexToDate(index) {
     return `${monthNames[monthIndex]} ${year}`;
 }
 
-function updateSiteTable(site) {
-    const table = document.getElementById('site-table');
-    table.innerHTML = `<tr><th>Property</th><th>Value [click on launch site to load]</th></tr>`;
+function showSitePopup(site) {
+    if (currentPopup) currentPopup.remove();
 
-    const cleanedLaunches = site.labels.map(label => label.replace(/^Launch\s+/, ''));
+    const rows = site.labels.map(({ id, vehicle }) =>
+        `<span class="launch-id">${id}</span><span class="launch-vehicle">${vehicle}</span>`
+    ).join('');
 
-    const launchesHTML = `
-        <div style="
-            max-height: 40vh; 
-            overflow-y: auto; 
-            padding: 4px; 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.05);
-        ">
-            ${cleanedLaunches.join('<br>')}
-        </div>
-    `;
+    const count = site.labels.length;
 
-    const rows = [
-        ['Name', site.name],
-        ['Latitude', site.lat],
-        ['Longitude', site.lon],
-        ['Number of Launches', site.labels.length],
-        ['Launches', launchesHTML],
-    ];
-
-    rows.forEach(([prop, val]) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="wrap-text">${prop}</td><td class="wrap-text">${val}</td>`;
-        table.appendChild(tr);
-    });
+    currentPopup = new maplibregl.Popup({ closeButton: true, maxWidth: '420px' })
+        .setLngLat([site.lon, site.lat])
+        .setHTML(`
+            <div class="site-popup-title">${site.name}</div>
+            <div class="site-popup-meta">
+                ${count} launch${count !== 1 ? 'es' : ''}
+                &nbsp;·&nbsp; ${site.lat.toFixed(2)}°, ${site.lon.toFixed(2)}°
+            </div>
+            <div class="site-popup-launches">${rows}</div>
+        `)
+        .addTo(map);
 }
 
 function intToDateString(monthIndex, isEnd = false) {
@@ -365,6 +356,11 @@ function resetFilters(launches) {
     resetCheckboxes('VehicleFilter');
     resetCheckboxes('MegaconstellationFilter');
     resetCheckboxes('AltitudeFilter', ['0-15 km', '15-50 km', '50-80 km']); // restore default
+
+    // Clear table search
+    tableSearch = '';
+    const si = document.getElementById('tableSearch');
+    if (si) si.value = '';
 
     // Re-run filtering or show all data
     filterlaunches(launches);
@@ -575,7 +571,10 @@ function filterlaunches(
 
     window.lastFilteredData = filteredData;
 
-    // Update the visualizations with the filtered data
+    const isEmpty = filteredData.date.length === 0;
+    const emptyEl = document.getElementById('empty-state');
+    if (emptyEl) emptyEl.classList.toggle('visible', isEmpty);
+
     if (updateTable) updateTables(filteredData);
     if (updatePie) updateGraph(filteredData);
     if (updateMapView) updateMap(filteredData);
@@ -692,6 +691,7 @@ async function fetchEventsData() {
         
         populateFilters(all_launches);
         filterlaunches(all_launches);
+        requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
 
     } catch (error) {
         console.error('Error fetching or processing the events data:', error);
@@ -791,14 +791,14 @@ async function updateMap(filtered_launches) {
 
         if (!siteMap[site]) {
             siteMap[site] = {
-            lat: lat,
-            lon,
-            name: site,
-            labels: []
+                lat: lat,
+                lon,
+                name: site,
+                labels: []
             };
         }
 
-        siteMap[site].labels.push(`Launch ${id} - ${vehicle}`);
+        siteMap[site].labels.push({ id, vehicle });
     });
 
     
@@ -836,12 +836,12 @@ async function updateMap(filtered_launches) {
 
 function updateTables(filtered_launches) {
 
-    const table1Foot = document.getElementById('launchTableFoot');
-    table1Foot.innerHTML = '';
+    const tableFoot = document.getElementById('launchTableFoot');
+    tableFoot.innerHTML = '';
     let totalBC = 0, totalCO = 0, totalCO2 = 0, totalH2O = 0;
     let totalAl2O3 = 0, totalCly = 0, totalNOx = 0;
 
-    filtered_launches.id.forEach((id, index) => {
+    filtered_launches.id.forEach((_, index) => {
         totalCO    += filtered_launches.CO[index];
         totalCO2   += filtered_launches.CO2[index];
         totalH2O   += filtered_launches.H2O[index];
@@ -850,10 +850,10 @@ function updateTables(filtered_launches) {
         totalNOx   += filtered_launches.NOx[index];
         totalCly   += filtered_launches.Cly[index];
     });
-    // Add Totals to Launch Table
-    const totalRow1 = document.createElement('tr');
-    totalRow1.innerHTML = `
-        <td>Total</td>
+
+    const totalRow = document.createElement('tr');
+    totalRow.innerHTML = `
+        <td>Total (${filtered_launches.id.length})</td>
         <td>-</td>
         <td>-</td>
         <td>-</td>
@@ -866,38 +866,99 @@ function updateTables(filtered_launches) {
         <td>${totalCly.toFixed(1)}</td>
         <td>${totalNOx.toFixed(1)}</td>
     `;
-    table1Foot.appendChild(totalRow1);
+    tableFoot.appendChild(totalRow);
+
+    tablePage = 0;
+    renderTable(filtered_launches);
 }
 
-function buildTableRows(filtered_launches) {
+function renderTable(filtered_launches) {
 
-    const table1Body = document.getElementById('launchTableBody');
+    // Build sorted index array
+    let indices = [...Array(filtered_launches.date.length).keys()];
 
+    // Search
+    if (tableSearch) {
+        const q = tableSearch.toLowerCase();
+        indices = indices.filter(i =>
+            filtered_launches.date[i].toLowerCase().includes(q) ||
+            filtered_launches.text[i].toLowerCase().includes(q) ||
+            filtered_launches.rocket[i].toLowerCase().includes(q) ||
+            String(filtered_launches.id[i]).includes(q)
+        );
+    }
+
+    // Sort
+    if (tableSort.col) {
+        const col = tableSort.col;
+        indices.sort((a, b) => {
+            const va = filtered_launches[col]?.[a] ?? '';
+            const vb = filtered_launches[col]?.[b] ?? '';
+            if (va < vb) return -tableSort.dir;
+            if (va > vb) return tableSort.dir;
+            return 0;
+        });
+    }
+
+    // Pagination
+    const total = indices.length;
+    const totalPages = Math.max(1, Math.ceil(total / tablePageSize));
+    tablePage = Math.min(tablePage, totalPages - 1);
+    const pageIndices = indices.slice(tablePage * tablePageSize, (tablePage + 1) * tablePageSize);
+
+    // Render rows
     const fragment = document.createDocumentFragment();
 
-    filtered_launches.id.forEach((id, index) => {
-
+    if (pageIndices.length === 0) {
         const row = document.createElement('tr');
-
-        row.innerHTML = `
-            <td>${filtered_launches.date[index].replace("T", " ").replace("Z", " ")}</td>
-            <td>${id}</td>
-            <td class="wrap-text">${filtered_launches.text[index]}</td>
-            <td class="wrap-text">${filtered_launches.rocket[index]}</td>
-            <td>${filtered_launches.smc[index]}</td>
-            <td>${filtered_launches.BC[index].toFixed(1)}</td>
-            <td>${filtered_launches.CO[index].toFixed(1)}</td>
-            <td>${filtered_launches.CO2[index].toFixed(1)}</td>
-            <td>${filtered_launches.H2O[index].toFixed(1)}</td>
-            <td>${filtered_launches.Al2O3[index].toFixed(1)}</td>
-            <td>${filtered_launches.Cly[index].toFixed(1)}</td>
-            <td>${filtered_launches.NOx[index].toFixed(1)}</td>
-        `;
-
+        row.innerHTML = `<td colspan="12" style="text-align:center; opacity:0.5; padding:1.5em;">No results</td>`;
         fragment.appendChild(row);
-    });
+    } else {
+        pageIndices.forEach(i => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${filtered_launches.date[i].replace("T"," ").replace("Z","")}</td>
+                <td>${filtered_launches.id[i]}</td>
+                <td class="wrap-text" title="${filtered_launches.text[i]}">${filtered_launches.text[i]}</td>
+                <td class="wrap-text" title="${filtered_launches.rocket[i]}">${filtered_launches.rocket[i]}</td>
+                <td>${filtered_launches.smc[i]}</td>
+                <td>${filtered_launches.BC[i].toFixed(1)}</td>
+                <td>${filtered_launches.CO[i].toFixed(1)}</td>
+                <td>${filtered_launches.CO2[i].toFixed(1)}</td>
+                <td>${filtered_launches.H2O[i].toFixed(1)}</td>
+                <td>${filtered_launches.Al2O3[i].toFixed(1)}</td>
+                <td>${filtered_launches.Cly[i].toFixed(1)}</td>
+                <td>${filtered_launches.NOx[i].toFixed(1)}</td>
+            `;
+            fragment.appendChild(row);
+        });
+    }
 
-    table1Body.replaceChildren(fragment);
+    tableBody.replaceChildren(fragment);
+
+    // Update pagination controls
+    const start = total === 0 ? 0 : tablePage * tablePageSize + 1;
+    const end = Math.min((tablePage + 1) * tablePageSize, total);
+    document.getElementById('tableInfo').textContent =
+        total === 0 ? 'No results' : `${start}–${end} of ${total}`;
+    document.getElementById('tablePageInfo').textContent =
+        `${tablePage + 1} / ${totalPages}`;
+    document.getElementById('tablePrevPage').disabled = tablePage === 0;
+    document.getElementById('tableNextPage').disabled = tablePage >= totalPages - 1;
+}
+
+function computeTablePageSize() {
+    const MIN_ROWS = 10;
+    const tableScroll = document.querySelector('.table-scroll');
+    if (!tableScroll || tableScroll.offsetHeight === 0) return tablePageSize;
+    const thead = tableScroll.querySelector('thead');
+    const tfoot = tableScroll.querySelector('tfoot');
+    const theadH = thead ? thead.offsetHeight : 36;
+    const tfootH = tfoot ? tfoot.offsetHeight : 0;
+    const available = tableScroll.offsetHeight - theadH - tfootH - 4;
+    const firstRow = tableScroll.querySelector('tbody tr');
+    const rowH = firstRow ? firstRow.offsetHeight : 33;
+    return Math.max(MIN_ROWS, Math.floor(available / rowH));
 }
 
 function updateGraph(filtered_launches) {
@@ -950,11 +1011,11 @@ function updateGraph(filtered_launches) {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         height: height,
-        font: { color: 'black', family: 'Space Grotesk, sans-serif', size: chartFontSize}, // general font
+        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: chartFontSize},
         annotations: [{
             text: showLabels ? 'Total<br>' + Math.round(totalSum/1000) + ' kt' : '',
             showarrow: false,
-            font: { size: chartFontSize * 0.95 }
+            font: { size: chartFontSize * 0.95, color: 'white' }
         }],
         hovermode: 'closest',
         dragmode: false,
@@ -967,7 +1028,6 @@ function updateGraph(filtered_launches) {
         showlegend: false
     };
 
-    // Plot the chart inside the 'emissionsChart' div
     Plotly.react('piechart', trace, layout, {responsive: true, displayModeBar: false, scrollZoom: false });
 
 }
@@ -1052,7 +1112,8 @@ function updateStack(filtered_launches) {
                 y: xVals.map(b => sums[b][sp] / 1000),
                 type: 'bar',
                 name: prettyNames[sp],
-                marker: { color: strongColors[sp] }
+                marker: { color: strongColors[sp] },
+                hoverinfo: 'none',
             };
         } else {
             return {
@@ -1062,7 +1123,8 @@ function updateStack(filtered_launches) {
                 mode: 'none',
                 stackgroup: 'one',
                 name: prettyNames[sp],
-                fillcolor: strongColors[sp]
+                fillcolor: strongColors[sp],
+                hoverinfo: 'none',
             };
         }
     });
@@ -1074,65 +1136,112 @@ function updateStack(filtered_launches) {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         autosize: true,
-        font: { color: 'black', family: 'Space Grotesk, sans-serif', size: chartFontSize},
-        legend: { 
+        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: chartFontSize },
+        legend: {
             orientation: 'v',
-            x: 0, 
-            y: 1, 
-            font: { 
-                color: 'black', 
-                size: chartFontSize * 0.95, 
+            x: 0.01,
+            xanchor: 'left',
+            y: 0.99,
+            yanchor: 'top',
+            title: {
+                text: 'Click to show/hide',
+                side: 'top center',
+                font: { color: 'rgba(255,255,255,0.55)', size: chartFontSize * 0.95, family: 'Space Grotesk, sans-serif' }
+            },
+            font: {
+                color: 'white',
+                size: chartFontSize * 0.95,
                 family: 'Space Grotesk, sans-serif'
             },
-            bgcolor: 'rgba(255,255,255,1)',
+            bgcolor: 'rgba(20,61,89,0.85)',
+            bordercolor: 'rgba(255,255,255,0.15)',
+            borderwidth: 1,
         },
-        annotations: [
-            {
-            text: "Click legend<br>to show/hide<br>species ←",
-            x: 0.,
-            y: 1,
-            xref: "paper",
-            yref: "paper",
-            yshift: -4,
-            xshift: 80,
-            xanchor: "left",
-            yanchor: "top",
-            showarrow: false,
-            align: "left",
-            font: {
-                size: chartFontSize * 0.95,
-                color: "rgba(0,0,0,0.6)"
-            },
-            bgcolor: 'rgba(255,255,255,1)',
-            }
-        ],
         yaxis: {
-            title: {text: 'Mass [kilotonnes]'},
+            title: { text: 'Mass [kilotonnes]', font: { color: 'white' } },
+            tickfont: { color: 'white' },
             showgrid: true,
             zeroline: true,
-            gridcolor: '#bdbdbd',
+            gridcolor: 'rgba(255,255,255,0.12)',
+            zerolinecolor: 'rgba(255,255,255,0.3)',
             gridwidth: 1,
             griddash: 'dot',
             ...(playYMax != null ? { range: [0, playYMax], autorange: false } : {})
         },
         xaxis: {
+            tickfont: { color: 'white' },
             showgrid: false,
             zeroline: false,
+            showspikes: false,
             ...(playxaxis != null ? { range: [playxaxis[0], playxaxis[1]], autorange: false } : {})
         },
-        hovermode: 'closest',
+        hovermode: 'x unified',
+        hoverlabel: {
+            align: 'center',
+            bgcolor: 'rgba(20,61,89,0.92)',
+            bordercolor: 'rgba(255,255,255,0.2)',
+            font: { color: 'white', family: 'Space Grotesk, sans-serif', size: chartFontSize * 1.1 },
+            namelength: -1,
+        },
         margin: {
             t: chartFontSize * 2,
             r: chartFontSize * 2,
             b: chartFontSize * 2,
             l: chartFontSize * 4
         },
-        barmode: 'stack',  
+        barmode: 'stack',
     };
-    Plotly.react('stackchart', traces , layout, {
-        responsive: true, 
-        displayModeBar: true 
+    Plotly.react('stackchart', traces, layout, {
+        responsive: true,
+        displayModeBar: true,
+        modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'],
+        displaylogo: false,
     });
+
+    if (!stackHoverHandlerAttached) {
+        stackHoverHandlerAttached = true;
+        const chartEl = document.getElementById('stackchart');
+        const tooltip = document.getElementById('stackHoverTooltip');
+        const panel = document.getElementById('stack-panel');
+
+        chartEl.on('plotly_hover', (data) => {
+            if (!data.points?.length || !tooltip || !panel) return;
+            const xLabel = data.points[0].x;
+            const panelRect = panel.getBoundingClientRect();
+            const mx = (data.event?.clientX ?? 0) - panelRect.left;
+            const my = (data.event?.clientY ?? 0) - panelRect.top;
+
+            const rows = [...data.points]
+                .reverse()
+                .map(pt => {
+                    if ((pt.y ?? 0) < 0.0005) return '';
+                    const color = pt.data.marker?.color ?? pt.data.fillcolor ?? 'white';
+                    return `<span class="sht-name"><span style="color:${color}">●</span> ${pt.data.name ?? ''}</span>` +
+                           `<span class="sht-value">${pt.y.toFixed(3)} kt</span>`;
+                }).filter(Boolean);
+
+            if (!rows.length) return;
+
+            tooltip.innerHTML =
+                `<div class="sht-year">${xLabel}</div>` +
+                `<div class="sht-rows">${rows.join('')}</div>`;
+            tooltip.style.display = 'block';
+
+            const tw = tooltip.offsetWidth;
+            const th = tooltip.offsetHeight;
+            let left = mx + 14;
+            let top = my - th - 8;
+            if (left + tw + 8 > panelRect.width)  left = mx - tw - 14;
+            if (top < 4)  top = 4;
+            if (left < 4) left = 4;
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top  = `${top}px`;
+        });
+
+        const hideTooltip = () => { if (tooltip) tooltip.style.display = 'none'; };
+        chartEl.on('plotly_unhover', hideTooltip);
+        chartEl.addEventListener('mouseleave', hideTooltip);
+    }
 
 }
 
@@ -1283,8 +1392,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (activatedTabId === 'map-tab') {
                 Plotly.Plots.resize(document.getElementById('map'));
             }
+            if (activatedTabId === 'details-tab') {
+                const newSize = computeTablePageSize();
+                if (newSize !== tablePageSize) {
+                    tablePageSize = newSize;
+                }
+                if (window.lastFilteredData) renderTable(window.lastFilteredData);
+            }
         });
     });
+
+    new ResizeObserver(() => {
+        if (!document.getElementById('details-tabpane')?.classList.contains('active')) return;
+        const newSize = computeTablePageSize();
+        if (newSize !== tablePageSize) {
+            tablePageSize = newSize;
+            if (window.lastFilteredData) renderTable(window.lastFilteredData);
+        }
+    }).observe(document.querySelector('.center-column') || document.body);
 
     document.getElementById("active-filters").addEventListener("click", (e) => {
         if (!all_launches) return;
@@ -1355,22 +1480,66 @@ document.addEventListener('DOMContentLoaded', async () => {
     const faqButton = document.getElementById("faqButton");
     const closeBtn = document.getElementById("closeModal");
 
-    // open via button
-    faqButton.onclick = () => {
+    const openModal = () => {
         modal.classList.add("active");
+        closeBtn.focus();
     };
-
-    // close
-    closeBtn.onclick = () => {
+    const closeModal = () => {
         modal.classList.remove("active");
+        faqButton.focus();
     };
 
-    // click outside
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            modal.classList.remove("active");
-        }
-    };
+    faqButton.onclick = openModal;
+    closeBtn.onclick = closeModal;
+    modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+    });
+
+    // Table search
+    const searchInput = document.getElementById('tableSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            tableSearch = searchInput.value.trim();
+            tablePage = 0;
+            if (window.lastFilteredData) renderTable(window.lastFilteredData);
+        });
+    }
+
+    // Table pagination
+    document.getElementById('tablePrevPage')?.addEventListener('click', () => {
+        if (tablePage > 0) { tablePage--; renderTable(window.lastFilteredData); }
+    });
+    document.getElementById('tableNextPage')?.addEventListener('click', () => {
+        tablePage++;
+        renderTable(window.lastFilteredData);
+    });
+
+    // Table column sort
+    document.querySelectorAll('#launchTable thead th[data-col]').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = th.dataset.col;
+            if (tableSort.col === col) {
+                tableSort.dir *= -1;
+            } else {
+                tableSort.col = col;
+                tableSort.dir = 1;
+            }
+            document.querySelectorAll('#launchTable thead th').forEach(h => {
+                h.classList.remove('sort-asc', 'sort-desc');
+            });
+            th.classList.add(tableSort.dir === 1 ? 'sort-asc' : 'sort-desc');
+            tablePage = 0;
+            if (window.lastFilteredData) renderTable(window.lastFilteredData);
+        });
+    });
+
+    // Apply initial sort indicator
+    const initialSortTh = document.querySelector('#launchTable thead th[data-col="date"]');
+    if (initialSortTh) initialSortTh.classList.add('sort-desc');
+
+    // Auto-collapse sidebar on narrow screens
+    if (window.innerWidth <= 768) document.body.classList.add('sidebar-collapsed');
 
 });
 
@@ -1378,19 +1547,6 @@ window.addEventListener('load', () => {
     fetchEventsData();
 });
 
-toggleButton.addEventListener('click', () => {
-    tableExpanded = !tableExpanded;
-    if (tableExpanded) {
-        tableBody.style.display = 'table-row-group';
-        if (window.lastFilteredData) {buildTableRows(window.lastFilteredData);}
-        toggleButton.innerHTML = '&#9660;';
-    } else {
-        tableBody.style.display = 'none';
-        tableBody.innerHTML = ''; // Free up memory
-        toggleButton.innerHTML = '&#9650;';
-    }
-
-});
 
 document.querySelectorAll('.filter').forEach(filter => {
     filter.addEventListener('click', e => {
@@ -1473,7 +1629,7 @@ map.on("load", () => {
 
     map.on("click", "launch-points", (e) => {
         const siteName = e.features[0].properties.name;
-        updateSiteTable(window.siteDataMap[siteName]);
+        showSitePopup(window.siteDataMap[siteName]);
     });
 
     map.getSource("labels").setData(latestMapGeojson);

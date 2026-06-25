@@ -2,10 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Space Industry Emissions Tracker</title>
 
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/x-icon" href="assets/images/favicon_rocket.ico">
+
+    <link rel="preload" as="image" href="assets/images/esa_launch.jpg">
+    <link rel="preload" as="image" href="assets/images/esa_reentry.jpg">
 
     <link rel="canonical" href="https://orbitalemissions.org">
 	<meta property="og:url" content="https://orbitalemissions.org">
@@ -17,11 +21,7 @@
 	<meta name="twitter:card" content="summary_large_image">
 	<meta name="description" content="Explore global rocket launch and re-entry emissions from 1957 to 2025. Filter, download, and visualise the data.">
 
-</head>
-<body>
-
     <style>
-
         .landing-page {
             position: relative;
             width: 100%;
@@ -32,14 +32,14 @@
             justify-content: center;
             overflow: hidden;
             background-color: #111;
-            }
+        }
 
         .buttons {
             position: absolute;
             z-index: 2;
             display: flex;
             gap: 40px;
-            }
+        }
 
         .btn {
             padding: 20px;
@@ -51,16 +51,16 @@
             border-radius: 8px;
             transition: all 0.5s ease;
             background-color: #246a99;
-			border-color: transparent;
-			box-shadow: inset 0 0 0 0 transparent, 0 0 0 0 transparent, inset 0 0 0 0 transparent, 0 0.3rem 0 0 #143d59;
-		    }
+            border-color: transparent;
+            box-shadow: inset 0 0 0 0 transparent, 0 0 0 0 transparent, inset 0 0 0 0 transparent, 0 0.3rem 0 0 #143d59;
+        }
 
         .btn:hover {
             background-color: #588db1;
             transform: scale(1.1);
             cursor: pointer;
             font-weight: bold;
-            }
+        }
 
         .images-container {
             display: flex;
@@ -70,20 +70,21 @@
             top: 0;
             left: 0;
             overflow: hidden;
-            }
+        }
 
         .image-panel {
-            flex: 1; /* default: half the screen each */
+            flex: 1;
             height: 100%;
             background-size: auto 100%;
             background-position: center;
-            background-repeat: no-repeat; 
+            background-repeat: no-repeat;
             transition: flex 0.5s ease;
-            filter: blur(4px); /* default blur */
-            }
-
+            filter: blur(4px);
+        }
     </style>
+</head>
 
+<body>
 
     <div class="landing-page">
         <div class="buttons">

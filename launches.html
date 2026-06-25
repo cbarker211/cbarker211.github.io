@@ -3,24 +3,25 @@
 <head>
 
 	<meta charset="utf-8">
-	<title>Rocket Launch Emissions</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Rocket Launch Emissions Tracker</title>
 
-	<!-- Preconnect and DNS Prefetch -->
+	<!-- Preconnect -->
 	<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-	<link rel="preconnect" href="https://unpkg.com" crossorigin>
 	<link rel="preconnect" href="https://cdn.plot.ly" crossorigin>
-	<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+	<link rel="preconnect" href="https://cbarker.pythonanywhere.com" crossorigin>
+	<link rel="preconnect" href="https://tiles.versatiles.org" crossorigin>
 
 	<link rel="icon" type="image/x-icon" href="assets/images/favicon_rocket.ico">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
 	<link rel="stylesheet" href="style.css" type="text/css" media="screen" />
-	<link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet" />
 
 	<script defer src="https://cdn.plot.ly/plotly-basic-3.5.0.min.js"></script>
 	<script defer src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
 	<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-	<script defer src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+	<script defer src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 
 	<link rel="canonical" href="https://orbitalemissions.org/launches.html">
 	<meta property="og:url" content="https://orbitalemissions.org/launches.html">
@@ -31,20 +32,6 @@
 	<meta property="og:image" content="https://orbitalemissions.org/assets/images/og-launches.png">
 	<meta name="twitter:card" content="summary_large_image">
 	<meta name="description" content="Explore global rocket launch emissions from 1957 to 2025. Filter by site, vehicle, megaconstellation, and altitude.">
-
-	<style>
-
-		#site-table th, 
-		#site-table td {
-			word-wrap: break-word;
-		}
-
-		#site-table th:first-child,
-		#site-table td:first-child {
-			width: 150px; /* adjust as needed */
-		}
-
-	</style>
 
 </head>
 
@@ -219,9 +206,13 @@
 						<div id="stack-panel" class="panel">
 							<div class="chart-skeleton" aria-hidden="true"></div>
 							<div id="stackchart" class="stack"></div>
+							<div id="stackHoverTooltip" class="stack-hover-tooltip"></div>
+							<div id="empty-state" class="empty-state" role="status" aria-live="polite">
+								<div class="empty-state-card">No data matches your current filters.</div>
+							</div>
 							<div id="error-overlay" class="error-overlay" role="alert" aria-live="assertive">
 								<div class="error-card">
-									<p>📡 Error loading emissions data. Please try again later...</p>
+									<p>&#128225; Error loading emissions data. Please try again later.</p>
 								</div>
 							</div>
 						</div>
@@ -287,40 +278,47 @@
 				<div class="tab-pane fade" id="details-tabpane" role="tabpanel" aria-labelledby="details-tab" style="padding-left: 2em;">
 					<!-- Table for Launch Locations -->
 					<div class="table-container">
-						<p style="text-align: left;">[Emissions in tonnes. SMC=Satellite Megaconstellation. Click arrow to expand]</p>
+						<div class="table-controls">
+							<input type="search" id="tableSearch" class="table-search" placeholder="Search date, site, rocket…" aria-label="Search table">
+							<span id="tableInfo" class="table-info"></span>
+							<div class="table-pagination">
+								<button id="tablePrevPage" class="pagination-btn" aria-label="Previous page">&#8249;</button>
+								<span id="tablePageInfo" class="page-info"></span>
+								<button id="tableNextPage" class="pagination-btn" aria-label="Next page">&#8250;</button>
+							</div>
+						</div>
+						<p style="text-align: left; font-size: 0.8em; opacity: 0.6; margin: 0 0 0.35em;">[Emissions in tonnes · SMC = Satellite Megaconstellation]</p>
 						<div class="table-scroll">
 							<table id="launchTable">
 								<thead>
 									<tr>
-										<th>Date [UTC]</th>
-										<th>ID</th>
-										<th>Launch Site</th>
-										<th>Rocket</th>
-										<th>SMC</th>
-										<th>BC</th>
-										<th>CO</th>
-										<th>CO<sub>2</sub></th>
-										<th>H<sub>2</sub>O</th>
-										<th>Al<sub>2</sub>O<sub>3</sub></th>
-										<th>Cl<sub>y</sub></th>
-										<th>NO<sub>x</sub></th>
+										<th data-col="date">Date [UTC]</th>
+										<th data-col="id">ID</th>
+										<th data-col="text">Launch Site</th>
+										<th data-col="rocket">Rocket</th>
+										<th data-col="smc">SMC</th>
+										<th data-col="BC">BC</th>
+										<th data-col="CO">CO</th>
+										<th data-col="CO2">CO<sub>2</sub></th>
+										<th data-col="H2O">H<sub>2</sub>O</th>
+										<th data-col="Al2O3">Al<sub>2</sub>O<sub>3</sub></th>
+										<th data-col="Cly">Cl<sub>y</sub></th>
+										<th data-col="NOx">NO<sub>x</sub></th>
 									</tr>
 								</thead>
-								<tbody id="launchTableBody" style="display: none;">
-									<!-- Dynamic rows for launch locations will be inserted here -->
+								<tbody id="launchTableBody">
 								</tbody>
 								<tfoot id="launchTableFoot">
-									<!-- Totals for launches -->
 								</tfoot>
 							</table>
 						</div>
-						<button id="toggleTableButton" class="arrow-button">&#9650;</button>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
+	<script defer src="js/starfield.js"></script>
 	<script defer src="js/launches.js"></script>
 		
 	<div id="faqModal" class="modal">

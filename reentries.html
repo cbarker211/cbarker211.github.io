@@ -3,12 +3,13 @@
 <head>
 
 	<meta charset="utf-8">
-	<title>Object Re-entry Emissions</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Object Re-entry Emissions Tracker</title>
 
-	<!-- Preconnect and DNS Prefetch -->
+	<!-- Preconnect -->
 	<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 	<link rel="preconnect" href="https://cdn.plot.ly" crossorigin>
-	<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+	<link rel="preconnect" href="https://cbarker.pythonanywhere.com" crossorigin>
 
 	<link rel="icon" type="image/x-icon" href="assets/images/favicon_satellite.ico">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
@@ -179,6 +180,10 @@
 						<div id="stack-panel" class="panel">
 							<div class="chart-skeleton" aria-hidden="true"></div>
 							<div id="stackchart" class="stack"></div>
+							<div id="stackHoverTooltip" class="stack-hover-tooltip"></div>
+							<div id="empty-state" class="empty-state" role="status" aria-live="polite">
+								<div class="empty-state-card">No data matches your current filters.</div>
+							</div>
 						</div>
 						
 						<div id="key-values-panel" class="panel">
@@ -225,40 +230,47 @@
 				<div class="tab-pane fade" id="details-tabpane" role="tabpanel" aria-labelledby="details-tab" style="padding-left: 2em;">
 					<!-- Table for Re-entry Locations -->
 					<div class="table-container">
-						<p style="text-align: left;">[Emissions in tonnes. SMC=Satellite Megaconstellation, Cat=Category, P=Payload, C=Component, B=Booster, S=Stage. . Click arrow to expand]</p>
+						<div class="table-controls">
+							<input type="search" id="tableSearch" class="table-search" placeholder="Search date, name, category…" aria-label="Search table">
+							<span id="tableInfo" class="table-info"></span>
+							<div class="table-pagination">
+								<button id="tablePrevPage" class="pagination-btn" aria-label="Previous page">&#8249;</button>
+								<span id="tablePageInfo" class="page-info"></span>
+								<button id="tableNextPage" class="pagination-btn" aria-label="Next page">&#8250;</button>
+							</div>
+						</div>
+						<p style="text-align: left; font-size: 0.8em; opacity: 0.6; margin: 0 0 0.35em;">[Emissions in tonnes · SMC = Satellite Megaconstellation · Cat: P=Payload, C=Component, B=Booster, S=Stage]</p>
 						<div class="table-scroll">
 							<table id="reentryTable">
 								<thead>
 									<tr>
-										<th>Date [UTC]</th>
-										<th>ID</th>
-										<th>Location</th>
-										<th>Name</th>
-										<th>Cat</th>
-										<th>SMC</th>
-										<th>AlO<sub>x</sub></th>
-										<th>NO<sub>x</sub></th>
-										<th>BC</th>
-										<th>HCl</th>
-										<th>Cl</th>
-										<th>Unablated Mass</th>
+										<th data-col="date">Date [UTC]</th>
+										<th data-col="id">ID</th>
+										<th data-col="locationLabel">Location</th>
+										<th data-col="objname">Name</th>
+										<th data-col="category">Cat</th>
+										<th data-col="smc">SMC</th>
+										<th data-col="Al2O3">AlO<sub>x</sub></th>
+										<th data-col="NOx">NO<sub>x</sub></th>
+										<th data-col="BC">BC</th>
+										<th data-col="HCl">HCl</th>
+										<th data-col="Cl">Cl</th>
+										<th data-col="unab_mass">Unablated Mass</th>
 									</tr>
 								</thead>
-								<tbody id="reentryTableBody" style="display: none;">
-									<!-- Dynamic rows for re-entry locations will be inserted here -->
+								<tbody id="reentryTableBody">
 								</tbody>
 								<tfoot id="reentryTableFoot">
-									<!-- Totals for re-entries -->
 								</tfoot>
 							</table>
 						</div>
-						<button id="toggleTableButton" class="arrow-button">&#9650;</button>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
+	<script defer src="js/starfield.js"></script>
 	<script defer src="js/reentries.js"></script>
 		
 	<div id="faqModal" class="modal">
