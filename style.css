@@ -1399,3 +1399,146 @@ body::before {
 body::after {
     content: none;
 }
+
+/* ------------------------------------------------------------------ */
+/* Mobile layout (<=768px)                                              */
+/* The desktop layout pins the page to 100vh and relies on nested        */
+/* flex:1/min-height:0 chains to fill it exactly. On mobile we let the   */
+/* page scroll instead, so panels that relied on percentage heights      */
+/* need explicit heights of their own.                                   */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 768px) {
+
+	body {
+		height: auto;
+		min-height: 100vh;
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
+
+	.main {
+		flex-direction: column;
+	}
+
+	/* Desktop bounds these to exactly the viewport height and relies on
+	   overflow to scroll/clip within that box. On mobile the page itself
+	   scrolls, so nothing in this chain should clip or scroll internally —
+	   otherwise content taller than one screen (like the pie chart) gets
+	   cut off instead of the page growing to fit it. */
+	.center-column {
+		overflow-y: visible;
+	}
+
+	.tab-pane {
+		overflow: visible;
+	}
+
+	/* Sidebar becomes a full-width top bar; only the filter dropdowns
+	   collapse, so the nav labels stay legible (unlike the desktop
+	   icon-only collapse). */
+	.left-column,
+	body.sidebar-collapsed .left-column {
+		width: auto;
+		overflow: visible;
+	}
+
+	body.sidebar-collapsed .sidebar-content {
+		max-height: 0;
+		overflow: hidden;
+	}
+
+	body.sidebar-collapsed .sidebar-rail h1,
+	body.sidebar-collapsed .sidebar-rail .sidebar-nav-item span {
+		opacity: 1;
+	}
+
+	/* Desktop sets margin-left/margin-top to 0 so the center column sits
+	   flush against the sidebar beside it. Stacked on mobile, it needs its
+	   own gap on all sides instead. */
+	.center-column {
+		margin-left: var(--space-sm);
+		margin-top: 0;
+	}
+
+	/* Tabs get their own full-width row instead of squeezing beside the
+	   title, and shrink a bit so all three fit without wrapping. The
+	   separator border moves from the container (which now also wraps the
+	   title) onto the tabs row itself, so it stays directly under the tabs. */
+	.nav-tabs-container {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-sm);
+		border-bottom: none;
+	}
+
+	.nav-tabs {
+		flex-wrap: nowrap;
+		font-size: 1.1em;
+		width: 100%;
+		border-bottom: 0.3rem solid rgba(255,255,255,0.5);
+	}
+
+	.nav-tabs .nav-item {
+		padding-right: 0.4em;
+	}
+
+	.nav-tabs .nav-link {
+		padding: 0.3em 0.5em;
+		white-space: nowrap;
+	}
+
+	.date-controls {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.5em;
+	}
+
+	/* Push the monthly/annual toggle below both date rows, regardless of
+	   its position in the markup. */
+	.date-controls .toggle-container {
+		order: 1;
+	}
+
+	/* Date-range slider and timelapse playback are desktop-only affordances.
+	   Hide the wrapping .filter-container too, not just #slider itself, so
+	   no empty wrapper sliver is left behind in the center column. */
+	.filter-container:has(#slider),
+	#slider,
+	.playback-bar {
+		display: none;
+	}
+
+	.dashboard {
+		grid-template-columns: 1fr;
+		grid-template-rows: auto;
+		align-items: start;
+	}
+
+	#stack-panel,
+	#key-values-panel,
+	#pie-panel {
+		grid-column: 1;
+		grid-row: auto;
+	}
+
+	/* .stack/.pie use flex:1 (flex-basis:0%) on desktop, which would
+	   otherwise ignore this height entirely. */
+	.stack, .pie {
+		flex: none;
+		min-height: 50vh;
+	}
+
+	#key-values-panel,
+	#key-values {
+		flex: none;
+	}
+
+	#map {
+		height: 60vh;
+	}
+
+	.table-scroll {
+		overflow-x: auto;
+	}
+}

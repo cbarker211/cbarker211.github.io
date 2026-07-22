@@ -81,6 +81,19 @@
             transition: flex 0.5s ease;
             filter: blur(4px);
         }
+
+        @media (max-width: 480px) {
+            .buttons {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .btn {
+                width: 160px;
+                padding: 14px;
+                font-size: 1.3em;
+            }
+        }
     </style>
 </head>
 
