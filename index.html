@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Space Industry Emissions Tracker</title>
 
+    <script>
+        (function () {
+            var t = localStorage.getItem('oe-theme');
+            if (t !== 'light' && t !== 'dark') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/x-icon" href="assets/images/favicon_rocket.ico">
 
@@ -31,7 +41,7 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            background-color: #111;
+            background-color: var(--color-bg);
         }
 
         .buttons {
@@ -100,6 +110,12 @@
 <body>
 
     <div class="landing-page">
+        <button id="themeToggle" type="button" class="theme-toggle theme-toggle-standalone" aria-pressed="false" aria-label="Switch to light mode">
+            <span class="theme-toggle-icon" aria-hidden="true">
+                <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </span>
+        </button>
         <div class="buttons">
             <a href="launches.html" class="btn" id="launch-btn">Launch</a>
             <a href="reentries.html" class="btn" id="reentry-btn">Re-entry</a>
@@ -117,6 +133,7 @@
   </div>
 
   <script src="js/index.js"></script>
+  <script defer src="js/theme.js"></script>
 
 </body>
 </html>

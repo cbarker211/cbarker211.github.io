@@ -26,6 +26,18 @@ const strongColors = {
     NOx: '#c99b24'
 };
 
+// Plotly renders to canvas/SVG with static colors, so chart text/gridlines
+// need to be re-read from the current theme rather than following CSS vars.
+function isLightTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'light';
+}
+function chartTextColor() {
+    return isLightTheme() ? '#16242f' : '#ffffff';
+}
+function chartGridColor(opacity) {
+    return isLightTheme() ? `rgba(20,61,89,${opacity})` : `rgba(255,255,255,${opacity})`;
+}
+
 maplibregl.accessToken = null; // not needed for MapLibre
 
 const map = new maplibregl.Map({
@@ -1011,11 +1023,11 @@ function updateGraph(filtered_launches) {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         height: height,
-        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: chartFontSize},
+        font: { color: chartTextColor(), family: 'Space Grotesk, sans-serif', size: chartFontSize},
         annotations: [{
             text: showLabels ? 'Total<br>' + Math.round(totalSum/1000) + ' kt' : '',
             showarrow: false,
-            font: { size: chartFontSize * 0.95, color: 'white' }
+            font: { size: chartFontSize * 0.95, color: chartTextColor() }
         }],
         hovermode: 'closest',
         dragmode: false,
@@ -1136,7 +1148,7 @@ function updateStack(filtered_launches) {
         paper_bgcolor: 'rgba(0,0,0,0)',
         plot_bgcolor: 'rgba(0,0,0,0)',
         autosize: true,
-        font: { color: 'white', family: 'Space Grotesk, sans-serif', size: chartFontSize },
+        font: { color: chartTextColor(), family: 'Space Grotesk, sans-serif', size: chartFontSize },
         legend: {
             orientation: 'v',
             x: 0.01,
@@ -1158,18 +1170,18 @@ function updateStack(filtered_launches) {
             borderwidth: 1,
         },
         yaxis: {
-            title: { text: 'Mass [kilotonnes]', font: { color: 'white' } },
-            tickfont: { color: 'white' },
+            title: { text: 'Mass [kilotonnes]', font: { color: chartTextColor() } },
+            tickfont: { color: chartTextColor() },
             showgrid: true,
             zeroline: true,
-            gridcolor: 'rgba(255,255,255,0.12)',
-            zerolinecolor: 'rgba(255,255,255,0.3)',
+            gridcolor: chartGridColor(0.12),
+            zerolinecolor: chartGridColor(0.3),
             gridwidth: 1,
             griddash: 'dot',
             ...(playYMax != null ? { range: [0, playYMax], autorange: false } : {})
         },
         xaxis: {
-            tickfont: { color: 'white' },
+            tickfont: { color: chartTextColor() },
             showgrid: false,
             zeroline: false,
             showspikes: false,
@@ -1587,6 +1599,12 @@ sidebarToggle.addEventListener('click', () => {
 });
 
 window.addEventListener('resize', () => {
+    if (window.lastFilteredData) {
+        updateGraph(window.lastFilteredData);
+    }
+});
+
+document.addEventListener('oe-themechange', () => {
     if (window.lastFilteredData) {
         updateGraph(window.lastFilteredData);
     }
