@@ -857,7 +857,6 @@ function updateTables(filtered_launches) {
         <td>-</td>
         <td>-</td>
         <td>-</td>
-        <td>-</td>
         <td>${totalBC.toFixed(1)}</td>
         <td>${totalCO.toFixed(1)}</td>
         <td>${totalCO2.toFixed(1)}</td>
@@ -921,7 +920,6 @@ function renderTable(filtered_launches) {
                 <td>${filtered_launches.id[i]}</td>
                 <td class="wrap-text" title="${filtered_launches.text[i]}">${filtered_launches.text[i]}</td>
                 <td class="wrap-text" title="${filtered_launches.rocket[i]}">${filtered_launches.rocket[i]}</td>
-                <td>${filtered_launches.smc[i]}</td>
                 <td>${filtered_launches.BC[i].toFixed(1)}</td>
                 <td>${filtered_launches.CO[i].toFixed(1)}</td>
                 <td>${filtered_launches.CO2[i].toFixed(1)}</td>

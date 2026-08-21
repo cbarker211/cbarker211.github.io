@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 
+	<script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="8001a88d-4190-4a63-8e17-6892521e22db" data-blockingmode="auto" type="text/javascript"></script>
+
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Object Re-entry Emissions Tracker</title>
@@ -229,7 +231,7 @@
 						</div>
 						  
 						<div id="pie-panel" class="panel">
-							<h2>Total Emissions</h2>
+							<h2>Total Emissions [kt]</h2>
 							<div class="chart-skeleton pie-skeleton" aria-hidden="true"></div>
 							<div id="piechart" class="pie"></div>
 						</div>	
@@ -249,17 +251,15 @@
 								<button id="tableNextPage" class="pagination-btn" aria-label="Next page">&#8250;</button>
 							</div>
 						</div>
-						<p style="text-align: left; font-size: 0.8em; opacity: 0.6; margin: 0 0 0.35em;">[Emissions in tonnes · SMC = Satellite Megaconstellation · Cat: P=Payload, C=Component, B=Booster, S=Stage]</p>
+						<p style="text-align: left; font-size: 0.8em; opacity: 0.6; margin: 0 0 0.35em;">[Emissions in tonnes · SMC = Satellite Megaconstellation · Cat: P=Payload, O=Other, Sn=Stage and Number]</p>
 						<div class="table-scroll">
 							<table id="reentryTable">
 								<thead>
 									<tr>
 										<th data-col="date">Date [UTC]</th>
 										<th data-col="id">ID</th>
-										<th data-col="locationLabel">Location</th>
 										<th data-col="objname">Name</th>
 										<th data-col="category">Cat</th>
-										<th data-col="smc">SMC</th>
 										<th data-col="Al2O3">AlO<sub>x</sub></th>
 										<th data-col="NOx">NO<sub>x</sub></th>
 										<th data-col="BC">BC</th>

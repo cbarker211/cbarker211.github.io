@@ -550,8 +550,6 @@ function updateTables(filtered_reentries) {
         <td>-</td>
         <td>-</td>
         <td>-</td>
-        <td>-</td>
-        <td>-</td>
         <td>${totalAl2O3.toFixed(2)}</td>
         <td>${totalNOx.toFixed(2)}</td>
         <td>${totalBC.toFixed(2)}</td>
@@ -618,10 +616,8 @@ function renderTable(filtered_reentries) {
             row.innerHTML = `
                 <td>${filtered_reentries.date[i].replace("T"," ").replace("Z","")}</td>
                 <td>${filtered_reentries.id[i]}</td>
-                <td class="wrap-text" title="${getLocationLabel(filtered_reentries.location[i])}">${getLocationLabel(filtered_reentries.location[i])}</td>
                 <td class="wrap-text" title="${filtered_reentries.objname[i]}">${filtered_reentries.objname[i]}</td>
                 <td>${filtered_reentries.category[i]}</td>
-                <td>${filtered_reentries.smc[i]}</td>
                 <td>${filtered_reentries.Al2O3[i].toFixed(1)}</td>
                 <td>${filtered_reentries.NOx[i].toFixed(1)}</td>
                 <td>${filtered_reentries.BC[i].toFixed(1)}</td>
