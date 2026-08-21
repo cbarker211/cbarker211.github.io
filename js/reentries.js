@@ -171,6 +171,10 @@ noUiSlider.create(slider, {
     }
 });
 
+const initialRange = slider.noUiSlider.get();
+startDate = intToDateString(Number(initialRange[0]));
+endDate = intToDateString(Number(initialRange[1]), true);
+
 // Append the option elements
 for (var i = 1957; i <= 2025; i++) {
 
@@ -1220,9 +1224,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 });
 
-window.addEventListener('load', () => {
+function initialFetch() {
     fetchEventsData();
-});
+}
+
+if (document.readyState === 'complete') {
+    initialFetch();
+} else {
+    window.addEventListener('load', initialFetch);
+}
+
 
 
 document.querySelectorAll('.filter').forEach(filter => {
