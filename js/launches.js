@@ -839,38 +839,6 @@ async function updateMap(filtered_launches) {
 }
 
 function updateTables(filtered_launches) {
-
-    const tableFoot = document.getElementById('launchTableFoot');
-    tableFoot.innerHTML = '';
-    let totalBC = 0, totalCO = 0, totalCO2 = 0, totalH2O = 0;
-    let totalAl2O3 = 0, totalCly = 0, totalNOx = 0;
-
-    filtered_launches.id.forEach((_, index) => {
-        totalCO    += filtered_launches.CO[index];
-        totalCO2   += filtered_launches.CO2[index];
-        totalH2O   += filtered_launches.H2O[index];
-        totalBC    += filtered_launches.BC[index];
-        totalAl2O3 += filtered_launches.Al2O3[index];
-        totalNOx   += filtered_launches.NOx[index];
-        totalCly   += filtered_launches.Cly[index];
-    });
-
-    const totalRow = document.createElement('tr');
-    totalRow.innerHTML = `
-        <td>Total (${filtered_launches.id.length})</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>${totalBC.toFixed(1)}</td>
-        <td>${totalCO.toFixed(1)}</td>
-        <td>${totalCO2.toFixed(1)}</td>
-        <td>${totalH2O.toFixed(1)}</td>
-        <td>${totalAl2O3.toFixed(1)}</td>
-        <td>${totalCly.toFixed(1)}</td>
-        <td>${totalNOx.toFixed(1)}</td>
-    `;
-    tableFoot.appendChild(totalRow);
-
     tablePage = 0;
     renderTable(filtered_launches);
 }
@@ -890,6 +858,38 @@ function renderTable(filtered_launches) {
             String(filtered_launches.id[i]).includes(q)
         );
     }
+
+    // Totals row — reflects whatever's currently matched by the search box,
+    // not just the full filtered set, so it stays in sync while typing.
+    const tableFoot = document.getElementById('launchTableFoot');
+    let totalBC = 0, totalCO = 0, totalCO2 = 0, totalH2O = 0;
+    let totalAl2O3 = 0, totalCly = 0, totalNOx = 0;
+
+    indices.forEach(i => {
+        totalBC    += filtered_launches.BC[i];
+        totalCO    += filtered_launches.CO[i];
+        totalCO2   += filtered_launches.CO2[i];
+        totalH2O   += filtered_launches.H2O[i];
+        totalAl2O3 += filtered_launches.Al2O3[i];
+        totalCly   += filtered_launches.Cly[i];
+        totalNOx   += filtered_launches.NOx[i];
+    });
+
+    tableFoot.innerHTML = `
+        <tr>
+            <td>Total (${indices.length})</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>${totalBC.toFixed(1)}</td>
+            <td>${totalCO.toFixed(1)}</td>
+            <td>${totalCO2.toFixed(1)}</td>
+            <td>${totalH2O.toFixed(1)}</td>
+            <td>${totalAl2O3.toFixed(1)}</td>
+            <td>${totalCly.toFixed(1)}</td>
+            <td>${totalNOx.toFixed(1)}</td>
+        </tr>
+    `;
 
     // Sort
     if (tableSort.col) {

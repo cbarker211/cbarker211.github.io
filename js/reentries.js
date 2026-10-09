@@ -534,35 +534,6 @@ function updateKeyMetrics(data) {
 }
 
 function updateTables(filtered_reentries) {
-    const tableFoot = document.getElementById('reentryTableFoot');
-    tableFoot.innerHTML = '';
-    let totalBC = 0, totalmass = 0, totalHCl = 0;
-    let totalAl2O3 = 0, totalCl = 0, totalNOx = 0;
-
-    filtered_reentries.id.forEach((_, index) => {
-        totalBC    += filtered_reentries.BC[index];
-        totalAl2O3 += filtered_reentries.Al2O3[index];
-        totalNOx   += filtered_reentries.NOx[index];
-        totalHCl   += filtered_reentries.HCl[index];
-        totalCl    += filtered_reentries.Cl[index];
-        totalmass  += filtered_reentries.unab_mass[index];
-    });
-
-    const totalRow = document.createElement('tr');
-    totalRow.innerHTML = `
-        <td>Total (${filtered_reentries.id.length})</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>${totalAl2O3.toFixed(2)}</td>
-        <td>${totalNOx.toFixed(2)}</td>
-        <td>${totalBC.toFixed(2)}</td>
-        <td>${totalHCl.toFixed(2)}</td>
-        <td>${totalCl.toFixed(2)}</td>
-        <td>${totalmass.toFixed(2)}</td>
-    `;
-    tableFoot.appendChild(totalRow);
-
     tablePage = 0;
     renderTable(filtered_reentries);
 }
@@ -582,6 +553,36 @@ function renderTable(filtered_reentries) {
             String(filtered_reentries.id[i]).includes(q)
         );
     }
+
+    // Totals row — reflects whatever's currently matched by the search box,
+    // not just the full filtered set, so it stays in sync while typing.
+    const tableFoot = document.getElementById('reentryTableFoot');
+    let totalBC = 0, totalmass = 0, totalHCl = 0;
+    let totalAl2O3 = 0, totalCl = 0, totalNOx = 0;
+
+    indices.forEach(i => {
+        totalBC    += filtered_reentries.BC[i];
+        totalAl2O3 += filtered_reentries.Al2O3[i];
+        totalNOx   += filtered_reentries.NOx[i];
+        totalHCl   += filtered_reentries.HCl[i];
+        totalCl    += filtered_reentries.Cl[i];
+        totalmass  += filtered_reentries.unab_mass[i];
+    });
+
+    tableFoot.innerHTML = `
+        <tr>
+            <td>Total (${indices.length})</td>
+            <td>-</td>
+            <td>-</td>
+            <td>-</td>
+            <td>${totalAl2O3.toFixed(2)}</td>
+            <td>${totalNOx.toFixed(2)}</td>
+            <td>${totalBC.toFixed(2)}</td>
+            <td>${totalHCl.toFixed(2)}</td>
+            <td>${totalCl.toFixed(2)}</td>
+            <td>${totalmass.toFixed(2)}</td>
+        </tr>
+    `;
 
     // Sort
     if (tableSort.col) {

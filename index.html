@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
+
     <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="8001a88d-4190-4a63-8e17-6892521e22db" data-blockingmode="auto" type="text/javascript"></script>
 
     <meta charset="UTF-8">
@@ -16,7 +16,7 @@
 
     <link rel="canonical" href="https://orbitalemissions.org">
 	<meta property="og:url" content="https://orbitalemissions.org">
-	
+
 	<meta property="og:type" content="website">
 	<meta property="og:title" content="Space Industry Emissions Tracker">
 	<meta property="og:description" content="Explore global rocket launch and re-entry emissions from 1957 to 2025. Filter, download, and visualise the data.">
@@ -24,102 +24,112 @@
 	<meta name="twitter:card" content="summary_large_image">
 	<meta name="description" content="Explore global rocket launch and re-entry emissions from 1957 to 2025. Filter, download, and visualise the data.">
 
-    <style>
-        .landing-page {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            background-color: #111;
-        }
-
-        .buttons {
-            position: absolute;
-            z-index: 2;
-            display: flex;
-            gap: 40px;
-        }
-
-        .btn {
-            padding: 20px;
-            width: 200px;
-            font-size: 2em;
-            text-decoration: none;
-            color: white;
-            border: 2px solid white;
-            border-radius: 8px;
-            transition: all 0.5s ease;
-            background-color: #246a99;
-            border-color: transparent;
-            box-shadow: inset 0 0 0 0 transparent, 0 0 0 0 transparent, inset 0 0 0 0 transparent, 0 0.3rem 0 0 #143d59;
-        }
-
-        .btn:hover {
-            background-color: #588db1;
-            transform: scale(1.1);
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .images-container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            overflow: hidden;
-        }
-
-        .image-panel {
-            flex: 1;
-            height: 100%;
-            background-size: auto 100%;
-            background-position: center;
-            background-repeat: no-repeat;
-            transition: flex 0.5s ease;
-            filter: blur(4px);
-        }
-
-        @media (max-width: 480px) {
-            .buttons {
-                flex-direction: column;
-                gap: 20px;
-            }
-
-            .btn {
-                width: 160px;
-                padding: 14px;
-                font-size: 1.3em;
-            }
-        }
-    </style>
 </head>
 
-<body>
+<body class="landing">
 
-    <div class="landing-page">
-        <div class="buttons">
-            <a href="launches.html" class="btn" id="launch-btn">Launch</a>
-            <a href="reentries.html" class="btn" id="reentry-btn">Re-entry</a>
+    <header class="site-header">
+        <a href="index.html" class="site-logo" aria-label="Orbital Emissions home">
+            <span class="mark" aria-hidden="true">
+                <span class="ring"></span>
+                <span class="tilt-wrap"><span class="satellite"></span></span>
+                <span class="mark-core">
+                    <svg viewBox="0 0 100 100">
+                        <rect width="100" height="100" fill="#2f82c9"/>
+                        <path d="M30,12 C43,9 55,15 59,25 C63,33 56,39 60,47 C65,55 59,66 48,63 C45,70 34,72 29,63 C21,65 14,57 19,47 C13,41 15,31 21,25 C19,19 23,15 30,12 Z" fill="#3a9c5c"/>
+                        <path d="M69,53 C78,49 88,55 85,66 C90,73 83,82 72,79 C66,86 56,79 59,70 C54,64 59,56 69,53 Z" fill="#4fb373"/>
+                    </svg>
+                    <span class="shading"></span>
+                </span>
+            </span>RBITAL<span class="logo-dim">EMISSIONS</span>
+        </a>
+        <a class="site-header-link" href="https://doi.org/10.5281/zenodo.18173797" target="_blank" rel="noopener noreferrer">Cite this dataset&nbsp;&#8599;</a>
+    </header>
+
+    <main class="hero">
+        <div class="hero-logo" aria-hidden="true">
+            <span class="mark">
+                <span class="ring"></span>
+                <span class="tilt-wrap"><span class="satellite"></span></span>
+                <span class="mark-core">
+                    <svg viewBox="0 0 100 100">
+                        <rect width="100" height="100" fill="#2f82c9"/>
+                        <path d="M30,12 C43,9 55,15 59,25 C63,33 56,39 60,47 C65,55 59,66 48,63 C45,70 34,72 29,63 C21,65 14,57 19,47 C13,41 15,31 21,25 C19,19 23,15 30,12 Z" fill="#3a9c5c"/>
+                        <path d="M69,53 C78,49 88,55 85,66 C90,73 83,82 72,79 C66,86 56,79 59,70 C54,64 59,56 69,53 Z" fill="#4fb373"/>
+                    </svg>
+                    <span class="shading"></span>
+                </span>
+            </span>RBITAL<span class="logo-dim">EMISSIONS</span>
         </div>
-    <div class="images-container">
-        <div class="image-panel" id="launch-panel"></div>
-        <div class="image-panel" id="reentry-panel"></div>
-    </div>
-  </div>
 
-  <div class="bottom-row">
-    <p style="text-align: left; margin: 0;">
-        Images: ESA/David Ducross, ESA/SpaceX. 
-    </p>
-  </div>
+        <h1 class="hero-title">Mapping the atmospheric footprint of the space industry</h1>
 
-  <script src="js/index.js" data-cookieconsent="necessary"></script>
+        <p class="hero-sub">
+            Welcome to this global dataset and interactive explorer covering rocket launch and spacecraft re-entry emissions from 1957 to 2025. Built on rigorous scientific research, this tool is designed to support further investigation and regulation of a rapidly growing industry.
+        </p>
+
+        <div class="stat-row">
+            <div class="stat">
+                <div class="stat-value">1957&ndash;2025</div>
+                <div class="stat-label">Years of launch &amp; re-entry data</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">7</div>
+                <div class="stat-label">Emitted species tracked</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">Global</div>
+                <div class="stat-label">Coverage of launch sites &amp; re-entry locations</div>
+            </div>
+        </div>
+    </main>
+
+    <section class="cta-grid">
+        <a href="launches.html" class="cta-card" style="--cta-image:url('assets/images/esa_launch.jpg')">
+            <div class="cta-card-body">
+                <h2>Launch Emissions</h2>
+                <p>Filter emissions by launch site, vehicle, mission type and altitude across nearly seven decades of orbital launches.</p>
+                <span class="cta-arrow">Explore launches &rarr;</span>
+            </div>
+        </a>
+        <a href="reentries.html" class="cta-card" style="--cta-image:url('assets/images/esa_reentry.jpg')">
+            <div class="cta-card-body">
+                <h2>Re-entry Emissions</h2>
+                <p>Track the atmospheric impact of spacecraft and debris burning up on re-entry, by location, object type and mission.</p>
+                <span class="cta-arrow">Explore re-entries &rarr;</span>
+            </div>
+        </a>
+    </section>
+
+    <section class="about-section">
+        <div class="about-grid">
+            <div>
+                <p class="eyebrow">Why it matters</p>
+                <h2>An emerging, poorly-quantified source of emissions</h2>
+                <p>
+                    As launch cadence accelerates and megaconstellations grow, rocket exhaust and re-entry burn-up are an increasingly significant and poorly understood source of atmospheric pollutants. This tracker makes the underlying data explorable, filterable and downloadable.
+                </p>
+            </div>
+            <div>
+                <p class="eyebrow">Developed by</p>
+                <h2>UCL &amp; Harvard-Smithsonian</h2>
+                <p>
+                    <a href="https://profiles.ucl.ac.uk/93616-connor-barker" target="_blank" rel="noopener noreferrer">Connor Barker</a> and
+                    <a href="https://profiles.ucl.ac.uk/77783-eloise-marais" target="_blank" rel="noopener noreferrer">Eloise Marais</a> (UCL),
+                    in collaboration with
+                    <a href="https://www.cfa.harvard.edu/people/jonathan-mcdowell" target="_blank" rel="noopener noreferrer">Jonathan McDowell</a>
+                    (Harvard&ndash;Smithsonian Center for Astrophysics), with funding from the European
+                    Research Council (Horizon 2020, grant&nbsp;851854).
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="landing-footer">
+        <p style="margin: 0;">Images: ESA/David Ducross, ESA/SpaceX.</p>
+    </footer>
+
+    <script defer src="js/starfield.js" data-cookieconsent="necessary"></script>
 
 </body>
 </html>
