@@ -803,11 +803,6 @@ p {
     font-weight: bold;
 }
 
-.tracker-subtitle {
-    font-size: 0.8rem;
-}
-
-
 /* Container to align the tables side by side */
 
 .table-container {
@@ -1590,7 +1585,7 @@ body::after {
 	justify-content: space-between;
 	flex-shrink: 0;
 	gap: var(--space-md);
-	padding: 0.9rem 1.5rem;
+	padding: 0.6rem 1.5rem;
 	border-bottom: 1px solid var(--line);
 	background: rgba(5, 7, 15, 0.55);
 	backdrop-filter: blur(10px);
@@ -1725,6 +1720,13 @@ body::after {
 
 .site-header-link:hover {
 	color: var(--ink);
+}
+
+.site-header-title {
+	font-weight: bold;
+	font-size: 1.2rem;
+	letter-spacing: 0.01em;
+	white-space: nowrap;
 }
 
 @media (max-width: 480px) {
