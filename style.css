@@ -1755,7 +1755,7 @@ body.landing {
 .hero {
 	max-width: 68rem;
 	margin: 0 auto;
-	padding: clamp(1.5rem, 4vh, 3rem) 1.5rem clamp(2rem, 5vh, 3.5rem);
+	padding: clamp(1.5rem, 4vh, 3rem) 1.5rem 0.75rem;
 	text-align: left;
 }
 
